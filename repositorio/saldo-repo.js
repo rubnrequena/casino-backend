@@ -327,6 +327,14 @@ module.exports = {
             .lean();
         });
       },
+      /**
+       *
+       * @param {String} usuarioId
+       * @param {String} tipo
+       * @param {Number} limite
+       * @param {Boolean} procesada
+       * @returns {Promise<Transaccion[]>}
+       */
       historia_padre(usuarioId, tipo, limite, procesada) {
         return new Promise((resolve, reject) => {
           let condicion = { jerarquia: usuarioId, tipo, cancelada: false };
@@ -336,7 +344,7 @@ module.exports = {
               if (error) return reject(error.message);
               resolve(transacciones);
             })
-            .populate("metodo", "entidad")
+            .populate("metodo", "entidad direccion meta")
             .populate("usuario", "nombre usuario")
             .limit(limite)
             .sort({ tiempo: -1 })

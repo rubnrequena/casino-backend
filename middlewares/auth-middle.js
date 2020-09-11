@@ -12,6 +12,9 @@ module.exports = {
       "/auth/registro_online",
       "/auth/activar",
       "/images",
+      "/auth/recuperar",
+      "/hipismo/saldo",
+      "/hipismo/transaccion",
     ];
     let url = req.url.split("?")[0];
     const excluir = excluciones.indexOf(url) > -1;

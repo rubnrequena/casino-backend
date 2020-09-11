@@ -47,6 +47,7 @@ class Usuario {
   /** @type {String} */ permisos;
   /** @type {String} */ menu;
   /** @type {String} */ codigo;
+  /** @type {Object} */ meta;
 }
 
 module.exports = Usuario;

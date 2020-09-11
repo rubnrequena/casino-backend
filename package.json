@@ -21,6 +21,7 @@
     "express-useragent": "^1.0.15",
     "geoip-lite": "^1.4.2",
     "helmet": "^3.23.3",
+    "https": "^1.0.0",
     "jsonwebtoken": "^8.5.1",
     "md5": "^2.2.1",
     "moment": "^2.27.0",

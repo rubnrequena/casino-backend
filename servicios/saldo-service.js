@@ -58,16 +58,7 @@ module.exports = {
    * @param {String} mensaje
    */
   retiro(usuario, monto, metodo, mensaje) {
-    return saldoRepo.transaccion
-      .retiro(usuario, monto, metodo, mensaje)
-      .then(async (transaccion) => {
-        await debitar(
-          usuario,
-          `RESGUARDO POR RETIRO DE SALDO #${transaccion._id}`,
-          monto
-        );
-        return transaccion;
-      });
+    return saldoRepo.transaccion.retiro(usuario, monto, metodo, mensaje);
   },
   /**
    * @param {String} transaccionId
@@ -77,7 +68,13 @@ module.exports = {
   procesar(transaccionId) {
     return new Promise(async (resolve, reject) => {
       const transaccion = await saldoRepo.transaccion.buscar.id(transaccionId);
+      if (!transaccion) return reject("Transaccion no encontrada");
+      if (!transaccion.metodo)
+        return reject(
+          "Imposible procesar transaccion: El metodo de pago asignado no existe"
+        );
       const usuario = await usuarioRepo.buscar.id(transaccion.usuario);
+      if (!usuario) return reject("Usuario no encontrado");
       return saldoRepo.transaccion
         .procesar(transaccion, usuario)
         .then((transaccion) => {
@@ -88,9 +85,13 @@ module.exports = {
               transaccion.monto
             ).then((saldo) => resolve(saldo));
           } else if (transaccion.tipo == Transaccion.TIPO_RETIRO) {
-            saldoRepo.buscar
-              .usuario(usuario._id)
-              .then((saldo) => resolve(saldo));
+            debitar(
+              usuario,
+              `RETIRO DE SALDO #${transaccion._id}`,
+              transaccion.monto
+            ).then((saldo) => {
+              resolve(saldo);
+            });
           }
         })
         .catch((error) => reject(error));

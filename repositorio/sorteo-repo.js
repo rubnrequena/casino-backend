@@ -1,16 +1,17 @@
 const mongoose = require("mongoose");
-const sorteoModel = require("_modelos/sorteo-model");
-const Sorteo = require("../dto/sorteo-dto");
-const operadoraRepo = require("./operadora-repo");
-const { parseDateString } = require("../utils/date-util");
-const enlace_operadoraModel = require("_modelos/enlace_operadora-model");
+const ObjectId = mongoose.Types.ObjectId;
 const EnlaceOperadora = require("../dto/enlace-operadora-dto");
-const redisRepo = require("./redis-repo");
 const Usuario = require("../dto/usuario-dto");
+const Sorteo = require("../dto/sorteo-dto");
+
+const enlace_operadoraModel = require("_modelos/enlace_operadora-model");
 const operadoraModel = require("_modelos/operadora-model");
-const dateUtil = require("../utils/date-util");
-const numerosModel = require("_modelos/numeros-model");
+const sorteoModel = require("_modelos/sorteo-model");
+
+const operadoraRepo = require("./operadora-repo");
 const numeroRepo = require("./numero-repo");
+
+const { parseDateString, formatDate } = require("../utils/date-util");
 
 module.exports = {
   /** JSDoc
@@ -42,6 +43,7 @@ module.exports = {
   },
   editar(sorteoId, campos) {},
   remover(sorteoId) {},
+
   cerrar(sorteoId) {
     return new Promise((resolve, reject) => {
       sorteoModel.updateOne(
@@ -122,20 +124,29 @@ module.exports = {
       return sorteos;
     },
     /**
-     * @param {Usuario} usuario
+     * @param {String} usuarioId
      * @returns {EnlaceOperadora[]}
      */
-    disponibles(usuario) {
+    disponibles(usuarioId) {
       return new Promise((resolve, reject) => {
-        let jerarquias = usuario.jerarquia.map((jerarquia) => ({
-          usuario: jerarquia,
-        }));
-        enlace_operadoraModel
-          .find(null, "operadora mostrar nivel")
-          .or(jerarquias)
-          .sort({ nivel: 1 })
-          .then((sorteos) => resolve(sorteos))
-          .catch((error) => reject(error));
+        enlace_operadoraModel.aggregate(
+          [
+            {
+              $project: {
+                operadora: 1,
+                mostrar: 1,
+                nivel: 1,
+                usuario: { $arrayElemAt: ["$usuario", -1] },
+              },
+            },
+            { $match: { usuario: ObjectId(usuarioId) } },
+            { $project: { _id: 0 } },
+          ],
+          (error, enlaces) => {
+            if (error) return reject(error.message);
+            resolve(enlaces);
+          }
+        );
       });
     },
     /**
@@ -145,14 +156,15 @@ module.exports = {
      * @returns {Promise<Sorteo>}
      */
     async operadoras(operadoras, fecha) {
-      let ids = operadoras.map((operadora) => ({ _id: operadora.operadora }));
+      let ids = operadoras.map((o) => ({ operadora: o.operadora }));
       const sorteos = await sorteoModel
         .find(null, "cierra descripcion operadora")
-        .or(operadoras)
+        .or(ids)
         .and({ fecha })
         .lean();
+      ids = operadoras.map((o) => ({ _id: o.operadora }));
       const _operadoras = await operadoraModel
-        .find(null, "nombre paga sorteos numeros")
+        .find(null, "nombre paga sorteos numeros tipo")
         .or(ids)
         .lean();
       ids = _operadoras.map((operadora) => operadora.numeros);
@@ -166,22 +178,27 @@ module.exports = {
     sinGanador(operadora, fecha) {
       return new Promise((resolve, reject) => {
         sorteoModel
-          .find(
-            { operadora, fecha, cierra: { $lte: new Date() }, ganador: null },
-            (error, sorteos) => {
-              if (error) return reject(error.message);
-              resolve(sorteos);
-            }
-          )
+          .find({ operadora, fecha, ganador: null }, (error, sorteos) => {
+            if (error) return reject(error.message);
+            resolve(sorteos);
+          })
           .lean();
       });
     },
-    conGanador() {
+    /**
+     * @param {String} operadoraId
+     */
+    conGanador(operadoraId) {
       return new Promise((resolve, reject) => {
-        const hoy = dateUtil.formatDate(new Date(), "YYYY-MM-DD");
+        const inicio = formatDate(new Date(), "YYYY-MM-DD");
+        const fin = formatDate(new Date(), "YYYY-MM-DD") + "T23:59";
         sorteoModel
           .find(
-            { cierra: { $lte: hoy }, ganador: { $ne: null } },
+            {
+              operadora: operadoraId,
+              cierra: { $gte: inicio, $lte: fin },
+              ganador: { $ne: null },
+            },
             "descripcion ganador",
             (error, sorteos) => {
               if (error) return reject(error.message);

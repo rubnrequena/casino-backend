@@ -8,6 +8,13 @@ const { crearError } = require("../utils/error-util");
 
 const router = require("express").Router();
 
+const metodoEditar = validarPOST("_id:objectid,entidad,direccion,meta,moneda");
+const metodoRemover = validarPOST("metodo:objectid");
+const metodoBuscar = [
+  validarGET("usuario:objectid"),
+  usuarioMiddle.validarJerarquia,
+];
+
 router.post(
   "/recarga",
   validarPOST("monto:number,metodo,fecha,recibo"),
@@ -47,6 +54,12 @@ router.post("/cancelar", validarJerarquia, (req, res) => {
 router.get("/balance", async (req, res) => {
   res.json(await saldoRepo.buscar.balance());
 });
+router.get("/usuario", validarJerarquia, (req, res) => {
+  saldoRepo
+    .ultimoSaldo(req.usuario._id)
+    .then((saldo) => res.json(saldo))
+    .catch((error) => res.json(crearError(error)));
+});
 
 router.get("/recarga/historia", (req, res) => {
   const limite = parseInt(req.query.limite) || 10;
@@ -78,7 +91,20 @@ router.get("/retiro/historia/padre", (req, res) => {
   const procesada = req.query.procesada || -1;
   saldoRepo.transaccion.buscar
     .historia_padre(req.user._id, "retiro", limite, parseInt(procesada))
-    .then((recargas) => res.json(recargas))
+    .then((recargas) =>
+      res.json(
+        recargas.map((transaccion) => {
+          if (!transaccion.metodo) {
+            transaccion.metodo = {
+              entidad: "NO EXISTE",
+              direccion: "NO EXISTE",
+              meta: "",
+            };
+          }
+          return transaccion;
+        })
+      )
+    )
     .catch((error) => res.json(crearError(error)));
 });
 
@@ -99,19 +125,15 @@ router.get("/metodopago/buscar/todos", (req, res) => {
     })
     .catch((error) => res.json(crearError(error)));
 });
-router.get(
-  "/metodopago/buscar",
-  [validarGET("usuario:objectid"), usuarioMiddle.validarJerarquia],
-  (req, res) => {
-    const usuarioId = req.query.usuario;
-    saldoRepo.metodo_pago.buscar
-      .usuario(usuarioId)
-      .then((metodos) => {
-        res.json(metodos);
-      })
-      .catch((error) => res.json(crearError(error)));
-  }
-);
+router.get("/metodopago/buscar", metodoBuscar, (req, res) => {
+  const usuarioId = req.query.usuario;
+  saldoRepo.metodo_pago.buscar
+    .usuario(usuarioId)
+    .then((metodos) => {
+      res.json(metodos);
+    })
+    .catch((error) => res.json(crearError(error)));
+});
 router.post("/metodopago/nuevo", (req, res) => {
   const { entidad, direccion, moneda, meta } = req.body;
   saldoService.metodo_pago
@@ -121,28 +143,20 @@ router.post("/metodopago/nuevo", (req, res) => {
     })
     .catch((error) => res.json(crearError(error)));
 });
-router.post(
-  "/metodopago/editar",
-  validarPOST("_id:objectid,entidad,direccion,meta,moneda"),
-  (req, res) => {
-    const { _id, entidad, direccion, meta, moneda } = req.body;
-    saldoRepo.metodo_pago
-      .editar(_id, { entidad, direccion, meta, moneda })
-      .then((result) => res.json(result))
-      .catch((error) => res.json(crearError(error)));
-  }
-);
-router.post(
-  "/metodopago/remover",
-  validarPOST("metodo:objectid,usuario:objectid"),
-  (req, res) => {
-    const { metodo } = req.body;
-    saldoService.metodo_pago
-      .remover(metodo, req.user._id)
-      .then((metodo) => res.json(metodo))
-      .catch((error) => res.json(crearError(error)));
-  }
-);
+router.post("/metodopago/editar", metodoEditar, (req, res) => {
+  const { _id, entidad, direccion, meta, moneda } = req.body;
+  saldoRepo.metodo_pago
+    .editar(_id, { entidad, direccion, meta, moneda })
+    .then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
+});
+router.post("/metodopago/remover", metodoRemover, (req, res) => {
+  const { metodo } = req.body;
+  saldoService.metodo_pago
+    .remover(metodo, req.user._id)
+    .then((metodo) => res.json(metodo))
+    .catch((error) => res.json(crearError(error)));
+});
 router.get("/metodopago/recargar", (req, res) => {
   /** @type {Usuario} */
   let usuario = req.user;

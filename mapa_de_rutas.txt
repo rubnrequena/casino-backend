@@ -5,14 +5,14 @@
   ✔️ Cambiar contraseña de usuario
   ✔️ Clonar usuario
   ✔️ Enlazar operadoras a usuarios
-  ⏳ Permisos
+  ✔️ Permisos
   ⏳ Iniciar con otra sesión
-  ⏳ Saldos
+  ✔️ Saldos
   ⏳ Operadoras por usuario
   ⏳ Roles de usuario (permisos)
   ⏳ Roles de usuario [Gobernacion, Loteria, Alcaldia, Sistema]
-  ⏳ Codigo de usuario (001,002,003...)
-  ⏳ Registrar sesion de usuario (UserAgent, IP)
+  ✔️ Codigo de usuario (001,002,003...)
+  ✔️ Registrar sesion de usuario (UserAgent, IP)
 
 📋 SORTEOS 
   ✔️ Registrar operadora con sus sorteos
@@ -31,7 +31,7 @@
   ✔️ Validar cupo de venta
   ✔️ Validar sorteo abierto
   ✔️ Registrar Reportes
-  ⏳ Administrador de tickets
+  ✔️ Administrador de tickets
   ⏳ Numeros repetidos por tickets
 
 REPORTES
@@ -44,9 +44,9 @@ REPORTES
 * Incluye reportes: General, Tickets, Numeros(Lista), Sorteo
 
 VENTA VIRTUAL
-  ⏳ Balance de Saldos
-  ⏳ Retiro/Recarga de saldos
-  ⏳ Usuario virtual
+  ✔️ Balance de Saldos
+  ✔️ Retiro/Recarga de saldos
+  ✔️ Usuario virtual
   
 20.07.04
   ✔️ Validar cupo de venta

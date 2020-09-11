@@ -6,6 +6,7 @@ const ticketRouter = require("./ticket-ruta");
 const reporteRouter = require("./reporte-ruta");
 const saldoRouter = require("./saldo-ruta");
 const sistemaRouter = require("./sistema-ruta");
+const hipismoRouter = require("./hipismo-ruta");
 /**
  *
  * @param {import('express').IRouter} app
@@ -19,4 +20,5 @@ module.exports = (app) => {
   app.use("/reporte", reporteRouter);
   app.use("/saldo", saldoRouter);
   app.use("/sistema", sistemaRouter);
+  app.use("/hipismo", hipismoRouter);
 };

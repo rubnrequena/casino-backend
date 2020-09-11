@@ -1,11 +1,19 @@
 const router = require("express").Router();
 const authService = require("../servicios/auth-service");
 const { crearError } = require("../utils/error-util");
-const { validarPOST, validarPermisos } = require("../middlewares");
+const { validarPOST, validarPermisos, validarGET } = require("../middlewares");
 const { AUTH_CLONAR_ROUTE_VALIDATION } = require("../middlewares/auth-middle");
 var geoip = require("geoip-lite");
 const sesionRepo = require("../repositorio/sesion-repo");
 const Permiso = require("../dto/permiso.dto");
+
+//#region middlewares
+const registro_online = validarPOST(AUTH_CLONAR_ROUTE_VALIDATION);
+const validarPermisoNuevo = [
+  validarPermisos(Permiso.permisos.crear),
+  validarPOST("nombre,rol,predeterminado:boolean,permisos:array"),
+];
+//#endregion
 
 router.post("/", (req, res) => {
   let usuario = req.body.usuario;
@@ -42,6 +50,7 @@ router.post("/registro", async (req, res) => {
     padre,
     rol,
     moneda,
+    cedula,
   } = req.body;
   /*let jerarquia;
   if (padre) {
@@ -63,7 +72,8 @@ router.post("/registro", async (req, res) => {
       utilidad,
       permisos,
       rol,
-      moneda
+      moneda,
+      cedula
     )
     .then((usuario) => res.json(usuario))
     .catch((error) => res.json(crearError(error)));
@@ -77,30 +87,38 @@ router.post("/registro_online", (req, res) => {
     )
     .catch((error) => res.json(crearError(error)));
 });
-router.post(
-  "/clonar/:usuario",
-  validarPOST(AUTH_CLONAR_ROUTE_VALIDATION),
-  (req, res) => {
-    const { usuario, clave, nombre, correo, telefono } = req.body;
-    authService
-      .clonar(usuario, clave, nombre, correo, telefono, req.params.usuario)
-      .then((usuario) => {
-        res.json(usuario);
-      })
-      .catch((error) => res.json(crearError(error)));
-  }
-);
+router.post("/clonar/:usuario", registro_online, (req, res) => {
+  const { usuario, clave, nombre, correo, telefono } = req.body;
+  authService
+    .clonar(usuario, clave, nombre, correo, telefono, req.params.usuario)
+    .then((usuario) => {
+      res.json(usuario);
+    })
+    .catch((error) => res.json(crearError(error)));
+});
 router.post("/activar", validarPOST("codigo"), (req, res) => {
   authService
     .activar(req.body.codigo)
-    .then(() => res.json("usuario activo"))
+    .then(() =>
+      res.json(
+        "¡Genial! Tu cuenta esta activa, ya puedes iniciar sesión y disfrutar de todos nuestros servicios"
+      )
+    )
+    .catch((error) => res.json(crearError(error)));
+});
+router.get("/recuperar", validarGET("correo"), (req, res) => {
+  authService
+    .recuperar_clave(req.query.correo)
+    .then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
+});
+router.post("/recuperar", validarPOST("llave,clave"), (req, res) => {
+  authService
+    .cambiar_clave(req.body.llave, req.body.clave)
+    .then((result) => res.json(result))
     .catch((error) => res.json(crearError(error)));
 });
 
-const validarPermisoNuevo = [
-  validarPermisos(Permiso.permisos.crear),
-  validarPOST("nombre,rol,predeterminado:boolean,permisos:array"),
-];
 router.post("/permiso/nuevo", validarPermisoNuevo, (req, res) => {
   const { nombre, rol, predeterminado, permisos, usuario } = req.body;
   authService.permisos

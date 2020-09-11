@@ -98,9 +98,10 @@ router.get("/singanador", sinGanador, (req, res) => {
     .then((sorteos) => res.json(sorteos))
     .catch((error) => res.json(crearError(error)));
 });
-router.get("/conganador", (req, res) => {
+router.get("/conganador", validarGET("operadora:objectid"), (req, res) => {
+  const { operadora } = req.query;
   sorteoRepo.buscar
-    .conGanador()
+    .conGanador(operadora)
     .then((sorteos) => res.json(sorteos))
     .catch((error) => res.json(crearError(error)));
 });

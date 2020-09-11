@@ -14,6 +14,7 @@ const permisosRepo = require("../repositorio/permisos-repo");
 const Permiso = require("../dto/permiso.dto");
 const enviarCorreo = require("../mail");
 const plantillas = require("../mail/plantillas");
+const usuarioService = require("./usuario-service");
 
 module.exports = {
   /**
@@ -77,7 +78,8 @@ module.exports = {
     utilidad,
     permisos,
     rol,
-    moneda
+    moneda,
+    cedula
   ) {
     return new Promise(async (resolve, reject) => {
       let padre = await usuarioRepo.buscar.id(padreId);
@@ -109,7 +111,8 @@ module.exports = {
           participacion,
           utilidad,
           permisos,
-          moneda
+          moneda,
+          cedula
         )
         .then((usuario) => {
           if (usuario.rol == Usuario.ONLINE) {
@@ -148,6 +151,10 @@ module.exports = {
       if (!usuario) return reject("codigo invalido o expiro");
       else {
         const padre = await usuarioRepo.buscar.usuario("fullonline");
+        if (!padre)
+          return reject(
+            "Lo siento, no podemos darte de alta en estos momentos, intenta luego."
+          );
         const permiso = await permisoModel.findOne({
           rol: Usuario.ONLINE,
           predeterminado: true,
@@ -165,7 +172,8 @@ module.exports = {
           0,
           permiso._id,
           Usuario.ONLINE,
-          "usd"
+          "ves",
+          usuario.cedula
         )
           .then(async (usuario) => {
             await redisRepo.del(codigo);
@@ -231,6 +239,44 @@ module.exports = {
           resolve(clon);
         })
         .catch((error) => reject(error));
+    });
+  },
+  /**
+   * @param {String} correo
+   */
+  recuperar_clave(correo) {
+    return new Promise(async (resolve, reject) => {
+      let usuario = await usuarioRepo.buscar.correo(correo);
+      if (!usuario) return reject("correo no existe");
+      const hash = md5(usuario._id + usuario.correo + Date.now().toString());
+      await redisRepo.str(hash, usuario._id.toString());
+      redisRepo.expire(hash, RedisCache.EXPIRE_1HORA);
+      enviarCorreo(
+        correo,
+        plantillas.recuperar_clave(
+          `https://caribeapuesta.com/#/recuperar?llave=${hash}`,
+          usuario.nombre
+        ),
+        "CARIBE APUESTA - RECUPERAR CONTRASEÑA"
+      );
+      resolve(1);
+    });
+  },
+  cambiar_clave(llave, clave) {
+    return new Promise(async (resolve, reject) => {
+      let llaveUsuario = await redisRepo.str(llave);
+      if (!llaveUsuario)
+        return reject(
+          "Solicitud de cambio de contraseña expiró, favor hacer una nueva solicitud."
+        );
+      let usuario = await usuarioRepo.buscar.id(llaveUsuario);
+      usuarioService
+        .cambioClave(usuario, clave)
+        .then(async () => {
+          await redisRepo.del(llave);
+          resolve("Contraseña modificada exitosamente");
+        })
+        .catch((e) => reject(e));
     });
   },
 

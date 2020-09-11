@@ -23,4 +23,8 @@ node_modules/
 # dotenv environment variables file
 .env
 
-.rar
+*.rar
+*.txt
+
+# Certificados
+ssl/

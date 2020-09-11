@@ -25,6 +25,12 @@ const esquema = new mongoose.Schema({
   correo: {
     type: String,
     required: true,
+    unique: true,
+  },
+  cedula: {
+    type: String,
+    required: true,
+    unique: true,
   },
   telefono: {
     type: String,
@@ -89,5 +95,6 @@ const esquema = new mongoose.Schema({
     index: true,
     unique: true,
   },
+  meta: Object,
 });
 module.exports = mongoose.model("Usuario", esquema);

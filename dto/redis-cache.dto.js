@@ -10,5 +10,7 @@ class RedisCache {
 
   static CAST_NUMBER = "number";
   static CAST_JSON = "json";
+
+  static EXPIRE_1HORA = 60 * 60;
 }
 module.exports = RedisCache;

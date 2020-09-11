@@ -58,7 +58,7 @@ module.exports = {
     return new Promise(async (resolve, reject) => {
       let sorteo = await sorteoRepo.buscar.id(sorteoId);
       if (sorteo.ganador) return reject("sorteo ya premiado");
-      sorteoModel.updateOne(
+      await sorteoModel.updateOne(
         {
           _id: sorteoId,
         },
@@ -192,22 +192,17 @@ module.exports = {
      */
     disponibles(usuario, fecha) {
       return new Promise(async (resolve) => {
-        let enlaces = await sorteoRepo.buscar
-          .disponibles(usuario)
-          .catch((e) => console.log("MIERDA SE ROMPIO"));
-        if (!enlaces || enlaces.length == 0)
-          return resolve({ sorteos: [], operadoras: [] }); //FIXME regresar error: No hay sorteos asignados
-        let operadora;
-        enlaces = enlaces.reduce((operadoras, enlace) => {
-          operadora = String(enlace.operadora);
-          if (!operadoras[operadora]) operadoras[operadora] = enlace;
-          return operadoras;
-        }, {});
-        let operadoras = [];
-        for (const enlace of Object.entries(enlaces)) {
-          if (enlace[1].mostrar) operadoras.push({ operadora: enlace[0] });
+        let enlaces;
+        let usuarios = [...usuario.jerarquia, usuario._id];
+        for (let i = usuarios.length - 1; i > 0; i--) {
+          const usuarioId = usuarios[i];
+          enlaces = await sorteoRepo.buscar.disponibles(usuarioId);
+          if (enlaces && enlaces.length > 0) break;
         }
-        const sorteos = await sorteoRepo.buscar.operadoras(operadoras, fecha);
+        if (!enlaces || enlaces.length == 0)
+          return resolve({ sorteos: [], operadoras: [] });
+        enlaces = enlaces.filter((enlace) => enlace.mostrar == true);
+        const sorteos = await sorteoRepo.buscar.operadoras(enlaces, fecha);
         resolve(sorteos);
       });
     },

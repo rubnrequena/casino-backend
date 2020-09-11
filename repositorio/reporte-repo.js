@@ -203,6 +203,14 @@ module.exports = {
         );
       });
     },
+    /**
+     *
+     * @param {String} usuarioId
+     * @param {String} operadoras
+     * @param {String} desde
+     * @param {String} hasta
+     * @returns {Reporte[]}
+     */
     operadoras(usuarioId, operadoras, desde, hasta) {
       desde = new Date(desde);
       hasta = new Date(hasta);

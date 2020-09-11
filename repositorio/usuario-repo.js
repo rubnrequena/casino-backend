@@ -202,6 +202,13 @@ module.exports = {
         );
       });
     },
+    /**
+     * @param {String} correo
+     * @returns {Promise<Usuario>}
+     */
+    async correo(correo) {
+      return await usuarioModel.findOne({ correo }).lean();
+    },
   },
   /** JSDoc
    * @param {Usuario} padre
@@ -230,7 +237,8 @@ module.exports = {
     participacion,
     utilidad,
     permisos,
-    moneda
+    moneda,
+    cedula
   ) {
     let jerarquia = [...padre.jerarquia, padre._id];
     let nHash = padre.usuario;
@@ -262,6 +270,7 @@ module.exports = {
         permisos,
         codigo,
         moneda,
+        cedula,
       }).save((err, usuario) => {
         if (err) return reject(err.message);
         resolve(usuario);
@@ -351,5 +360,14 @@ module.exports = {
         });
       });
     },
+  },
+  /**
+   * @param {String} usuarioId
+   * @returns {Object}
+   */
+  async meta(usuarioId) {
+    const meta = await usuarioModel.findById(usuarioId, "meta");
+    if (meta) return meta.meta;
+    return {};
   },
 };
