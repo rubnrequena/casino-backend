@@ -1,13 +1,13 @@
 const router = require("express").Router();
 
-const { validarGET } = require("../middlewares");
+const { validarGET, validarPOST } = require("../middlewares");
 const saldoService = require("../servicios/saldo-service");
 const saldoRepo = require("../repositorio/saldo-repo");
 const usuarioRepo = require("../repositorio/usuario-repo");
 const dateUtil = require("../utils/date-util");
 
 const apiKey = "9ed76d0c-8f7a-4af6-b0e1-65b561c2c0f1";
-router.post("/saldo", validarGET("PlayerId:objectid,Apikey"), (req, res) => {
+router.post("/saldo", validarPOST("PlayerId:objectid,Apikey"), (req, res) => {
   let { PlayerId, Apikey } = req.body;
   if (Apikey != apiKey)
     return res
@@ -28,7 +28,7 @@ router.post("/saldo", validarGET("PlayerId:objectid,Apikey"), (req, res) => {
 });
 router.post(
   "/transaccion",
-  validarGET(
+  validarPOST(
     "PlayerId:objectid,amount:number,description,reference,typeTransaction,Apikey"
   ),
   (req, res) => {
