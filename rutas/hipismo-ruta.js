@@ -51,6 +51,10 @@ router.get(
         let metodo = await saldoRepo.metodo_pago.buscar.id(
           "5f5ba4a941cdc613c02aaf3c"
         );
+        if (!metodo)
+          return res.json({
+            error: "transaccion no tiene metodo de pago disponible",
+          });
         if (typeTransaction == "recarga") {
           saldoService
             .recarga(usuario, amount, metodo._id, hoy, reference, description)
