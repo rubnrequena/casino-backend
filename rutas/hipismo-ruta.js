@@ -8,7 +8,7 @@ const dateUtil = require("../utils/date-util");
 
 const apiKey = "9ed76d0c-8f7a-4af6-b0e1-65b561c2c0f1";
 router.post("/saldo", validarGET("PlayerId:objectid,Apikey"), (req, res) => {
-  let { PlayerId, Apikey } = req.query;
+  let { PlayerId, Apikey } = req.body;
   if (Apikey != apiKey)
     return res
       .status(401)
@@ -39,7 +39,7 @@ router.post(
       reference,
       typeTransaction,
       Apikey,
-    } = req.query;
+    } = req.body;
     if (Apikey != apiKey)
       return res
         .status(401)
