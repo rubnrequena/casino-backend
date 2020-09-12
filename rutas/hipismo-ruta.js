@@ -7,7 +7,7 @@ const usuarioRepo = require("../repositorio/usuario-repo");
 const dateUtil = require("../utils/date-util");
 
 const apiKey = "9ed76d0c-8f7a-4af6-b0e1-65b561c2c0f1";
-router.get("/saldo", validarGET("PlayerId:objectid,Apikey"), (req, res) => {
+router.post("/saldo", validarGET("PlayerId:objectid,Apikey"), (req, res) => {
   let { PlayerId, Apikey } = req.query;
   if (Apikey != apiKey)
     return res
@@ -26,7 +26,7 @@ router.get("/saldo", validarGET("PlayerId:objectid,Apikey"), (req, res) => {
     })
     .catch(() => res.json({ error: "ocurrio un error al consultar usuario" }));
 });
-router.get(
+router.post(
   "/transaccion",
   validarGET(
     "PlayerId:objectid,amount:number,description,reference,typeTransaction,Apikey"
