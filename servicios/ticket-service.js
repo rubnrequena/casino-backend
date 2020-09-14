@@ -10,9 +10,6 @@ const Venta = require("../dto/venta-dto");
 const sorteoUtil = require("../utils/sorteo-util");
 const operadoraRepo = require("../repositorio/operadora-repo");
 
-const { medirTiempo } = require("../utils/date-util");
-const RedisCache = require("../dto/redis-cache.dto");
-
 let cacheOperadora = {};
 
 module.exports = {
