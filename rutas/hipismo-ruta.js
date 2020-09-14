@@ -18,7 +18,7 @@ router.post("/saldo", validarPOST("PlayerId:objectid,Apikey"), (req, res) => {
   usuarioRepo.buscar
     .id(PlayerId)
     .then((usuario) => {
-      //validar usuario activo
+      if (!usuario.activo) res.json({ error: "usuario inactivo", balance: 0 });
       saldoRepo
         .ultimoSaldo(usuario._id)
         .then((saldo) => res.json({ balance: saldo.balance }))
@@ -92,6 +92,8 @@ router.post(
 router.get("/url", async (req, res) => {
   const apiURL = "https://apicasiersweb.elinmejorable.bet/caribeapuesta/login";
   let usuario = await usuarioRepo.buscar.id(req.user._id);
+  if (!usuario) res.json({ error: "usuario no existe" });
+  if (!usuario.activo) res.json({ error: "usuario inactivo" });
   if (req.user.rol == Usuario.ONLINE) {
     const payLoad = {
       email: usuario.correo,
