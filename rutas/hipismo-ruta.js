@@ -1,10 +1,12 @@
 const router = require("express").Router();
 
-const { validarGET, validarPOST } = require("../middlewares");
+const { validarPOST } = require("../middlewares");
 const saldoService = require("../servicios/saldo-service");
 const saldoRepo = require("../repositorio/saldo-repo");
 const usuarioRepo = require("../repositorio/usuario-repo");
 const dateUtil = require("../utils/date-util");
+const Usuario = require("../dto/usuario-dto");
+const axios = require("axios").default;
 
 const apiKey = "9ed76d0c-8f7a-4af6-b0e1-65b561c2c0f1";
 router.post("/saldo", validarPOST("PlayerId:objectid,Apikey"), (req, res) => {
@@ -24,7 +26,9 @@ router.post("/saldo", validarPOST("PlayerId:objectid,Apikey"), (req, res) => {
           res.json({ error: "ocurrio un error al consultar saldo" })
         );
     })
-    .catch(() => res.json({ error: "ocurrio un error al consultar usuario" }));
+    .catch(() =>
+      res.json({ error: "ocurrio un error al consultar usuario", balance: 0 })
+    );
 });
 router.post(
   "/transaccion",
@@ -67,7 +71,7 @@ router.post(
         }
       })
       .catch((e) =>
-        res.json({ error: "ocurrio un error al consultar usuario" })
+        res.json({ error: "ocurrio un error al consultar usuario", balance: 0 })
       );
 
     function saldoResult(transaccion) {
@@ -84,4 +88,29 @@ router.post(
     }
   }
 );
+
+router.get("/url", async (req, res) => {
+  const apiURL = "https://apicasiersweb.elinmejorable.bet/caribeapuesta/login";
+  let usuario = await usuarioRepo.buscar.id(req.user._id);
+  if (req.user.rol == Usuario.ONLINE) {
+    const payLoad = {
+      email: usuario.correo,
+      cedula: usuario.cedula,
+      usuario: usuario._id,
+      empresa: "Caribe Apuesta",
+      SubAgenteNombre: "caribeapuesta.com",
+      moneda: "VES",
+      api_key: "9268473c-f527-11ea-adc1-0242ac120002",
+    };
+    axios
+      .post(apiURL, payLoad)
+      .then((result) => {
+        let url = result.data.data.url;
+        res.json({ url });
+      })
+      .catch((error) => {
+        res.json({ error: "imposible obtener url del juego" });
+      });
+  }
+});
 module.exports = router;
