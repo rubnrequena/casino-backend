@@ -61,11 +61,12 @@ router.post(
           });
         if (typeTransaction == "recarga") {
           saldoService
-            .recarga(usuario, amount, metodo._id, hoy, reference, description)
-            .then(saldoResult);
+            .acreditar(usaurio, `${description} ${reference}`, ammount)
+            .then(saldoResult)
+            .catch((e) => console.log("error", e));
         } else if (typeTransaction == "retiro") {
           saldoService
-            .retiro(usuario, amount, metodo._id, description)
+            .debitar(usuario, `${descripcion} ${reference}`, ammount)
             .then(saldoResult)
             .catch((e) => console.log("error", e));
         }

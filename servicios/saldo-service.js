@@ -81,17 +81,15 @@ module.exports = {
           if (transaccion.tipo == Transaccion.TIPO_RECARGA) {
             acreditar(
               usuario,
-              `RECARGA #${transaccion._id}`,
+              `RECARGA DE SALDO`,
               transaccion.monto
             ).then((saldo) => resolve(saldo));
           } else if (transaccion.tipo == Transaccion.TIPO_RETIRO) {
             debitar(
               usuario,
-              `RETIRO DE SALDO #${transaccion._id}`,
+              `RETIRO DE SALDO`,
               transaccion.monto
-            ).then((saldo) => {
-              resolve(saldo);
-            });
+            ).then((saldo) => resolve(saldo));
           }
         })
         .catch((error) => reject(error));
