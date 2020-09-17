@@ -311,7 +311,7 @@ module.exports = {
       let clave = md5(claveNueva);
       usuarioModel.updateOne({ _id: usuarioId }, { clave }, (err, result) => {
         if (err) return reject(err.errmsg);
-        resolve(result);
+        resolve({ ok: 1 });
       });
     });
   },
