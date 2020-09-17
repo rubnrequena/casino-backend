@@ -4,11 +4,11 @@ const Usuario = require("../dto/usuario-dto");
 
 module.exports = {
   /** JSDoc
-   * @param {String} usuario
+   * @param {Usuario} usuario
    * @param {Object} campos
    */
   editar(usuario, campos) {
-    return usuarioRepo.modificar(usuario, campos);
+    return usuarioRepo.modificar(usuario._id, campos);
   },
   /**
    * @param {Usuario} usuario

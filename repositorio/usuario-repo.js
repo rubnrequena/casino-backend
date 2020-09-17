@@ -289,15 +289,10 @@ module.exports = {
         return reject('cambiar el campo "rol" no esta permitido');
       if (campos.hasOwnProperty("clave"))
         return reject('cambiar el campo "clave" no esta permitido');
-      return usuarioModel.findByIdAndUpdate(
-        usuarioId,
-        campos,
-        NEW_OPT,
-        (err, usuario) => {
-          if (err) return reject(err.errmsg);
-          else resolve(usuario);
-        }
-      );
+      return usuarioModel.updateOne({ _id: usuarioId }, campos, (err) => {
+        if (err) return reject(err.errmsg);
+        else resolve({ ok: 1 });
+      });
     });
   },
   /** JSDoc

@@ -19,11 +19,11 @@ router.post("/cambiar_clave", validarJerarquia, (req, res) => {
     .catch((error) => res.json(crearError(error)));
 });
 router.post("/editar", validarJerarquia, function (req, res) {
-  //FIXME validar campos a editar
+  let { telefono } = req.body;
   usuarioService
-    .editar(req.body.usuario, req.body.editar)
-    .then((usuario) => {
-      res.json(usuario);
+    .editar(req.user, { telefono })
+    .then((result) => {
+      res.json(result);
     })
     .catch((err) => crearError(err));
 });
