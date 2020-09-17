@@ -1,12 +1,14 @@
 const router = require("express").Router();
 
+const axios = require("axios").default;
+const dateUtil = require("../utils/date-util");
+const Usuario = require("../dto/usuario-dto");
+const Saldo = require("../dto/saldo-dto");
+
 const { validarPOST } = require("../middlewares");
 const saldoService = require("../servicios/saldo-service");
 const saldoRepo = require("../repositorio/saldo-repo");
 const usuarioRepo = require("../repositorio/usuario-repo");
-const dateUtil = require("../utils/date-util");
-const Usuario = require("../dto/usuario-dto");
-const axios = require("axios").default;
 
 const apiKey = "9ed76d0c-8f7a-4af6-b0e1-65b561c2c0f1";
 router.post("/saldo", validarPOST("PlayerId:objectid,Apikey"), (req, res) => {
@@ -51,41 +53,44 @@ router.post(
     usuarioRepo.buscar
       .id(PlayerId)
       .then(async (usuario) => {
-        let hoy = dateUtil.isoDate();
         let metodo = await saldoRepo.metodo_pago.buscar.id(
           "5f5ba4a941cdc613c02aaf3c"
         );
         if (!metodo)
           return res.json({
             error: "transaccion no tiene metodo de pago disponible",
+            balance: 0,
           });
         if (typeTransaction == "recarga") {
           saldoService
-            .acreditar(usaurio, `${description} ${reference}`, ammount)
+            .acreditar(usuario, `HIPICO - ${description}`, amount)
             .then(saldoResult)
-            .catch((e) => console.log("error", e));
+            .catch((e) => res.json({ error: e, balance: -1 }));
         } else if (typeTransaction == "retiro") {
           saldoService
-            .debitar(usuario, `${descripcion} ${reference}`, ammount)
+            .debitar(usuario, `HIPICO - ${description}`, amount)
             .then(saldoResult)
-            .catch((e) => console.log("error", e));
+            .catch((e) => res.json({ error: e, balance: -1 }));
         }
       })
-      .catch((e) =>
+      .catch(() =>
         res.json({ error: "ocurrio un error al consultar usuario", balance: 0 })
       );
 
-    function saldoResult(transaccion) {
-      saldoService
-        .procesar(transaccion._id)
-        .then((result) => {
-          res.json({
-            transaccionId: result._id,
-            balance: result.balance,
-            tiempo: result.tiempo,
-          });
-        })
-        .catch((e) => res.json({ error: e }));
+    /**
+     *
+     * @param {Saldo} saldo
+     */
+    function saldoResult(saldo) {
+      res.json({
+        transaccionId: saldo._id,
+        balance: saldo.balance,
+        tiempo: saldo.tiempo,
+      });
+      const userRespond = queue[saldo.usuario];
+      if (userRespond) {
+        userRespond.json(saldo);
+      }
     }
   }
 );
@@ -116,4 +121,16 @@ router.get("/url", async (req, res) => {
       });
   }
 });
+
+let queue = {};
+router.get("/saldocambio", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Cache-Control", "no-cache, must-revalidate");
+  queue[req.user._id] = res;
+  req.on("close", function () {
+    console.log("cerrando conexion");
+    delete queue[req.user._id];
+  });
+});
+
 module.exports = router;
