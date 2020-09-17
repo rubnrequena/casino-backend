@@ -26,6 +26,7 @@ function debitar(usuario, descripcion, monto) {
       balance = ultBalance.balance - Math.abs(monto);
       hash = ultBalance.hash;
     } else balance = Math.abs(monto) * -1;
+    if (balance < 0) return reject("saldo insuficiente");
     guardarSaldo(usuario, descripcion, monto * -1, balance, hash)
       .then(async (saldo) => {
         await redisRepo.hset(RedisCache.BALANCE, usuario._id, balance);
@@ -153,7 +154,7 @@ function recarga(usuario, monto, metodo, fecha, recibo, mensaje) {
  */
 function retiro(usuario, monto, metodo, mensaje) {
   return new Promise(async (resolve, reject) => {
-    const saldo = await ultimoSaldo(usuario._id);
+    //const saldo = await ultimoSaldo(usuario._id);
     //if (!saldo || saldo.balance < monto) reject('saldo insuficiente')
     new transaccionModel({
       tipo: Transaccion.TIPO_RETIRO,
