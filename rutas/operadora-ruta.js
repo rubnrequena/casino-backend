@@ -15,7 +15,7 @@ const buscarEnlace = validarPermisos(Permiso.sorteos.leer);
 const enlaceNuevo = [
   validarJerarquia,
   validarPermisos(Permiso.sorteos.crear),
-  validarPOST("usuario:objectid,operadora:objectid,mostrar:boolean"),
+  validarPOST("usuario:objectid,operadora:array,mostrar:boolean"),
 ];
 const enlaceRemover = [
   validarJerarquia,

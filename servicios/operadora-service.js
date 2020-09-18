@@ -15,7 +15,13 @@ module.exports = {
   registro(nombre, tipo, paga, sorteos, numeros) {
     return operadoraRepo.guardar(nombre, tipo, paga, sorteos, numeros);
   },
-  enlazar(usuarioId, operadoraId, mostrar) {
+  /**
+   *
+   * @param {String} usuarioId
+   * @param {String[]} operadoraIds
+   * @param {Boolean} mostrar
+   */
+  enlazar(usuarioId, operadoraIds, mostrar) {
     return new Promise(async (resolve, reject) => {
       const usuario = await usuarioRepo.buscar.id(usuarioId);
       if (!usuario) return reject(`usuario '${usuarioId}' no existe`);
@@ -24,23 +30,35 @@ module.exports = {
       const enlacesPrevios = await operadoraRepo.buscar.enlacesUsuario(
         usuarioId
       );
-      const enlacePrevio = enlacesPrevios.find((enlace) => {
-        return (
-          enlace.operadora._id.toString() == operadoraId &&
-          enlace.nivel == nivel
-        );
-      });
-      if (enlacePrevio) return reject("Error: Enlace duplicado");
-      const operadora = await operadoraRepo.buscar.id(operadoraId);
-      if (!operadora) return reject(`operadora '${operadoraId}' no existe`);
-      const jerarquia = [...usuario.jerarquia, usuario._id];
 
-      operadoraRepo
-        .enlaceNuevo(jerarquia, operadora._id, mostrar, nivel)
-        .then((enlace) => {
-          resolve(enlace);
+      const enlacePrevio = operadoraIds.find((operadoraId) => {
+        return enlacesPrevios.find((enlace) => {
+          return (
+            enlace.operadora._id.toString() == operadoraId &&
+            enlace.nivel == nivel
+          );
+        });
+      });
+
+      if (enlacePrevio) return reject("Error: Enlace duplicado");
+
+      let cola = [];
+      for (let i = 0; i < operadoraIds.length; i++) {
+        const operadoraId = operadoraIds[i];
+        const operadora = await operadoraRepo.buscar.id(operadoraId);
+        if (!operadora) return reject(`operadora '${operadoraId}' no existe`);
+        const jerarquia = [...usuario.jerarquia, usuario._id];
+        cola.push(
+          operadoraRepo.enlaceNuevo(jerarquia, operadora._id, mostrar, nivel)
+        );
+      }
+      Promise.all(cola)
+        .then((result) => {
+          resolve(result);
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          reject(error);
+        });
     });
   },
   enlaceRemover(usuarioId, enlaceId) {
