@@ -64,4 +64,12 @@ module.exports = {
   enlaceRemover(usuarioId, enlaceId) {
     return operadoraRepo.enlaceRemover(usuarioId, enlaceId);
   },
+  /**
+   * @param {String} usuarioId
+   * @param {String} enlaceId
+   * @param {Boolean} activo
+   */
+  enlaceActivar(usuarioId, enlaceId, activo) {
+    return operadoraRepo.enlaceActivar(usuarioId, enlaceId, activo);
+  },
 };

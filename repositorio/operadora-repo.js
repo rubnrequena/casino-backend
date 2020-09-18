@@ -95,6 +95,23 @@ module.exports = {
       );
     });
   },
+  /**
+   * @param {String} usuarioId
+   * @param {String} enlaceId
+   * @param {Boolean} activo
+   */
+  enlaceActivar(usuarioId, enlaceId, activo) {
+    return new Promise((resolve, reject) => {
+      enlace_operadoraModel.updateOne(
+        { _id: enlaceId, usuario: usuarioId },
+        { mostrar: activo },
+        (err) => {
+          if (err) return reject(err);
+          resolve({ ok: 1 });
+        }
+      );
+    });
+  },
   buscar: {
     /**
      * @param {String} operadoraId

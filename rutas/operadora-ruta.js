@@ -22,6 +22,11 @@ const enlaceRemover = [
   validarPermisos(Permiso.sorteos.elimina),
   validarPOST("usuario,enlace"),
 ];
+const enlaceActivar = [
+  validarJerarquia,
+  validarPermisos(Permiso.sorteos.edita),
+  validarPOST("usuario:objectid,enlace:objectid,activo:boolean"),
+];
 
 const numeroNuevo = [
   validarPermisos(Permiso.operadora.crear),
@@ -70,6 +75,13 @@ router.post("/enlace/remover", enlaceRemover, (req, res) => {
   const { usuario, enlace } = req.body;
   operadoraService
     .enlaceRemover(usuario, enlace)
+    .then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
+});
+router.post("/enlace/activar", enlaceActivar, (req, res) => {
+  let { usuario, enlace, activo } = req.body;
+  operadoraService
+    .enlaceActivar(usuario, enlace, activo)
     .then((result) => res.json(result))
     .catch((error) => res.json(crearError(error)));
 });
