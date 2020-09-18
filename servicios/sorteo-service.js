@@ -202,8 +202,10 @@ module.exports = {
         if (!enlaces || enlaces.length == 0)
           return resolve({ sorteos: [], operadoras: [] });
         enlaces = enlaces.filter((enlace) => enlace.mostrar == true);
-        const sorteos = await sorteoRepo.buscar.operadoras(enlaces, fecha);
-        resolve(sorteos);
+        if (enlaces.length > 0) {
+          const sorteos = await sorteoRepo.buscar.operadoras(enlaces, fecha);
+          resolve(sorteos);
+        } else resolve({ operadoras: [], sorteos: [], numeros: [] });
       });
     },
   },
