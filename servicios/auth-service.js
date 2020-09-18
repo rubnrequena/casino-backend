@@ -247,7 +247,7 @@ module.exports = {
   recuperar_clave(correo) {
     return new Promise(async (resolve, reject) => {
       let usuario = await usuarioRepo.buscar.correo(correo);
-      if (!usuario) return reject("correo no existe");
+      if (!usuario) return reject("El correo electronico ingresado no existe");
       const hash = md5(usuario._id + usuario.correo + Date.now().toString());
       await redisRepo.str(hash, usuario._id.toString());
       redisRepo.expire(hash, RedisCache.EXPIRE_1HORA);
@@ -259,7 +259,7 @@ module.exports = {
         ),
         "CARIBE APUESTA - RECUPERAR CONTRASEÑA"
       );
-      resolve(1);
+      resolve({ result: 1 });
     });
   },
   cambiar_clave(llave, clave) {
@@ -274,7 +274,7 @@ module.exports = {
         .cambioClave(usuario, clave)
         .then(async () => {
           await redisRepo.del(llave);
-          resolve("Contraseña modificada exitosamente");
+          resolve({ result: "Contraseña modificada exitosamente" });
         })
         .catch((e) => reject(e));
     });
