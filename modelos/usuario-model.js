@@ -29,7 +29,6 @@ const esquema = new mongoose.Schema({
   },
   cedula: {
     type: String,
-    required: true,
     unique: true,
   },
   telefono: {
