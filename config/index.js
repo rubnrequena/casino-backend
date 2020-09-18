@@ -18,4 +18,5 @@ module.exports = {
     apiKey: process.env.SMTP_USUARIO,
     domain: process.env.SMTP_CLAVE,
   },
+  AGENTE_ONLINE: process.env.AGENTE_ONLINE,
 };

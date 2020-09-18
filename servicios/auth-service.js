@@ -15,6 +15,7 @@ const Permiso = require("../dto/permiso.dto");
 const enviarCorreo = require("../mail");
 const plantillas = require("../mail/plantillas");
 const usuarioService = require("./usuario-service");
+const config = require("../config");
 
 module.exports = {
   /**
@@ -150,7 +151,7 @@ module.exports = {
       let usuario = await redisRepo.json(codigo);
       if (!usuario) return reject("codigo invalido o expiro");
       else {
-        const padre = await usuarioRepo.buscar.usuario("fullonline");
+        const padre = await usuarioRepo.buscar.usuario(config.AGENTE_ONLINE);
         if (!padre)
           return reject(
             "Lo siento, no podemos darte de alta en estos momentos, intenta luego."
