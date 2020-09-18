@@ -48,7 +48,7 @@ module.exports = {
 async function crearAdmin() {
   const usuario = await new Usuario({
     usuario: "master",
-    clave: md5("m4ster.4dm1n"),
+    clave: md5("1234"),
     nombre: "Administrador",
     correo: "admin@fullapuestas.com",
     codigo: 0,
