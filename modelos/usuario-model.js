@@ -29,7 +29,6 @@ const esquema = new mongoose.Schema({
   },
   cedula: {
     type: String,
-    unique: true,
   },
   telefono: {
     type: String,
@@ -78,7 +77,7 @@ const esquema = new mongoose.Schema({
   moneda: {
     type: String,
     default: "ves",
-    enum: ["ves", "usd", "real", "eur"],
+    enum: ["ves", "usd", "real", "eur", "bs"],
   },
   permisos: {
     type: ObjectID,
