@@ -77,7 +77,7 @@ const esquema = new mongoose.Schema({
   moneda: {
     type: String,
     default: "ves",
-    enum: ["ves", "usd", "real", "eur", "bs"],
+    enum: process.env.MONEDAS_PERMITIDAS.split(","),
   },
   permisos: {
     type: ObjectID,

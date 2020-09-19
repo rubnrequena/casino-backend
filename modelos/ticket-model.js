@@ -42,7 +42,7 @@ const esquema = new mongoose.Schema({
   moneda: {
     type: String,
     required: true,
-    enum: ["ves", "usd", "real", "eur"],
+    enum: process.env.MONEDAS_PERMITIDAS.split(","),
   },
   juego: {
     type: ObjectId,
