@@ -14,9 +14,10 @@ module.exports = {
    * @param {String} operadora
    * @param {String} sorteo
    * @param {String} numero
+   * @param {Usuario} responsable
    * @returns {Promise<Tope>}
    */
-  nuevo(usuario, monto, operadora, sorteo, numero) {
+  nuevo(usuario, monto, operadora, sorteo, numero, responsable) {
     let orden = calcularOrden(usuario.rol, sorteo, numero);
     return new Promise((resolve, reject) => {
       let tope = {
@@ -26,6 +27,10 @@ module.exports = {
         monto,
         operadora,
         orden,
+        responsable: {
+          _id: responsable._id,
+          nombre: responsable.nombre,
+        },
       };
       if (isObjectId(sorteo)) tope.sorteo = sorteo;
       const nan = isNaN(numero);
@@ -76,10 +81,14 @@ module.exports = {
         if (isObjectId(usuario._id)) filtro.jerarquia = usuario._id;
         if (isObjectId(sorteo)) filtro.sorteo = sorteo;
         topeModel
-          .find(filtro, "monto numero sorteo activo", (error, topes) => {
-            if (error) return reject(error.message);
-            resolve(topes);
-          })
+          .find(
+            filtro,
+            "monto numero sorteo activo responsable registrado",
+            (error, topes) => {
+              if (error) return reject(error.message);
+              resolve(topes);
+            }
+          )
           .populate(
             "usuario operadora sorteo",
             "codigo nombre descripcion fecha"

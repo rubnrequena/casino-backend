@@ -132,7 +132,7 @@ router.post("/tope/nuevo", topeNuevo, (req, res) => {
     return res.json({ error: "No tiene privilegios para completar la accion" });
   }
   topeService
-    .nuevo(usuario, monto, operadora, sorteo, numero)
+    .nuevo(usuario, monto, operadora, sorteo, numero, req.user)
     .then((tope) => res.json(tope))
     .catch((error) => res.json(crearError(error)));
 });

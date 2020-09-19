@@ -32,5 +32,13 @@ const esquema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  registrado: {
+    type: Date,
+    default: new Date(),
+  },
+  responsable: {
+    _id: mongoose.Types.ObjectId,
+    nombre: String,
+  },
 });
 module.exports = mongoose.model("Tope", esquema);

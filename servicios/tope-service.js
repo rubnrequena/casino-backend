@@ -16,11 +16,19 @@ module.exports = {
    * @param {String} operadora
    * @param {String} sorteo
    * @param {String} numero
+   * @param {Usuario} responsable
    * @returns {Promise<Tope>}
    */
-  async nuevo(usuarioId, monto, operadora, sorteo, numero) {
+  async nuevo(usuarioId, monto, operadora, sorteo, numero, responsable) {
     const usuario = await usuarioRepo.findById(usuarioId);
-    return topeRepo.nuevo(usuario, monto, operadora, sorteo, numero);
+    return topeRepo.nuevo(
+      usuario,
+      monto,
+      operadora,
+      sorteo,
+      numero,
+      responsable
+    );
   },
   editar(topeId, campos) {
     return topeRepo.editar(topeId, campos);
