@@ -68,7 +68,6 @@ module.exports = {
   },
   buscar: {
     /**
-     *
      * @param {String} operadora
      * @param {Usuario} usuario
      * @param {String} sorteo
@@ -79,7 +78,6 @@ module.exports = {
         let filtro = { nivel: usuario.rol };
         if (isObjectId(operadora)) filtro.operadora = operadora;
         if (isObjectId(usuario._id)) filtro.jerarquia = usuario._id;
-        if (isObjectId(sorteo)) filtro.sorteo = sorteo;
         topeModel
           .find(
             filtro,
