@@ -55,8 +55,10 @@ module.exports = {
           const tope = topes[j];
           let montoJugado = await buscarMontoJugado(venta, tope);
           montoJugado = montoJugado + venta.monto;
-          if (tope.numero == venta.numero || tope.numero == null)
-            if (montoJugado > tope.monto) return reject("tope excedido");
+          if (String(tope.sorteo) == venta.sorteo || tope.sorteo == null)
+            if (tope.numero == venta.numero || tope.numero == null)
+              if (montoJugado > tope.monto)
+                return reject({ error: "Venta excede tope", venta });
         }
       }
       resolve();
