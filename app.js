@@ -12,6 +12,8 @@ const useragent = require("express-useragent");
 const { authJWT } = require("./middlewares/auth-middle");
 
 var app = express();
+app.use(express.json({ limit: "1mb", extended: true }));
+app.use(express.urlencoded({ limit: "1mb", extended: true }));
 app.use(cors());
 app.use(helmet());
 app.use(useragent.express());
