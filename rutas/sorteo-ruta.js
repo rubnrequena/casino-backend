@@ -7,6 +7,8 @@ const { validarPOST, validarGET } = require("../middlewares");
 const sorteoRepo = require("../repositorio/sorteo-repo");
 const topeRepo = require("../repositorio/tope-repo");
 const dateUtil = require("../utils/date-util");
+const { validarJerarquia } = require("../middlewares/usuario-middle");
+const Usuario = require("../dto/usuario-dto");
 
 //#region middlewares
 const nuevo = [
@@ -16,6 +18,15 @@ const nuevo = [
 const premiar = [usuarioMiddle.esMaster, validarPOST("sorteo,numero")];
 const reiniciar = [usuarioMiddle.esMaster, validarPOST("sorteo")];
 const sinGanador = validarGET("operadora:objectid,fecha");
+
+const topeNuevo = [
+  validarJerarquia,
+  validarPOST("usuario:objectid,monto:number,operadora:objectid"),
+];
+const topeRemover = [
+  validarJerarquia,
+  validarPOST("usuario:objectid,tope:objectid"),
+];
 //#endregion
 
 //#region /sorteos
@@ -115,11 +126,13 @@ router.get("/jaula", validarGET("operadora:objectid"), (req, res) => {
 
 //#region /tope
 //TODO: validar jerarquia de usuarios
-router.post("/tope/nuevo", validarPOST("monto,operadora"), (req, res) => {
+router.post("/tope/nuevo", topeNuevo, (req, res) => {
   let { usuario, monto, operadora, sorteo, numero } = req.body;
-  let usuarioId = usuario || req.user._id;
+  if (usuario == req.user._id && req.user.rol != Usuario.MASTER) {
+    return res.json({ error: "No tiene privilegios para completar la accion" });
+  }
   topeService
-    .nuevo(usuarioId, monto, operadora, sorteo, numero)
+    .nuevo(usuario, monto, operadora, sorteo, numero)
     .then((tope) => res.json(tope))
     .catch((error) => res.json(crearError(error)));
 });
@@ -144,9 +157,12 @@ router.get("/tope/buscar", usuarioMiddle.validarJerarquia, (req, res) => {
     .catch((error) => res.json(crearError(error)));
 });
 //TODO: validar jerarquia de usuarios
-router.post("/tope/remover/:topeId", (req, res) => {
+router.post("/tope/remover", topeRemover, (req, res) => {
+  let { usuario, tope } = req.body;
+  if (usuario == req.user._id && req.user.rol != Usuario.MASTER)
+    return res.json({ error: "No tiene privilegios para completar la accion" });
   topeService
-    .remover(req.params.topeId)
+    .remover(tope)
     .then((result) => {
       res.json(result);
     })
