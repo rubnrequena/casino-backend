@@ -98,6 +98,13 @@ module.exports = {
     async id(sorteoId, campos) {
       return await sorteoModel.findById(sorteoId, campos).lean();
     },
+    /**
+     * @param {String} fecha
+     * @param {String} operadora
+     */
+    async registrado(fecha, operadora) {
+      return await sorteoModel.findOne({ fecha, operadora });
+    },
     /**JSDoc
      * @param {Date} desde
      * @param {Date} hasta

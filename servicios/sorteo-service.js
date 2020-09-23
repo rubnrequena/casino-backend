@@ -29,10 +29,11 @@ module.exports = {
       let ffinal = new Date(hasta);
       ffinal.setHours(23, 59);
       let rangoFechas = [];
+      let fecha;
       while (finicio < ffinal) {
-        rangoFechas.push(
-          sorteoRepo.registrar(finicio.toISOString().substr(0, 10), operadora)
-        );
+        fecha = finicio.toISOString().substr(0, 10);
+        let existe = await sorteoRepo.buscar.registrado(fecha, operadora);
+        if (!existe) rangoFechas.push(sorteoRepo.registrar(fecha, operadora));
         finicio.setDate(finicio.getDate() + 1);
       }
       Promise.race(rangoFechas)
