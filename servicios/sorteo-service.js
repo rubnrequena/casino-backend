@@ -35,9 +35,17 @@ module.exports = {
         );
         finicio.setDate(finicio.getDate() + 1);
       }
-      Promise.race(rangoFechas).then((result) => {
-        resolve(result);
-      });
+      Promise.race(rangoFechas)
+        .then((result) => {
+          resolve(result);
+        })
+        .catch((error) => {
+          console.log(
+            "Ocurrio un error mientras se registraban los sorteos",
+            error
+          );
+          //TODO: notificar error
+        });
     });
   },
   abrir(sorteoId) {
