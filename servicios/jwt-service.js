@@ -22,4 +22,10 @@ module.exports = {
     });
     return token;
   },
+  firmarAPI(usuario) {
+    var token = jwt.sign(usuario, config.jwtSecret, {
+      expiresIn: 60 * 60 * 24,
+    });
+    return token;
+  },
 };
