@@ -36,7 +36,7 @@ module.exports = {
         if (!abierto) sorteosCerrados.push(sorteo.descripcion);
       }
       if (sorteosCerrados.length > 0)
-        return reject(`${sorteosCerrados} invalidos`);
+        return reject({ error: `sorteos invalidos`, sorteos: sorteosCerrados });
 
       topeService
         .validar(ventas, taquilla)
