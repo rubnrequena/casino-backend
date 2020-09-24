@@ -233,10 +233,11 @@ async function initRedisCache() {
     taquillas = 0,
     agentes = 0,
     online = 0,
+    auditor = 0,
+    master = 0,
     activos = 0,
     papelera = 0;
-  nmoneda = {};
-  let usuarios = await usuarioModel.find().lean();
+  let usuarios = await usuarioModel.find(null, "rol activo papelera").lean();
   await syncForEach(usuarios, (usuario) => {
     total++;
     if (usuario.rol == DTOUsuario.MULTI) comerciales++;
@@ -245,33 +246,35 @@ async function initRedisCache() {
     if (usuario.rol == DTOUsuario.TAQUILLA) taquillas++;
     if (usuario.rol == DTOUsuario.AGENTE) agentes++;
     if (usuario.rol == DTOUsuario.ONLINE) online++;
+    if (usuario.rol == DTOUsuario.AUDITOR) auditor++;
+    if (usuario.rol == DTOUsuario.MASTER) master++;
     if (usuario.activo) activos++;
     if (usuario.papelera) papelera++;
-    if (nmoneda[usuario.moneda]) nmoneda[usuario.moneda] += 1;
-    else nmoneda[usuario.moneda] = 1;
   });
   redisRepo.hset_args(
-    "cache-estadisticas",
+    RedisCache.ESTADISTICAS,
     "total",
     total,
-    "comerciales",
+    DTOUsuario.MULTI,
     comerciales,
-    "bancas",
+    DTOUsuario.BANCA,
     bancas,
-    "grupos",
+    DTOUsuario.GRUPO,
     grupos,
-    "taquillas",
+    DTOUsuario.TAQUILLA,
     taquillas,
-    "agentes",
+    DTOUsuario.AGENTE,
     agentes,
-    "online",
+    DTOUsuario.ONLINE,
     online,
+    DTOUsuario.AUDITOR,
+    auditor,
+    DTOUsuario.MASTER,
+    master,
     "activos",
     activos,
     "papelera",
-    papelera,
-    "monedas",
-    JSON.stringify(nmoneda)
+    papelera
   );
   //#endregion
 }
