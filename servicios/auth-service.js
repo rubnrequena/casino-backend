@@ -121,6 +121,7 @@ module.exports = {
               console.error(error);
             });
           }
+          redisRepo.hincrby(RedisCache.ESTADISTICAS, usuario.rol, 1);
           resolve(usuario);
         })
         .catch((error) => reject(error));
