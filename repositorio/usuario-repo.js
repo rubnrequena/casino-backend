@@ -209,6 +209,33 @@ module.exports = {
     async correo(correo) {
       return await usuarioModel.findOne({ correo }).lean();
     },
+    /**
+     *
+     * @param {String} usuarioId
+     */
+    contarHijos(usuarioId) {
+      return new Promise((resolve, reject) => {
+        usuarioModel.aggregate(
+          [
+            { $match: { jerarquia: ObjectId(usuarioId) } },
+            {
+              $group: {
+                _id: "$rol",
+                n: { $sum: 1 },
+                usuarios: { $addToSet: "$$ROOT" },
+              },
+            },
+            {
+              $project: { n: 1, "usuarios.papelera": 1, "usuarios.activo": 1 },
+            },
+          ],
+          (error, result) => {
+            if (error) return reject(error.message);
+            resolve(result);
+          }
+        );
+      });
+    },
   },
   /** JSDoc
    * @param {Usuario} padre
