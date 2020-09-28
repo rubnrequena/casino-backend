@@ -67,17 +67,9 @@ module.exports = {
     return new Promise(async (resolve, reject) => {
       let sorteo = await sorteoRepo.buscar.id(sorteoId);
       if (sorteo.ganador) return reject("sorteo ya premiado");
-      await sorteoModel.updateOne(
-        {
-          _id: sorteoId,
-        },
-        {
-          ganador,
-        },
-        (error) => {
-          if (error) console.log("notificar error");
-        }
-      );
+      await sorteoModel.updateOne({ _id: sorteoId }, { ganador }, (error) => {
+        if (error) console.log("notificar error");
+      });
       let operadora = await operadoraRepo.buscar.id(sorteo.operadora);
       let premiados = await ticketRepo.buscar.premiados(
         sorteoId,
