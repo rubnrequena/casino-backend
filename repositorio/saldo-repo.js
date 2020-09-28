@@ -9,6 +9,9 @@ const Usuario = require("../dto/usuario-dto");
 const MetodoPago = require("../dto/metodo_pago-dto");
 const redisRepo = require("./redis-repo");
 const RedisCache = require("../dto/redis-cache.dto");
+const mongoose = require("mongoose");
+const usuarioModel = require("_modelos/usuario-model");
+const ObjectId = mongoose.Types.ObjectId;
 
 //#region Saldo
 /**
@@ -301,6 +304,47 @@ module.exports = {
           (error, saldos) => {
             if (error) return reject(error.message);
             resolve(saldos);
+          }
+        );
+      });
+    },
+    /**
+     * TODO: duplicado de saldoRepo.balance, verificar cual es mas optimo
+     * @param {String} usuarioId
+     */
+    hijos(usuarioId) {
+      return new Promise((resolve, reject) => {
+        usuarioModel.aggregate(
+          [
+            { $match: { jerarquia: ObjectId(usuarioId) } },
+            {
+              $lookup: {
+                from: "saldos",
+                foreignField: "usuario",
+                localField: "_id",
+                as: "saldo",
+              },
+            },
+            {
+              $project: {
+                nombre: 1,
+                moneda: 1,
+                saldo: { $arrayElemAt: ["$saldo", -1] },
+              },
+            },
+            { $match: { saldo: { $exists: 1 } } },
+            {
+              $project: {
+                moneda: 1,
+                saldo: "$saldo.balance",
+                tiempo: "$saldo.tiempo",
+                nombre: 1,
+              },
+            },
+          ],
+          (error, result) => {
+            if (error) return reject(error.message);
+            resolve(result);
           }
         );
       });
