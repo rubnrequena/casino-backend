@@ -41,8 +41,11 @@ module.exports = {
 };
 
 function generarVenta(sorteo, numero = 0, monto = 1000, numeroMax, montoMax) {
+  const num = trailZero(
+    numero && numeroMax ? getRandomInt(numero, numeroMax) : numero
+  );
   return {
-    numero: numero && numeroMax ? getRandomInt(numero, numeroMax) : numero,
+    numero: num,
     monto: monto && montoMax ? getRandomInt(monto, montoMax) : monto,
     sorteo: sorteo,
   };
