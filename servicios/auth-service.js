@@ -112,6 +112,9 @@ module.exports = {
           predeterminado: true,
         });
       }
+      //TODO: validar monedas
+      moneda = moneda.join(",");
+
       usuarioRepo
         .registro(
           padre,
