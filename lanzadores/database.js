@@ -122,6 +122,7 @@ async function initRedisCache() {
     ]);
   }
   //#endregion
+
   //#region numeros
   let numeros = await numerosModel.find().lean();
   if (numeros.length == 0) {
@@ -174,12 +175,14 @@ async function initRedisCache() {
     redisRepo.hjson(RedisCache.NUMEROS, numero._id, numero);
   });
   //#endregion
+
   //#region menus
   const menus = await menuModel.find().lean();
   menus.forEach((menu) => {
     redisRepo.hjson(RedisCache.MENUS, menu._id, menu);
   });
   //#endregion
+
   //#region permisos
   let permisoOnline = await permisoModel.findOne({
     rol: "online",
@@ -199,12 +202,14 @@ async function initRedisCache() {
     redisRepo.hjson(RedisCache.PERMISOS, permiso._id, permiso);
   });
   //#endregion
+
   //#region operadoras
   const operadoras = await operadoraRepo.buscar.todas();
   operadoras.forEach((operadora) => {
     redisRepo.hjson(RedisCache.OPERADORAS, operadora._id, operadora);
   });
   //#endregion
+
   //#region balance
   const balances = await saldoRepo.buscar.balance();
   balances.forEach((balance) => {
@@ -212,6 +217,7 @@ async function initRedisCache() {
     redisRepo.hset(RedisCache.BALANCE_MONEDA, balance._id, balance.moneda);
   });
   //#endregion
+
   //#region monedas
   let monedas = await monedaModel.find({}, "nombre siglas principal").lean();
   if (!monedas || monedas.length == 0) {

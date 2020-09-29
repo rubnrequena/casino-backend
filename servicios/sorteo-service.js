@@ -95,6 +95,7 @@ module.exports = {
       );
       for (let i = 0; i < premiados.length; i++) {
         const premiado = premiados[i];
+        //TODO: optimizar
         const taquilla = await usuarioRepo.buscar.id(premiado._id);
         const comercial = await usuarioRepo.buscar.id(taquilla.jerarquia[1]);
         const banca = await usuarioRepo.buscar.id(taquilla.jerarquia[2]);
