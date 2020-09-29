@@ -57,16 +57,16 @@ router.get("/buscar/premiados", usuarioMiddle.validarJerarquia, (req, res) => {
 });
 
 router.get("/monitor/admin", (req, res) => {
-  const { sorteo, rol } = req.query;
+  const { sorteo, rol, moneda } = req.query;
   ticketService.monitor
-    .admin(sorteo, rol)
+    .admin(sorteo, rol, moneda)
     .then((monitor) => res.json(monitor))
     .catch((error) => res.json(crearError(error)));
 });
 router.get("/monitor/numero", (req, res) => {
-  const { sorteo } = req.query;
+  const { sorteo, moneda } = req.query;
   ticketService.monitor
-    .numero(sorteo)
+    .numero(sorteo, moneda)
     .then((monitor) => res.json(monitor))
     .catch((error) => res.json(crearError(error)));
 });

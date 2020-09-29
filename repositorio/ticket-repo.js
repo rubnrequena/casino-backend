@@ -407,11 +407,11 @@ async function buscarVentas_ticket(ticketId) {
  * @param {String} sorteoId ID del sorteo
  * @param {Number} operadoraPaga cuanto paga la operadora
  */
-function monitor_numeros(sorteoId, operadoraPaga) {
+function monitor_numeros(sorteoId, operadoraPaga, moneda) {
   return new Promise((resolve, reject) => {
     ventaModel.aggregate(
       [
-        { $match: { sorteo: ObjectId(sorteoId) } },
+        { $match: { sorteo: ObjectId(sorteoId), moneda } },
         {
           $project: {
             premio: 1,
@@ -442,12 +442,12 @@ function monitor_numeros(sorteoId, operadoraPaga) {
     );
   });
 }
-function monitor_admin(sorteoId, rol, operadoraPaga) {
+function monitor_admin(sorteoId, rol, operadoraPaga, moneda) {
   return new Promise((resolve, reject) => {
     const rolIndex = Usuario.NIVELES.indexOf(rol);
     ventaModel.aggregate(
       [
-        { $match: { sorteo: ObjectId(sorteoId) } },
+        { $match: { sorteo: ObjectId(sorteoId), moneda } },
         {
           $project: {
             premio: 1,

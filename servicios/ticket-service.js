@@ -59,15 +59,15 @@ module.exports = {
     });
   },
   monitor: {
-    async admin(sorteoId, rol) {
+    async admin(sorteoId, rol, moneda) {
       let sorteo = await sorteoRepo.buscar.id(sorteoId);
       let operadora = await operadoraRepo.buscar.id(sorteo.operadora);
-      return ticketRepo.monitor.admin(sorteoId, rol, operadora.paga);
+      return ticketRepo.monitor.admin(sorteoId, rol, operadora.paga, moneda);
     },
-    async numero(sorteoId) {
+    async numero(sorteoId, moneda) {
       let sorteo = await sorteoRepo.buscar.id(sorteoId);
       let operadora = await operadoraRepo.buscar.id(sorteo.operadora);
-      return ticketRepo.monitor.numeros(sorteoId, operadora.paga);
+      return ticketRepo.monitor.numeros(sorteoId, operadora.paga, moneda);
     },
   },
 };
