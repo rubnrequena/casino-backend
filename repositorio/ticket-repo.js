@@ -306,12 +306,28 @@ async function buscar_premiados(sorteoId, ganador, operadoraPaga) {
       },
     },
     {
+      $lookup: {
+        from: "operadoras_paga",
+        foreignField: "usuario",
+        localField: "_id",
+        as: "paga",
+      },
+    },
+    { $addFields: { paga: { $arrayElemAt: ["$paga", 0] } } },
+    {
+      $addFields: {
+        paga: { $cond: ["$paga.paga", "$paga.paga", operadoraPaga] },
+      },
+    },
+    {
       $project: {
         numTickets: 1,
         venta: 1,
         ventaNumero: 1,
+        paga: 1,
+        numero: 1,
         premio: {
-          $multiply: ["$ventaNumero", operadoraPaga],
+          $multiply: ["$ventaNumero", "$paga"],
         },
       },
     },
