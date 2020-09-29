@@ -12,26 +12,31 @@ module.exports = {
      * @param {String} desde
      * @param {String} hasta
      */
-    async usuario(usuario, desde, hasta) {
+    async usuario(usuario, desde, hasta, moneda) {
       let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario._id);
       if (usuario.rol == Usuario.AUDITOR)
         usuario = await usuarioRepo.buscar.usuario("master");
-      return reporteRepo.buscar.usuario(usuario._id, operadoras, desde, hasta);
+      return reporteRepo.buscar.usuario(
+        usuario._id,
+        operadoras,
+        desde,
+        hasta,
+        moneda
+      );
     },
     /**
-     *
      * @param {Usuario} usuario
      * @param {String} desde
      * @param {String} hasta
      */
-    async operadoras(usuario, desde, hasta) {
+    async operadoras(usuario, desde, hasta, moneda) {
       let meta = await usuarioRepo.meta(usuario._id);
       let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario._id);
       if (usuario.rol == Usuario.AUDITOR)
         usuario = await usuarioRepo.buscar.usuario("master");
 
       let otros_reportes = [];
-      if (meta.operadoras_remotas) {
+      if (meta && meta.operadoras_remotas) {
         let url = String(meta.operadoras_remotas.srq);
         url = url.replace(":inicio", desde);
         url = url.replace(":fin", hasta);
@@ -49,7 +54,8 @@ module.exports = {
         usuario._id,
         operadoras,
         desde,
-        hasta
+        hasta,
+        moneda
       );
       return [...reporte, ...otros_reportes];
     },

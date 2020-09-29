@@ -120,8 +120,9 @@ module.exports = {
      * @param {String} desde
      * @param {String} hasta
      */
-    usuario(usuarioId, operadoras, desde, hasta) {
+    usuario(usuarioId, operadoras, desde, hasta, moneda) {
       desde = new Date(desde);
+      desde.setHours(0, 0, 0);
       hasta = new Date(hasta);
       hasta.setHours(23, 59, 59);
       return new Promise((resolve, reject) => {
@@ -133,6 +134,7 @@ module.exports = {
                 jerarquia: ObjectId(usuarioId),
                 fecha: { $gte: desde, $lte: hasta },
                 operadora: { $in: operadoras },
+                moneda,
               },
             },
             {
@@ -211,8 +213,9 @@ module.exports = {
      * @param {String} hasta
      * @returns {Reporte[]}
      */
-    operadoras(usuarioId, operadoras, desde, hasta) {
+    operadoras(usuarioId, operadoras, desde, hasta, moneda) {
       desde = new Date(desde);
+      desde.setHours(0, 0, 0);
       hasta = new Date(hasta);
       hasta.setHours(23, 59, 59);
       return new Promise((resolve, reject) => {
@@ -224,6 +227,7 @@ module.exports = {
                 jerarquia: ObjectId(usuarioId),
                 fecha: { $gte: desde, $lte: hasta },
                 operadora: { $in: operadoras },
+                moneda,
               },
             },
             {

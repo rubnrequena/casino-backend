@@ -23,20 +23,23 @@ router.post("/admin/:usuario", validarJerarquia, (req, res) => {
 });
 
 router.get("/usuario", validarJerarquia, (req, res) => {
-  let { desde, hasta } = req.query;
+  //TODO: verificar moneda valida
+  let { desde, hasta, moneda } = req.query;
   reporteService.buscar
-    .usuario(req.usuario, desde, hasta)
+    .usuario(req.usuario, desde, hasta, moneda)
     .then((reportes) => res.json(reportes))
     .catch((error) => res.json(crearError(error)));
 });
 router.get("/operadoras", validarJerarquia, (req, res) => {
-  let { desde, hasta } = req.query;
+  //TODO: verificar moneda valida
+  let { desde, hasta, moneda } = req.query;
   reporteService.buscar
-    .operadoras(req.usuario, desde, hasta)
+    .operadoras(req.usuario, desde, hasta, moneda)
     .then((reportes) => res.json(reportes))
     .catch((error) => res.json(crearError(error)));
 });
 router.get("/usuario/negativos", validarJerarquia, (req, res) => {
+  //TODO: verificar moneda valida
   let { desde, hasta } = req.query;
   reporteService.buscar.negativos
     .usuario(req.usuario, desde, hasta)
