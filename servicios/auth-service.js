@@ -4,18 +4,23 @@ const md5 = require("md5");
 const usuarioRepo = require("../repositorio/usuario-repo");
 const topeRepo = require("../repositorio/tope-repo");
 const operadoraRepo = require("../repositorio/operadora-repo");
-const topeUtil = require("../utils/tope-util");
 const saldoRepo = require("../repositorio/saldo-repo");
-const menuModel = require("_modelos/menu-model");
 const redisRepo = require("../repositorio/redis-repo");
-const RedisCache = require("../dto/redis-cache.dto");
-const permisoModel = require("_modelos/permiso-model");
 const permisosRepo = require("../repositorio/permisos-repo");
+const sistemaRepo = require("../repositorio/sistema-repo");
+
+const RedisCache = require("../dto/redis-cache.dto");
 const Permiso = require("../dto/permiso.dto");
-const enviarCorreo = require("../mail");
+const menuModel = require("_modelos/menu-model");
+const permisoModel = require("_modelos/permiso-model");
 const plantillas = require("../mail/plantillas");
+
+const topeUtil = require("../utils/tope-util");
+const { syncForEach } = require("../utils/array-util");
 const usuarioService = require("./usuario-service");
+
 const config = require("../config");
+const enviarCorreo = require("../mail");
 
 module.exports = {
   /**
@@ -45,6 +50,15 @@ module.exports = {
           }
           _usuario.menu = menu.menu;
         }
+        //#endregion
+
+        //#region monedas
+        let monedas = [];
+        await syncForEach(_usuario.moneda.split(","), async (siglas) => {
+          let moneda = await sistemaRepo.moneda(siglas);
+          if (moneda) monedas.push(moneda);
+        });
+        _usuario.moneda = monedas;
         //#endregion
         _usuario.token = jwtService.firmar(_usuario);
         if (_usuario.rol == Usuario.ONLINE) {
