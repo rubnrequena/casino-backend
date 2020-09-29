@@ -331,6 +331,16 @@ async function buscar_premiados(sorteoId, ganador, operadoraPaga) {
         },
       },
     },
+    {
+      $lookup: {
+        from: "usuarios",
+        foreignField: "_id",
+        localField: "_id",
+        as: "moneda",
+      },
+    },
+    { $addFields: { moneda: { $arrayElemAt: ["$moneda", 0] } } },
+    { $addFields: { moneda: "$moneda.moneda" } },
   ]);
   return tickets;
 }

@@ -3,11 +3,13 @@ const esquema = new mongoose.Schema({
   fecha: {
     type: Date,
     required: true,
+    index: true,
   },
   usuario: {
     type: mongoose.Types.ObjectId,
     required: true,
     ref: "Usuario",
+    index: true,
   },
   venta: {
     type: Number,
@@ -44,11 +46,18 @@ const esquema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true,
     ref: "Sorteo",
+    index: true,
   },
   operadora: {
     type: mongoose.Types.ObjectId,
     required: true,
     ref: "Operadora",
+    index: true,
+  },
+  moneda: {
+    type: String,
+    required: true,
+    index: true,
   },
 });
 module.exports = mongoose.model("Reporte", esquema);

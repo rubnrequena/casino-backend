@@ -1,51 +1,53 @@
-const Usuario = require("./usuario-dto")
-const Sorteo = require("./sorteo-dto")
+const Usuario = require("./usuario-dto");
+const Sorteo = require("./sorteo-dto");
 
 class Reporte {
   /** @type {Date} */
-  fecha
+  fecha;
   /** @type {Usuario} */
-  usuario
+  usuario;
   /** @type {Number} */
-  venta
+  venta;
   /** @type {Number} */
-  premio
+  premio;
   /** @type {Comision} */
-  comision
+  comision;
   /** @type {Participacion} */
-  participacion
+  participacion;
   /** @type {Sorteo} */
-  sorteo
+  sorteo;
   /** @type {String} */
-  operadora
+  operadora;
   /** @type {jerarquia} */
-  jerarquia
+  jerarquia;
+  /** @type {String} */
+  moneda;
 }
-module.exports = Reporte
+module.exports = Reporte;
 
 class Comision {
   /** @type {Number} */
-  taquilla
+  taquilla;
   /** @type {Number} */
-  agencia
+  agencia;
   /** @type {Number} */
-  grupo
+  grupo;
   /** @type {Number} */
-  banca
+  banca;
   /** @type {Number} */
-  multi
+  multi;
   /** @type {Number} */
-  operadora
+  operadora;
 }
 class Participacion {
   /** @type {Number} */
-  agencia
+  agencia;
   /** @type {Number} */
-  grupo
+  grupo;
   /** @type {Number} */
-  banca
+  banca;
   /** @type {Number} */
-  multi
+  multi;
   /** @type {Number} */
-  operadora
+  operadora;
 }

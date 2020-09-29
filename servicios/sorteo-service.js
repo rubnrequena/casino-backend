@@ -111,6 +111,7 @@ module.exports = {
           fecha: hoy,
           operadora: operadora._id,
           sorteo: sorteo._id,
+          moneda: premiado.moneda,
           venta: premiado.venta,
           premio: premiado.premio,
           numTickets: premiado.numTickets,
