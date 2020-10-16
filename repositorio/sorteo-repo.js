@@ -93,10 +93,19 @@ module.exports = {
   buscar: {
     /**
      * @param {String} sorteoId
-     * @returns {Sorteo}
+     * @param {String} campos
+     * @returns {Promise<Sorteo>}
      */
-    async id(sorteoId, campos) {
-      return await sorteoModel.findById(sorteoId, campos).lean();
+    id(sorteoId, campos) {
+      return new Promise((resolve, reject) => {
+        sorteoModel
+          .findById(sorteoId, campos, (error, result) => {
+            console.log("sorteo", result._id);
+            if (error) return reject(error.message);
+            resolve(result);
+          })
+          .lean();
+      });
     },
     /**
      * @param {String} fecha
