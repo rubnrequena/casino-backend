@@ -1,8 +1,11 @@
-const operadoraRepo = require("../repositorio/operadora-repo");
-const Operadora = require("../dto/operadora-dto");
-const usuarioRepo = require("../repositorio/usuario-repo");
-const sorteoRepo = require("../repositorio/sorteo-repo");
 const topeUtil = require("../utils/tope-util");
+
+const Operadora = require("../dto/operadora-dto");
+const Usuario = require("../dto/usuario-dto");
+
+const operadoraRepo = require("../repositorio/operadora-repo");
+const usuarioRepo = require("../repositorio/usuario-repo");
+const operadora_pagaModel = require("_modelos/operadora_paga-model");
 
 module.exports = {
   /**
@@ -71,5 +74,53 @@ module.exports = {
    */
   enlaceActivar(usuarioId, enlaceId, activo) {
     return operadoraRepo.enlaceActivar(usuarioId, enlaceId, activo);
+  },
+
+  paga: {
+    /**
+     * @param {String} operadora
+     * @param {String} grupo
+     * @param {Number} monto
+     */
+    nuevo(operadora, grupo, monto) {
+      return operadoraRepo.pagos.nuevo(operadora, grupo, monto);
+    },
+  },
+
+  grupos: {
+    /**
+     * @param {String} grupoId
+     * @param {Usuario} usuario
+     */
+    buscarId(grupoId) {
+      return new Promise((resolve, reject) => {
+        operadoraRepo.grupos.buscar
+          .id(grupoId)
+          .then((grupo) => {
+            operadoraRepo
+              .paga(grupo._id)
+              .then((pagos) => {
+                resolve({ grupo, pagos });
+              })
+              .catch((error) => reject(error));
+          })
+          .catch((error) => reject(error));
+      });
+    },
+    /**
+     * @param {String} nombre
+     * @param {String} descripcion
+     * @param {Usuario} usuario
+     */
+    nuevo(nombre, descripcion, usuario) {
+      return operadoraRepo.grupos.nuevo(nombre, descripcion, usuario);
+    },
+    /**
+     * @param {String} grupoId
+     * @param {Usuario} usuario
+     */
+    remover(grupoId, usuario) {
+      return operadoraRepo.grupos.remover(grupoId, usuario._id);
+    },
   },
 };

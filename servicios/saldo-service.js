@@ -1,7 +1,6 @@
 const Saldo = require("../dto/saldo-dto");
 const Usuario = require("../dto/usuario-dto");
 const MetodoPago = require("../dto/metodo_pago-dto");
-
 const saldoRepo = require("../repositorio/saldo-repo");
 const Transaccion = require("../dto/transaccion-dto");
 const usuarioRepo = require("../repositorio/usuario-repo");
@@ -38,14 +37,17 @@ module.exports = {
   /**
    * @param {Usuario} usuario
    * @param {Number} monto
-   * @param {String} metodo
+   * @param {String} metodoId
    * @param {String} mensaje
    */
-  recarga(usuario, monto, metodo, fecha, recibo, mensaje) {
+  async recarga(usuario, monto, metodoId, fecha, recibo, mensaje) {
+    const metodo = await saldoRepo.metodo_pago.buscar.id(metodoId);
+    if (!metodo) throw `Metodo '${metodoId} inválido`;
     return saldoRepo.transaccion.recarga(
       usuario,
       monto,
-      metodo,
+      metodoId,
+      metodo.moneda,
       fecha,
       recibo,
       mensaje
@@ -54,11 +56,19 @@ module.exports = {
   /**d
    * @param {Usuario} usuario
    * @param {Number} monto
-   * @param {String} metodo
+   * @param {String} metodoId
    * @param {String} mensaje
    */
-  retiro(usuario, monto, metodo, mensaje) {
-    return saldoRepo.transaccion.retiro(usuario, monto, metodo, mensaje);
+  async retiro(usuario, monto, metodoId, mensaje) {
+    const metodo = await saldoRepo.metodo_pago.buscar.id(metodoId);
+    if (!metodoId) throw `Metodo '${metodoId} inválido`;
+    return saldoRepo.transaccion.retiro(
+      usuario,
+      monto,
+      metodoId,
+      metodo.moneda,
+      mensaje
+    );
   },
   /**
    * @param {String} transaccionId
@@ -123,7 +133,7 @@ module.exports = {
      * @returns {Promise<MetodoPago>}
      */
     nuevo(usuario, entidad, direccion, moneda, meta) {
-      if (usuario.rol == Usuario.ONLINE) moneda = usuario.moneda;
+      if (usuario.rol == Usuario.ONLINE) moneda = usuario.moneda[0].siglas;
       return saldoRepo.metodo_pago.nuevo(
         usuario,
         entidad,

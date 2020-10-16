@@ -48,6 +48,7 @@ class Usuario {
   /** @type {String} */ menu;
   /** @type {String} */ codigo;
   /** @type {Object} */ meta;
+  /** @type {String} */ grupoPago;
 }
 
 module.exports = Usuario;

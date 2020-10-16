@@ -15,6 +15,9 @@ const comisionRepo = require("../repositorio/comision.repo");
 const Comision = require("../dto/comision.dto");
 const ventaModel = require("_modelos/venta-model");
 const saldoService = require("./saldo-service");
+const { util } = require("chai");
+
+var total = 0;
 
 module.exports = {
   /** JSDoc
@@ -65,42 +68,29 @@ module.exports = {
    */
   premiar(sorteoId, ganador) {
     return new Promise(async (resolve, reject) => {
-      let sorteo = await sorteoRepo.buscar.id(sorteoId);
+      const sorteo = await sorteoRepo.buscar.id(sorteoId);
       if (sorteo.ganador) return reject("sorteo ya premiado");
       await sorteoModel.updateOne({ _id: sorteoId }, { ganador }, (error) => {
         if (error) console.log("notificar error");
       });
-      let operadora = await operadoraRepo.buscar.id(sorteo.operadora);
-      let premiados = await ticketRepo.buscar.premiados(
+      const operadora = await operadoraRepo.buscar.id(sorteo.operadora);
+      const premiados = await ticketRepo.buscar.premiados(
         sorteoId,
         ganador,
         operadora.paga
       );
-
       if (premiados.length == 0) return reject("sin ventas registradas");
 
       let jugadoGlobal = 0;
-      let numeroGlobal = 0;
       let premioGlobal = 0;
       let numJugadas = 0;
-      let hoy = new Date();
       let reportes = [];
-      const comisiones = await comisionRepo.buscar.operadora(
-        operadora._id,
-        Comision.COMISION
-      );
-      const participaciones = await comisionRepo.buscar.operadora(
-        operadora._id,
-        Comision.PARTICIPACION
-      );
+      const hoy = new Date();
+      const comisiones = await comisionRepo.buscar.operadora(operadora._id);
       for (let i = 0; i < premiados.length; i++) {
         const premiado = premiados[i];
         //TODO: optimizar
-        const taquilla = await usuarioRepo.buscar.id(premiado._id);
-        const comercial = await usuarioRepo.buscar.id(taquilla.jerarquia[1]);
-        const banca = await usuarioRepo.buscar.id(taquilla.jerarquia[2]);
-        const grupo = await usuarioRepo.buscar.id(taquilla.jerarquia[3]);
-        const agencia = await usuarioRepo.buscar.id(taquilla.jerarquia[4]);
+        const pos = await usuarioRepo.buscar.id(premiado._id);
         jugadoGlobal += premiado.venta;
         premioGlobal += premiado.premio;
         numJugadas += premiado.numTickets;
@@ -115,21 +105,15 @@ module.exports = {
           venta: premiado.venta,
           premio: premiado.premio,
           numTickets: premiado.numTickets,
-          jerarquia: taquilla.jerarquia,
-          comision: {
-            taquilla: buscarComision(taquilla, comisiones),
-            agencia: buscarComision(agencia, comisiones),
-            grupo: buscarComision(grupo, comisiones),
-            banca: buscarComision(banca, comisiones),
-            comercial: buscarComision(comercial, comisiones),
-          },
-          participacion: {
-            agencia: buscarParticipacion(taquilla, participaciones),
-            grupo: buscarParticipacion(taquilla, participaciones),
-            banca: buscarParticipacion(taquilla, participaciones),
-            comercial: buscarParticipacion(taquilla, participaciones),
-          },
+          jerarquia: pos.jerarquia,
         };
+        const comisionPadres = await generarComision(pos.jerarquia, comisiones);
+        reporte = { ...reporte, ...comisionPadres };
+
+        const posComision = buscarComision(pos, comisiones);
+        reporte.comision[pos.rol] = posComision.comision;
+        reporte.participacion[pos.rol] = posComision.participacion;
+
         reportes.push(reporte);
       }
       //TODO enviar a reporteRepo.nuevo
@@ -146,6 +130,11 @@ module.exports = {
           console.log("tickets premiados", result);
         }
       );
+      resolve({
+        jugadoGlobal,
+        premioGlobal,
+        numJugadas,
+      });
       //#region Pagar saldo
       let saldoOnline = 0;
       const ventas = await ventaModel
@@ -163,14 +152,8 @@ module.exports = {
           saldo
         );
       }
+      console.log("saldo actualizado, saldo reducido en", saldoOnline);
       //#endregion
-
-      resolve({
-        jugadoGlobal,
-        premioGlobal,
-        numJugadas,
-        saldoOnline,
-      });
     });
   },
   reiniciar(sorteoId) {
@@ -217,21 +200,25 @@ module.exports = {
 /**
  * @param {Usuario} usuario
  * @param {Comision[]} data
- * @returns {Number}
+ * @returns {Comision}
  */
 function buscarComision(usuario, data) {
-  if (!usuario) return 0;
-  let comision = data.find((comision) => comision.usuario == usuario._id);
-  return comision ? comision.comision : usuario.comision;
+  return data.find((comision) => {
+    return comision.usuario.equals(usuario._id);
+  });
 }
-
-/**
- * @param {Usuario} usuario
- * @param {Comision[]} data
- * @returns {Number}
- */
-function buscarParticipacion(usuario, data) {
-  if (!usuario) return 0;
-  let comision = data.find((comision) => comision.usuario == usuario._id);
-  return comision ? comision.comision : usuario.participacion;
+async function generarComision(jerarquia, comisiones) {
+  let comision = {};
+  let participacion = {};
+  let utilidad = {};
+  for (let i = 1; i < jerarquia.length; i++) {
+    //TODO: optimizar
+    total++;
+    const usuario = await usuarioRepo.buscar.id(jerarquia[i]);
+    const _comision = buscarComision(usuario, comisiones);
+    comision[usuario.rol] = _comision.comision;
+    participacion[usuario.rol] = _comision.participacion;
+    utilidad[usuario.rol] = _comision.utilidad;
+  }
+  return { comision, participacion, utilidad };
 }

@@ -51,6 +51,7 @@ router.post("/registro", async (req, res) => {
     rol,
     moneda,
     cedula,
+    grupoPago,
   } = req.body;
   /*let jerarquia;
   if (padre) {
@@ -73,7 +74,8 @@ router.post("/registro", async (req, res) => {
       permisos,
       rol,
       moneda,
-      cedula
+      cedula,
+      grupoPago
     )
     .then((usuario) => res.json(usuario))
     .catch((error) => res.json(crearError(error)));

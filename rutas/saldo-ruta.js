@@ -1,19 +1,12 @@
 const Usuario = require("../dto/usuario-dto");
 const { validarPOST, validarGET } = require("../middlewares");
-const { validarJerarquia } = require("../middlewares/usuario-middle");
+const { validarJerarquia, esMaster } = require("../middlewares/usuario-middle");
 const usuarioMiddle = require("../middlewares/usuario-middle");
 const saldoRepo = require("../repositorio/saldo-repo");
 const saldoService = require("../servicios/saldo-service");
 const { crearError } = require("../utils/error-util");
 
 const router = require("express").Router();
-
-const metodoEditar = validarPOST("_id:objectid,entidad,direccion,meta,moneda");
-const metodoRemover = validarPOST("metodo:objectid");
-const metodoBuscar = [
-  validarGET("usuario:objectid"),
-  usuarioMiddle.validarJerarquia,
-];
 
 router.post(
   "/recarga",
@@ -51,7 +44,7 @@ router.post("/cancelar", validarJerarquia, (req, res) => {
     .then((transaccion_result) => res.json(transaccion_result))
     .catch((error) => res.json(crearError(error)));
 });
-router.get("/balance", async (req, res) => {
+router.get("/balance", esMaster, async (req, res) => {
   res.json(await saldoRepo.buscar.balance());
 });
 router.get("/usuario", validarJerarquia, (req, res) => {
@@ -60,6 +53,7 @@ router.get("/usuario", validarJerarquia, (req, res) => {
     .then((saldo) => res.json(saldo))
     .catch((error) => res.json(crearError(error)));
 });
+//#region Transacciones
 
 router.get("/recarga/historia", (req, res) => {
   const limite = parseInt(req.query.limite) || 10;
@@ -117,6 +111,18 @@ router.get("/transaccion/historia", (req, res) => {
     .catch((error) => res.json(crearError(error)));
 });
 
+//#endregion
+//#region MetodoPago
+const metodoEditar = validarPOST("_id:objectid,entidad,direccion,meta,moneda");
+const metodoRemover = [validarPOST("metodo:objectid"), validarJerarquia];
+const metodoBuscar = [
+  validarGET("usuario:objectid"),
+  usuarioMiddle.validarJerarquia,
+];
+const metodoNuevo = validarPOST(
+  "entidad:string,direccion:string,moneda:string"
+);
+
 router.get("/metodopago/buscar/todos", (req, res) => {
   saldoRepo.metodo_pago.buscar
     .usuario(req.user._id)
@@ -134,7 +140,7 @@ router.get("/metodopago/buscar", metodoBuscar, (req, res) => {
     })
     .catch((error) => res.json(crearError(error)));
 });
-router.post("/metodopago/nuevo", (req, res) => {
+router.post("/metodopago/nuevo", metodoNuevo, (req, res) => {
   const { entidad, direccion, moneda, meta } = req.body;
   saldoService.metodo_pago
     .nuevo(req.user, entidad, direccion, moneda, meta)
@@ -167,4 +173,6 @@ router.get("/metodopago/recargar", (req, res) => {
     .then((metodos) => res.json(metodos))
     .catch((error) => res.json(crearError(error)));
 });
+
+//#endregion
 module.exports = router;

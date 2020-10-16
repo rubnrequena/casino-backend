@@ -94,7 +94,8 @@ module.exports = {
     permisos,
     rol,
     moneda,
-    cedula
+    cedula,
+    grupoPago
   ) {
     return new Promise(async (resolve, reject) => {
       let padre = await usuarioRepo.buscar.id(padreId);
@@ -113,7 +114,7 @@ module.exports = {
         });
       }
       //TODO: validar monedas
-      moneda = moneda.join(",");
+      if (typeof moneda == "array") moneda = moneda.join(",");
 
       usuarioRepo
         .registro(
@@ -130,7 +131,8 @@ module.exports = {
           utilidad,
           permisos,
           moneda,
-          cedula
+          cedula,
+          grupoPago
         )
         .then((usuario) => {
           if (usuario.rol == Usuario.ONLINE) {

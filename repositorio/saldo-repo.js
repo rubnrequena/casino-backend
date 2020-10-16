@@ -75,6 +75,7 @@ function guardarSaldo(usuario, descripcion, monto, balance, prevHash) {
       descripcion,
       monto,
       balance,
+      moneda: usuario.moneda,
       tiempo: new Date(),
       prevHash,
     };
@@ -129,7 +130,7 @@ async function transaccion_porId(transaccionId) {
  * @param {String} mensaje
  * @returns {Promise<Transaccion>}
  */
-function recarga(usuario, monto, metodo, fecha, recibo, mensaje) {
+function recarga(usuario, monto, metodo, moneda, fecha, recibo, mensaje) {
   return new Promise((resolve, reject) => {
     new transaccionModel({
       tipo: Transaccion.TIPO_RECARGA,
@@ -141,7 +142,7 @@ function recarga(usuario, monto, metodo, fecha, recibo, mensaje) {
       recibo,
       mensaje,
       procesada: false,
-      moneda: usuario.moneda,
+      moneda,
     }).save((error, transaccion) => {
       if (error) return reject(error.message);
       resolve(transaccion);
@@ -151,11 +152,11 @@ function recarga(usuario, monto, metodo, fecha, recibo, mensaje) {
 /**
  * @param {Usuario} usuario
  * @param {Number} monto
- * @param {String} metodo
+ * @param {String} metodoId
  * @param {String} mensaje
  * @returns {Promise<Transaccion>}
  */
-function retiro(usuario, monto, metodo, mensaje) {
+function retiro(usuario, monto, metodoId, moneda, mensaje) {
   return new Promise(async (resolve, reject) => {
     //const saldo = await ultimoSaldo(usuario._id);
     //if (!saldo || saldo.balance < monto) reject('saldo insuficiente')
@@ -164,10 +165,10 @@ function retiro(usuario, monto, metodo, mensaje) {
       usuario: usuario._id,
       jerarquia: usuario.jerarquia,
       monto,
-      metodo,
+      metodo: metodoId,
       mensaje,
       procesada: false,
-      moneda: usuario.moneda,
+      moneda,
     }).save((error, transaccion) => {
       if (error) return reject(error.message);
       resolve(transaccion);

@@ -41,8 +41,12 @@ module.exports = {
     }
   },
   async puedeVender(req, res, next) {
+    //TODO: optimizar REDIS
     const usuario = await usuarioRepo.findById(req.user._id);
-    //validar que existe
+    if (!usuario)
+      return res.status(401).send({
+        error: "Usuario no existe",
+      });
     if (usuario.activo && (usuario.rol == TAQUILLA || usuario.rol == ONLINE)) {
       req.taquilla = usuario;
       next();

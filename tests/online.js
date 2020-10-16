@@ -7,13 +7,9 @@ const { expect } = require("chai");
 const Usuario = require("../dto/usuario-dto.js");
 const Sorteo = require("../dto/sorteo-dto.js");
 
-const { generarVentas, generarVenta } = require("./dummyData.js");
-const ticketModel = require("_modelos/ticket-model");
-const redisRepo = require("../repositorio/redis-repo.js");
+const { generarVenta } = require("./dummyData.js");
 const { getRandomInt } = require("../utils/number-util.js");
 
-const chalk = require("chalk");
-const ticketService = require("../servicios/ticket-service.js");
 const MetodoPago = require("../dto/metodo_pago-dto.js");
 const metodo_pagoModel = require("_modelos/metodo_pago-model");
 const Transaccion = require("../dto/transaccion-dto.js");
@@ -37,8 +33,8 @@ describe("limpiar datos", () => {
     //await ticketModel.deleteMany();
     //await ventaModel.deleteMany();
     //await redisRepo.flush();
-    await metodo_pagoModel.deleteMany();
-    await transaccionModel.deleteMany();
+    //await metodo_pagoModel.deleteMany();
+    //await transaccionModel.deleteMany();
   });
 });
 

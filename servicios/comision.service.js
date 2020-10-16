@@ -1,14 +1,24 @@
 const comisionRepo = require("../repositorio/comision.repo");
+const operadoraRepo = require("../repositorio/operadora-repo");
 
 module.exports = {
-  registrar_comision(comision, usuarioId, operadoraId) {
-    return comisionRepo.registrar_comision(comision, usuarioId, operadoraId);
-  },
-  registrar_participacion(usuarioId, comision, operadoraId) {
-    return comisionRepo.registrar_participacion(
+  /**
+   *
+   * @param {Usuario} usuarioId
+   * @param {String} operadoraId
+   * @param {Number} comision
+   * @param {Number} participacion
+   * @param {Number} utilidad
+   */
+  async registrar(usuarioId, operadoraId, comision, participacion, utilidad) {
+    const operadora = await operadoraRepo.buscar.id(operadoraId);
+    if (!operadora) throw `Operadora ${operadoraId} no existe`;
+    return comisionRepo.registrar(
       usuarioId,
+      operadoraId,
       comision,
-      operadoraId
+      participacion,
+      utilidad
     );
   },
   modificar(comisionId, comision) {

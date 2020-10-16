@@ -1,11 +1,13 @@
 const router = require("express").Router();
 const Usuario = require("../dto/usuario-dto");
+const { validarPOST } = require("../middlewares");
 const usuarioMiddle = require("../middlewares/usuario-middle");
 const ticketRepo = require("../repositorio/ticket-repo");
 const ticketService = require("../servicios/ticket-service");
 const { crearError } = require("../utils/error-util");
 
-router.post("/venta", usuarioMiddle.puedeVender, (req, res) => {
+const venta = usuarioMiddle.puedeVender;
+router.post("/venta", venta, (req, res) => {
   /** @type {Usuario} */
   const taquilla = req.taquilla;
   /** @type {Array} */

@@ -12,7 +12,6 @@ const esquema = new mongoose.Schema({
   },
   moneda: {
     type: String,
-    enum: process.env.MONEDAS_PERMITIDAS.split(","),
     required: true,
   },
   direccion: {

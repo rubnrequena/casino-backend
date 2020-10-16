@@ -51,7 +51,9 @@ async function crearAdmin() {
     clave: md5("1234"),
     nombre: "Administrador",
     correo: "admin@fullapuestas.com",
+    moneda: "ves,eur,usd",
     codigo: 0,
+    permisos: "5f404c2399166318ec20c307",
     rol: "master",
   }).save((err) => {
     if (err) console.log(err);
@@ -213,8 +215,12 @@ async function initRedisCache() {
   //#region balance
   const balances = await saldoRepo.buscar.balance();
   balances.forEach((balance) => {
-    redisRepo.hset(RedisCache.BALANCE, balance._id, Number(balance.balance));
-    redisRepo.hset(RedisCache.BALANCE_MONEDA, balance._id, balance.moneda);
+    redisRepo
+      .hset(RedisCache.BALANCE, balance._id, Number(balance.balance))
+      .catch(onError);
+    redisRepo
+      .hset(RedisCache.BALANCE_MONEDA, balance._id, balance.moneda)
+      .catch(onError);
   });
   //#endregion
 
@@ -283,4 +289,8 @@ async function initRedisCache() {
     papelera
   );
   //#endregion
+}
+
+function onError(error) {
+  console.error(error);
 }

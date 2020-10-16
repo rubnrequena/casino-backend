@@ -265,7 +265,8 @@ module.exports = {
     utilidad,
     permisos,
     moneda,
-    cedula
+    cedula,
+    grupoPago
   ) {
     let jerarquia = [...padre.jerarquia, padre._id];
     let nHash = padre.usuario;
@@ -298,6 +299,7 @@ module.exports = {
         codigo,
         moneda,
         cedula,
+        grupoPago,
       }).save((err, usuario) => {
         if (err) return reject(err.message);
         resolve(usuario);

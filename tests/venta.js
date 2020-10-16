@@ -1,10 +1,9 @@
 //process.env.NODE_ENV = "mocha";
 const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
 var request = require("supertest");
 var app = require("../app.js");
 const { expect } = require("chai");
-
-const { resetRedis } = require("../lanzadores/database");
 
 const Usuario = require("../dto/usuario-dto.js");
 const Sorteo = require("../dto/sorteo-dto.js");
@@ -19,7 +18,9 @@ const ticketService = require("../servicios/ticket-service.js");
 const usuarioModel = require("_modelos/usuario-model");
 
 const anError = (res) => {
-  if (res.body.error) throw new Error(res.body.error);
+  if (res.body.error) {
+    throw new Error(res.body.error);
+  }
 };
 
 /** @type {Usuario} */
@@ -39,13 +40,12 @@ before(function (done) {
   });
 });
 
-describe("limpiar datos", () => {
+describe.skip("limpiar datos", () => {
   it("ventas", async () => {
     console.log("iniciando");
     await ticketModel.deleteMany();
     await ventaModel.deleteMany();
     await redisRepo.flush();
-    await resetRedis();
   });
 });
 
@@ -54,8 +54,8 @@ describe("login", () => {
     request(app)
       .post("/auth")
       .send({
-        usuario: "taquilla",
-        clave: "123456",
+        usuario: "prueba1",
+        clave: "1234",
       })
       .expect(200)
       .expect(anError)
@@ -72,8 +72,8 @@ describe("login", () => {
     request(app)
       .post("/auth")
       .send({
-        usuario: "taquilla2",
-        clave: "123456",
+        usuario: "prueba2",
+        clave: "1234",
       })
       .expect(200)
       .expect(anError)
@@ -90,8 +90,8 @@ describe("login", () => {
     request(app)
       .post("/auth")
       .send({
-        usuario: "online",
-        clave: "123456",
+        usuario: "agentx",
+        clave: "1234",
       })
       .expect(200)
       .expect(anError)
@@ -116,6 +116,10 @@ describe("login", () => {
         const ahora = Date.now();
         sorteos = res.body.sorteos.filter(
           (sorteo) => new Date(sorteo.cierra).getTime() > ahora
+        );
+        console.log(
+          "SORTEOS:",
+          sorteos.map((sorteo) => sorteo.descripcion)
         );
         done();
       });
@@ -331,16 +335,15 @@ describe("ventas", () => {
     sendRequest(lotData[8]);
     sendRequest(lotData[9]);
   });
-  it("bulk local", async function () {
+  it.skip("bulk local", async function () {
     this.timeout(0);
-    let sorteosFiltro = sorteos;
-    const taquillas = await usuarioModel.find({ rol: "taquilla" }).lean();
-    for (let i = 0; i < 10000; i++) {
+    const taquillas = await usuarioModel
+      .find({ jerarquia: ObjectId("5f85dfa5b1fb533b90705e41") })
+      .lean();
+    for (let i = 0; i < 1000; i++) {
       let taquilla = taquillas[getRandomInt(0, taquillas.length - 1)];
-      await ticketService.nuevo(
-        taquilla,
-        generarVentas(5, sorteosFiltro, 0, sorteosFiltro.length - 1)
-      );
+      let ventas = generarVentas(5, sorteos, 0, sorteos.length - 1);
+      await ticketService.nuevo(taquilla, ventas);
     }
   });
 });

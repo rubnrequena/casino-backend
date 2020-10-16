@@ -1,17 +1,17 @@
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 const esquema = new mongoose.Schema({
-  operadora: {
-    type: ObjectId,
+  nombre: {
+    type: String,
     required: true,
   },
-  grupo: {
-    type: ObjectId,
+  descripcion: {
+    type: String,
     required: true,
   },
-  monto: {
-    type: Number,
+  usuario: {
+    type: ObjectId,
     required: true,
   },
 });
-module.exports = mongoose.model("Operadora_pago", esquema);
+module.exports = mongoose.model("Grupo_pago", esquema);

@@ -266,83 +266,94 @@ async function buscar_sorteo(sorteoId) {
  * @param {Number} operadoraPaga
  * @returns {Premiado[]}
  */
-async function buscar_premiados(sorteoId, ganador, operadoraPaga) {
-  const tickets = await ventaModel.aggregate([
-    {
-      $match: {
-        sorteo: ObjectId(sorteoId),
-      },
-    },
-    {
-      $project: {
-        sorteo: 1,
-        monto: 1,
-        usuario: 1,
-        premio: 1,
-        numero: 1,
-        montoNumero: {
-          $cond: [
-            {
-              $eq: ["$numero", ganador],
+function buscar_premiados(sorteoId, ganador, operadoraPaga) {
+  return new Promise((resolve, reject) => {
+    ventaModel.aggregate(
+      [
+        {
+          $match: {
+            sorteo: ObjectId(sorteoId.toString()),
+          },
+        },
+        {
+          $project: {
+            sorteo: 1,
+            monto: 1,
+            usuario: 1,
+            premio: 1,
+            numero: 1,
+            operadora: 1,
+            montoNumero: {
+              $cond: [{ $eq: ["$numero", String(ganador)] }, "$monto", 0],
             },
-            "$monto",
-            0,
-          ],
+          },
         },
-      },
-    },
-    {
-      $group: {
-        _id: "$usuario",
-        venta: {
-          $sum: "$monto",
+        {
+          $group: {
+            _id: "$usuario",
+            venta: { $sum: "$monto" },
+            ventaNumero: { $sum: "$montoNumero" },
+            numTickets: { $sum: 1 },
+            operadora: { $last: "$operadora" },
+          },
         },
-        ventaNumero: {
-          $sum: "$montoNumero",
+        {
+          $lookup: {
+            from: "usuarios",
+            foreignField: "_id",
+            localField: "_id",
+            as: "usuario",
+          },
         },
-        numTickets: {
-          $sum: 1,
+        { $addFields: { usuario: { $arrayElemAt: ["$usuario", 0] } } },
+        {
+          $lookup: {
+            let: {
+              grupo: "$usuario.grupoPago",
+              operadora: "$operadora",
+            },
+            from: "operadora_pagos",
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$grupo", "$$grupo"] },
+                      { $eq: ["$operadora", "$$operadora"] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "paga",
+          },
         },
-      },
-    },
-    {
-      $lookup: {
-        from: "operadoras_paga",
-        foreignField: "usuario",
-        localField: "_id",
-        as: "paga",
-      },
-    },
-    { $addFields: { paga: { $arrayElemAt: ["$paga", 0] } } },
-    {
-      $addFields: {
-        paga: { $cond: ["$paga.paga", "$paga.paga", operadoraPaga] },
-      },
-    },
-    {
-      $project: {
-        numTickets: 1,
-        venta: 1,
-        ventaNumero: 1,
-        paga: 1,
-        numero: 1,
-        premio: {
-          $multiply: ["$ventaNumero", "$paga"],
+        { $addFields: { paga: { $arrayElemAt: ["$paga", 0] } } },
+        {
+          $addFields: {
+            paga: { $cond: ["$paga.monto", "$paga.monto", operadoraPaga] },
+          },
         },
-      },
-    },
-    {
-      $lookup: {
-        from: "usuarios",
-        foreignField: "_id",
-        localField: "_id",
-        as: "moneda",
-      },
-    },
-    { $addFields: { moneda: { $arrayElemAt: ["$moneda", 0] } } },
-    { $addFields: { moneda: "$moneda.moneda" } },
-  ]);
-  return tickets;
+        {
+          $project: {
+            numTickets: 1,
+            venta: 1,
+            ventaNumero: 1,
+            paga: 1,
+            numero: 1,
+            premio: {
+              $multiply: ["$ventaNumero", "$paga"],
+            },
+            moneda: "$usuario.moneda",
+          },
+        },
+      ],
+      (error, premiados) => {
+        if (error) return reject(error.message);
+        resolve(premiados);
+      }
+    );
+  });
 }
 async function buscar_ultimos(usuarioId, pagina, limite) {
   return await ticketModel

@@ -3,31 +3,26 @@ const Comision = require("../dto/comision.dto");
 
 module.exports = {
   /**
-   * @param {Number} comision
+   *
    * @param {String} usuarioId
    * @param {String} operadoraId
-   * @returns {Promise<Comision>}
-   */
-  registrar_comision(comision, usuarioId, operadoraId) {
-    return registrar({
-      tipo: COMISION,
-      comision,
-      usuario: usuarioId,
-      operadora: operadoraId,
-    });
-  },
-  /**
    * @param {Number} comision
-   * @param {String} usuarioId
-   * @param {String} operadoraId
-   * @returns {Promise<Comision>}
+   * @param {Number} participacion
+   * @param {Number} utilidad
+   * @return {Promise<Comision>}
    */
-  registrar_participacion(usuarioId, comision, operadoraId) {
-    return registrar({
-      tipo: PARTICIPACION,
-      comision,
-      usuario: usuarioId,
-      operadora: operadoraId,
+  registrar(usuarioId, operadoraId, comision, participacion, utilidad) {
+    return new Promise((resolve, reject) => {
+      new comisionModel({
+        usuario: usuarioId,
+        operadora: operadoraId,
+        comision,
+        participacion,
+        utilidad,
+      }).save((error, comision) => {
+        if (error) return reject(error.message);
+        resolve(comision);
+      });
     });
   },
   /**
@@ -72,22 +67,18 @@ module.exports = {
     },
     /**
      * @param {String} usuarioId
-     * @param {Number} tipo
      * @returns {Promise<Comision[]>}
      */
-    usuario(usuarioId, tipo) {
+    usuario(usuarioId) {
       let condicion = { usuario: usuarioId };
-      if (tipo > -1) condicion.tipo = tipo;
       return buscar(condicion);
     },
     /**
      * @param {String} operadoraId
-     * @param {Number} tipo
-     * @returns {Promise<Comision>}
+     * @returns {Promise<Comision[]>}
      */
-    operadora(operadoraId, tipo = -1) {
+    operadora(operadoraId) {
       let condicion = { operadora: operadoraId };
-      if (tipo > -1) condicion.tipo = tipo;
       return buscar(condicion);
     },
   },
@@ -111,9 +102,11 @@ function registrar(doc) {
  */
 function buscar(condicion) {
   return new Promise((resolve, reject) => {
-    comisionModel.find(condicion, (error, comisiones) => {
-      if (error) return reject(error.message);
-      resolve(comisiones);
-    });
+    comisionModel
+      .find(condicion, (error, comisiones) => {
+        if (error) return reject(error.message);
+        resolve(comisiones);
+      })
+      .lean();
   });
 }

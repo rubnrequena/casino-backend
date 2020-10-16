@@ -1,6 +1,10 @@
 var express = require("express");
 const usuarioMiddle = require("../middlewares/usuario-middle");
-const { validarGET, validarPermisos } = require("../middlewares/index");
+const {
+  validarGET,
+  validarPermisos,
+  validarPOST,
+} = require("../middlewares/index");
 const usuarioRepo = require("../repositorio/usuario-repo");
 const usuarioService = require("../servicios/usuario-service");
 const { crearError } = require("../utils/error-util");
@@ -8,6 +12,7 @@ const { validarJerarquia } = require("../middlewares/usuario-middle");
 const operadoraRepo = require("../repositorio/operadora-repo");
 const Permiso = require("../dto/permiso.dto");
 const saldoRepo = require("../repositorio/saldo-repo");
+const comisionService = require("../servicios/comision.service");
 var router = express.Router();
 
 const stat = [usuarioMiddle.validarJerarquia, validarGET("usuario:objectid")];
@@ -114,4 +119,20 @@ router.get("/permisos/todos", (req, res) => {
 });
 //#endregion
 
+//#region Comisiones
+//TODO validar que no se pueda autoasinar comisiones
+const comisionRegistro = [
+  validarPOST(
+    "usuario:objectid,operadora:objectid,comision:number,participacion:number,utilidad:number"
+  ),
+  validarJerarquia,
+];
+router.post("/comision/registro", comisionRegistro, (req, res) => {
+  const { operadora, comision, participacion, utilidad } = req.body;
+  comisionService
+    .registrar(req.usuario, operadora, comision, participacion, utilidad)
+    .then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
+});
+//#endregion
 module.exports = router;

@@ -66,6 +66,32 @@ module.exports = {
       });
     });
   },
+  /**
+   *
+   * @param {String} topeId
+   * @param {String} usuarioId
+   * @return {String} ID del usuario hijo menor
+   */
+  ultimoHijo(topeId, usuarioId) {
+    return new Promise((resolve, reject) => {
+      topeModel.aggregate(
+        [
+          {
+            $match: {
+              _id: ObjectId(topeId),
+              jerarquia: ObjectId(usuarioId),
+            },
+          },
+          { $project: { hijo: { $arrayElemAt: ["$jerarquia", -1] } } },
+        ],
+        (error, result) => {
+          if (error) return reject(error.message);
+          if (result.length == 0) return reject(`tope '${topeId}' no existe`);
+          resolve(result.hijo);
+        }
+      );
+    });
+  },
   buscar: {
     /**
      * @param {String} operadora
@@ -73,7 +99,7 @@ module.exports = {
      * @param {String} sorteo
      * @returns {Promise<Tope[]>}
      */
-    por(operadora, usuario, sorteo) {
+    por(operadora, usuario) {
       return new Promise((resolve, reject) => {
         let filtro = { nivel: usuario.rol };
         if (isObjectId(operadora)) filtro.operadora = operadora;

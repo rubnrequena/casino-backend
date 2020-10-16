@@ -13,20 +13,16 @@ const Usuario = require("../dto/usuario-dto");
 //#region middlewares
 const nuevo = [
   usuarioMiddle.esMaster,
-  validarPOST("operadora:objectod,desde,hasta"),
+  validarPOST("operadora:objectid,desde,hasta"),
 ];
-const premiar = [usuarioMiddle.esMaster, validarPOST("sorteo,numero")];
+const premiar = [
+  usuarioMiddle.esMaster,
+  validarPOST("sorteo:objectid,numero:string"),
+];
 const reiniciar = [usuarioMiddle.esMaster, validarPOST("sorteo")];
 const sinGanador = validarGET("operadora:objectid,fecha");
 
-const topeNuevo = [
-  validarJerarquia,
-  validarPOST("usuario:objectid,monto:number,operadora:objectid"),
-];
-const topeRemover = [
-  validarJerarquia,
-  validarPOST("usuario:objectid,tope:objectid"),
-];
+const topeRemover = [validarJerarquia, validarPOST("tope:objectid")];
 //#endregion
 
 //#region /sorteos
@@ -76,21 +72,11 @@ router.post("/premiar", premiar, (req, res) => {
     .catch((error) => res.json(crearError(error)));
 });
 router.post("/reiniciar", reiniciar, (req, res) => {
-  const { sorteo, ganador } = req.body;
+  const { sorteo } = req.body;
   sorteoService
     .reiniciar(sorteo)
-    .then(() => {
-      if (ganador) {
-        sorteoService
-          .premiar(sorteo, ganador)
-          .then((premio) => res.json(premio))
-          .catch((error) => res.json(crearError(error)));
-      } else {
-        res.json({
-          _id: sorteo,
-          result: "reiniciado",
-        });
-      }
+    .then((result) => {
+      res.json(result);
     })
     .catch((error) => res.json(crearError(error)));
 });
@@ -125,7 +111,10 @@ router.get("/jaula", validarGET("operadora:objectid"), (req, res) => {
 //#endregion
 
 //#region /tope
-//TODO: validar jerarquia de usuarios
+const topeNuevo = [
+  validarJerarquia,
+  validarPOST("usuario:objectid,monto:number,operadora:objectid"),
+];
 router.post("/tope/nuevo", topeNuevo, (req, res) => {
   let { usuario, monto, operadora, sorteo, numero } = req.body;
   if (usuario == req.user._id && req.user.rol != Usuario.MASTER) {
@@ -147,26 +136,39 @@ router.post("/tope/editar", (req, res) => {
     .catch((error) => res.json(crearError(error)));
 });
 
-router.get("/tope/buscar", usuarioMiddle.validarJerarquia, (req, res) => {
-  let { operadora, sorteo } = req.query;
+const topeBuscar = [
+  validarGET("usuario:objectid,operadora:objectid"),
+  usuarioMiddle.validarJerarquia,
+];
+router.get("/tope/buscar", topeBuscar, (req, res) => {
+  let { operadora } = req.query;
   topeRepo.buscar
-    .por(operadora, req.usuario, sorteo)
+    .por(operadora, req.usuario)
     .then((sorteos) => {
       res.json(sorteos);
     })
     .catch((error) => res.json(crearError(error)));
 });
 //TODO: validar jerarquia de usuarios
-router.post("/tope/remover", topeRemover, (req, res) => {
-  let { usuario, tope } = req.body;
-  if (usuario == req.user._id && req.user.rol != Usuario.MASTER)
-    return res.json({ error: "No tiene privilegios para completar la accion" });
-  topeService
-    .remover(tope)
-    .then((result) => {
-      res.json(result);
+router.post("/tope/remover", topeRemover, async (req, res) => {
+  const { tope } = req.body;
+  topeRepo
+    .ultimoHijo(tope, req.user._id)
+    .then((hijo) => {
+      if (hijo == req.user._id && req.user.rol != Usuario.MASTER)
+        return res.json({
+          error: "No tiene privilegios para completar la accion",
+        });
+      topeService
+        .remover(tope)
+        .then((result) => {
+          res.json(result);
+        })
+        .catch((error) => res.json(crearError(error)));
     })
-    .catch((error) => res.json(crearError(error)));
+    .catch((error) => {
+      res.json(crearError(error));
+    });
 });
 
 //#endregion

@@ -1,26 +1,31 @@
 const router = require("express").Router();
 const operadoraService = require("../servicios/operadora-service");
 const { crearError } = require("../utils/error-util");
-const { validarJerarquia } = require("../middlewares/usuario-middle");
-const { validarPOST, validarPermisos } = require("../middlewares");
+const { validarJerarquia, esMaster } = require("../middlewares/usuario-middle");
+const { validarPOST, validarPermisos, validarGET } = require("../middlewares");
 const operadoraRepo = require("../repositorio/operadora-repo");
 const Permiso = require("../dto/permiso.dto");
+const Usuario = require("../dto/usuario-dto");
 
 //#region Permisos
 const operadoraNueva = [
   validarPermisos(Permiso.operadora.crear),
   validarPOST("nombre,tipo,paga:int,numeros:objectid,sorteos:array"),
 ];
-const buscarEnlace = validarPermisos(Permiso.sorteos.leer);
+const buscarEnlace = [
+  validarGET("usuario:objectid"),
+  validarJerarquia,
+  validarPermisos(Permiso.sorteos.leer),
+];
 const enlaceNuevo = [
   validarJerarquia,
   validarPermisos(Permiso.sorteos.crear),
   validarPOST("usuario:objectid,operadora:array,mostrar:boolean"),
 ];
 const enlaceRemover = [
+  validarPOST("usuario,enlace"),
   validarJerarquia,
   validarPermisos(Permiso.sorteos.elimina),
-  validarPOST("usuario,enlace"),
 ];
 const enlaceActivar = [
   validarJerarquia,
@@ -32,6 +37,8 @@ const numeroNuevo = [
   validarPermisos(Permiso.operadora.crear),
   validarPOST("nombre,numeros:array"),
 ];
+
+const usuarioPaga = [validarGET("usuario:objectid"), validarJerarquia];
 //#endregion
 
 router.post("/nueva", operadoraNueva, (req, res) => {
@@ -106,4 +113,67 @@ router.post("/numero", numeroNuevo, (req, res) => {
     .catch((error) => res.json(crearError(error)));
 });
 
+router.get("/usuario/paga", usuarioPaga, (req, res) => {
+  operadoraRepo
+    .paga(req.query.usuario)
+    .then((pagos) => res.json(pagos))
+    .catch((error) => res.json(crearError(error)));
+});
+const pagaNuevo = [
+  esMaster,
+  validarPOST("operadora:objectid,grupo:objectid,monto:number"),
+];
+router.post("/usuario/paga/nuevo", pagaNuevo, (req, res) => {
+  const { operadora, grupo, monto } = req.body;
+  operadoraService.paga
+    .nuevo(operadora, grupo, monto)
+    .then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
+});
+
+//#region GruposPago
+const grupoPagoNuevo = [
+  validarPOST("nombre,descripcion,usuario:objectid"),
+  validarJerarquia,
+];
+const grupoPagoRemover = [
+  validarPOST("grupoId:objectid,usuario:objectid"),
+  validarJerarquia,
+];
+const grupoPagoId = [validarGET("grupoId:objectid")];
+router.get("/grupopago/id", grupoPagoId, (req, res) => {
+  const { grupoId } = req.query;
+  operadoraService.grupos
+    .buscarId(grupoId)
+    .then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
+});
+router.get("/grupopago/todos", validarJerarquia, (req, res) => {
+  const { usuario } = req.query;
+  if (req.usuario.rol == Usuario.MASTER)
+    operadoraRepo.grupos.buscar.todos().then(result).catch(error);
+  else operadoraRepo.grupos.buscar.usuario(usuario).then(result).catch(error);
+
+  function result(grupos) {
+    res.json(grupos);
+  }
+  function error(error) {
+    res.json(crearError(error));
+  }
+});
+router.post("/grupopago/nuevo", grupoPagoNuevo, (req, res) => {
+  const { nombre, descripcion } = req.body;
+  operadoraService.grupos
+    .nuevo(nombre, descripcion, req.usuario)
+    .then((grupo) => res.json(grupo))
+    .catch((error) => res.json(crearError(error)));
+});
+router.post("/grupopago/remover", grupoPagoRemover, (req, res) => {
+  const { grupoId } = req.body;
+  operadoraService.grupos
+    .remover(grupoId, req.usuario)
+    .then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
+});
+//#endregion
 module.exports = router;

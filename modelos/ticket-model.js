@@ -42,7 +42,6 @@ const esquema = new mongoose.Schema({
   moneda: {
     type: String,
     required: true,
-    enum: process.env.MONEDAS_PERMITIDAS.split(","),
   },
   juego: {
     type: ObjectId,

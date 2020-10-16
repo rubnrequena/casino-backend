@@ -1,13 +1,18 @@
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
+
 const operadoraModel = require("_modelos/operadora-model");
 const enlace_operadoraModel = require("_modelos/enlace_operadora-model");
+const operadorModel = require("_modelos/operador-model");
+const numerosModel = require("_modelos/numeros-model");
 
 const Operadora = require("../dto/operadora-dto");
 const EnlaceOperadora = require("../dto/enlace-operadora-dto");
-const operadorModel = require("_modelos/operador-model");
-const mongoose = require("mongoose");
-const numerosModel = require("_modelos/numeros-model");
+const PagoOperadoras = require("../dto/operadora_paga_usuario-dto");
 const Numero = require("../dto/numero-dto");
-const ObjectId = mongoose.Types.ObjectId;
+const grupo_pagoModel = require("_modelos/grupo_pago-model");
+const GrupoPago = require("../dto/grupo_pago-model");
+const operadora_pagaModel = require("_modelos/operadora_paga-model");
 
 module.exports = {
   /** JSDoc
@@ -111,6 +116,144 @@ module.exports = {
         }
       );
     });
+  },
+  /**
+   * @param {String} usuarioId
+   * @returns {Promise<PagoOperadoras[]>}
+   */
+  paga(grupoId) {
+    grupoId = grupoId.toString();
+    return new Promise((resolve, reject) => {
+      operadoraModel.aggregate(
+        [
+          {
+            $lookup: {
+              from: "operadoras_paga",
+              let: {
+                operadora: "$_id",
+                grupo: ObjectId(grupoId),
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$grupo", "$$grupo"] },
+                        { $eq: ["$operadora", "$$operadora"] },
+                      ],
+                    },
+                  },
+                },
+              ],
+              as: "pagos",
+            },
+          },
+          {
+            $project: {
+              nombre: 1,
+              paga: 1,
+              usuarioPaga: { $arrayElemAt: ["$pagos.monto", 0] },
+            },
+          },
+        ],
+        (error, result) => {
+          if (error) return reject(error);
+          return resolve(result);
+        }
+      );
+    });
+  },
+  pagos: {
+    /**
+     * @param {String} operadora
+     * @param {String} grupo
+     * @param {Number} monto
+     */
+    nuevo(operadora, grupo, monto) {
+      return new Promise((resolve, reject) => {
+        new operadora_pagaModel({
+          operadora,
+          grupo,
+          monto,
+        }).save((err, result) => {
+          if (err) return reject(err);
+          resolve(result);
+        });
+      });
+    },
+  },
+  grupos: {
+    buscar: {
+      /**
+       * @param {String} grupoId
+       * @returns {Promise<GrupoPago>}
+       */
+      id(grupoId) {
+        return new Promise((resolve, reject) => {
+          grupo_pagoModel.findById(grupoId, (error, grupo) => {
+            if (error) return reject(error.message);
+            resolve(grupo);
+          });
+        });
+      },
+      /**
+       * @returns {Promise<GrupoPago[]>}
+       */
+      todos() {
+        return new Promise((resolve, reject) => {
+          grupo_pagoModel.find(null, (error, grupos) => {
+            if (error) return reject(error.message);
+            resolve(grupos);
+          });
+        });
+      },
+      /**
+       * @param {String} usuarioId
+       * @returns {Promise<GrupoPago[]>}
+       */
+      usuario(usuarioId) {
+        return new Promise((resolve, reject) => {
+          grupo_pagoModel.find({ usuario: usuarioId }, (error, grupos) => {
+            if (error) return reject(error.message);
+            resolve(grupos);
+          });
+        });
+      },
+    },
+    /**
+     *
+     * @param {String} nombre
+     * @param {String} descripcion
+     * @param {String} usuario
+     * @returns {Promise<GrupoPago[]>}
+     */
+    nuevo(nombre, descripcion, usuario) {
+      return new Promise((resolve, reject) => {
+        new grupo_pagoModel({
+          nombre,
+          descripcion,
+          usuario,
+        }).save((error, grupo) => {
+          if (error) return reject(error.message);
+          resolve(grupo);
+        });
+      });
+    },
+    /**
+     * @param {String} grupoId
+     * @param {String} usuarioId
+     */
+    remover(grupoId, usuarioId) {
+      return new Promise((resolve, reject) => {
+        operadoraModel.deleteOne(
+          { _id: grupoId, usuario: usuarioId },
+          (error, result) => {
+            if (error) return reject(error.message);
+            resolve(result);
+          }
+        );
+      });
+    },
   },
   buscar: {
     /**

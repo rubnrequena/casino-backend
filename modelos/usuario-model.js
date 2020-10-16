@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const permisoModel = require("./permiso-model");
-const ObjectID = mongoose.Types.ObjectId;
+const ObjectId = mongoose.Types.ObjectId;
 const esquema = new mongoose.Schema({
   usuario: {
     type: String,
@@ -58,7 +58,7 @@ const esquema = new mongoose.Schema({
     default: false,
   },
   jerarquia: {
-    type: [ObjectID],
+    type: [ObjectId],
     required: true,
   },
   comision: {
@@ -79,11 +79,11 @@ const esquema = new mongoose.Schema({
     default: "ves",
   },
   permisos: {
-    type: ObjectID,
+    type: ObjectId,
     ref: "Permiso",
   },
   menu: {
-    type: ObjectID,
+    type: ObjectId,
     ref: "Permiso",
   },
   codigo: {
@@ -91,6 +91,9 @@ const esquema = new mongoose.Schema({
     required: true,
     index: true,
     unique: true,
+  },
+  grupoPago: {
+    type: ObjectId,
   },
   meta: Object,
 });
