@@ -17,10 +17,13 @@ const { syncForEach } = require("../utils/array-util");
 const numerosModel = require("_modelos/numeros-model");
 const rolModel = require("_modelos/rol-model");
 
+let connection;
+
 module.exports = {
+  connection,
   conectar() {
     return new Promise((resolve, reject) => {
-      const con = mongoose.connect(
+      connection = mongoose.connect(
         config.databaseURL,
         {
           useNewUrlParser: true,
