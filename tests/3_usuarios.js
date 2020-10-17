@@ -31,7 +31,8 @@ let gruposPago = [];
 /** @type {Operadora[]} */
 let operadoras;
 
-before(async () => {
+before(async function () {
+  this.timeout(0);
   await usuarioModel.deleteMany({ rol: { $ne: "master" } });
   await saldoModel.deleteMany();
   await grupo_pagoModel.deleteMany();
