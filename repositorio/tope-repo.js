@@ -156,7 +156,7 @@ module.exports = {
         item = { nivel: jerarquia[i] };
         item[`jerarquia.${i}`] = ObjectId(taquilla._id);
         mapaJerarquia.push(item);
-        let condicion = [
+        const condicion = [
           {
             $match: {
               operadora: ObjectId(operadora),

@@ -10,9 +10,8 @@ const Venta = require("../dto/venta-dto");
 const sorteoUtil = require("../utils/sorteo-util");
 const operadoraRepo = require("../repositorio/operadora-repo");
 const { medirTiempo } = require("../utils/date-util");
-
+const RedisCache = require("../dto/redis-cache.dto");
 let cacheOperadora = {};
-
 module.exports = {
   /** JSDoc
    * @param {Usuario} taquilla
@@ -20,7 +19,6 @@ module.exports = {
    * @returns {Promise<Ticket>}
    */
   nuevo(taquilla, ventas) {
-    medirTiempo();
     return new Promise(async (resolve, reject) => {
       const now = new Date();
       var sorteosCerrados = [];
@@ -39,7 +37,6 @@ module.exports = {
       }
       if (sorteosCerrados.length > 0)
         return reject({ error: `sorteos invalidos`, sorteos: sorteosCerrados });
-      medirTiempo("validar sorteos");
       topeService
         .validar(ventas, taquilla)
         .then(async () => {
@@ -53,9 +50,7 @@ module.exports = {
             hash = `${venta.sorteo}_${taquilla._id}`;
             redisRepo.hincrby(hash, venta.numero, venta.monto);
           });
-
           //TODO notificar usuarios
-          medirTiempo("validar tope");
           resolve(ticket);
         })
         .catch((error) => reject(error));

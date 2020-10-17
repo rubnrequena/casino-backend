@@ -7,6 +7,8 @@ module.exports = {
    */
   estaAbierto(sorteo) {
     const ahora = new Date();
-    return ahora < sorteo.cierra && sorteo.abierta == true;
+    sorteo.cierra = new Date(sorteo.cierra);
+    const abierto = ahora < sorteo.cierra && sorteo.abierta == true;
+    return abierto;
   },
 };

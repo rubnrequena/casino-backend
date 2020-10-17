@@ -8,6 +8,7 @@ const Venta = require("../dto/venta-dto");
 const { syncForEach } = require("../utils/array-util");
 const RedisCache = require("../dto/redis-cache.dto");
 const ticketRepo = require("../repositorio/ticket-repo");
+const md5 = require("md5");
 module.exports = {
   /**JSDoc
    * @param {String} usuarioId
@@ -51,6 +52,7 @@ module.exports = {
       }, []);
       let topesOperadora = {};
       await syncForEach(operadoras, async (operadora) => {
+        //const hash = md5(taquilla._id + operadora);
         topesOperadora[operadora] = await topeRepo.buscar.paraVender(
           taquilla,
           operadora
@@ -89,5 +91,23 @@ async function buscarMontoJugado(venta, tope) {
       venta.numero
     );
     return monto;
+  }
+}
+
+let _cache = {};
+/**
+ *
+ * @param {Usuario} usuario
+ * @param {String} operadora
+ */
+async function cache(usuario, operadora) {
+  const hash = md5(usuario._id + operadora);
+  let data;
+  if (_cache[hash]) {
+    return _cache[hash];
+  } else {
+    data = await topeRepo.buscar.paraVender(usuario, operadora);
+    _cache[hash] = data;
+    return data;
   }
 }

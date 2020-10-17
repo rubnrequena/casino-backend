@@ -1,6 +1,7 @@
 const usuarioRepo = require("../repositorio/usuario-repo");
 const { MASTER, TAQUILLA, ONLINE } = require("../dto/usuario-dto");
 const { isValidObjectId } = require("mongoose");
+const redisRepo = require("../repositorio/redis-repo");
 
 module.exports = {
   async validarJerarquia(req, res, next) {
@@ -42,7 +43,9 @@ module.exports = {
   },
   async puedeVender(req, res, next) {
     //TODO: optimizar REDIS
-    const usuario = await usuarioRepo.findById(req.user._id);
+    const usuario = await redisRepo.cache("usuarios", req.user._id, () =>
+      usuarioRepo.findById(req.user._id)
+    );
     if (!usuario)
       return res.status(401).send({
         error: "Usuario no existe",

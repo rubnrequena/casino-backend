@@ -36,11 +36,7 @@ function formatDate(date, format) {
 /** @type {Number[]} */
 var tiempo = [Date.now()];
 async function medirTiempo(tag = "inicio") {
-  console.log(
-    `${tag} :>> `,
-    Date.now() - tiempo[tiempo.length - 1],
-    tiempo[tiempo.length - 1] - tiempo[0]
-  );
+  console.log(`${tag} :>> `, Date.now() - tiempo[tiempo.length - 1]);
   tiempo.push(Date.now());
 }
 function diaDelAnio(date = new Date()) {

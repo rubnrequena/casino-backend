@@ -7,6 +7,7 @@ class RedisCache {
   static MONEDA = "cache-moneda";
   static ESTADISTICAS = "cache-estadisticas";
   static NUMEROS = "cache-numeros";
+  static SORTEOS = "cache-sorteos";
 
   static CAST_NUMBER = "number";
   static CAST_JSON = "json";
