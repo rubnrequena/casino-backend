@@ -275,11 +275,11 @@ module.exports = {
       nHash,
       RedisCache.CAST_NUMBER
     );
-    if (codigo) {
-      codigo = await redisRepo.hincrby("cache_usr_hijos", nHash, 1);
-    } else {
+    if (codigo === null) {
       codigo = await this.buscar.hijosCercanos(padre._id, true);
       codigo = await redisRepo.hincrby("cache_usr_hijos", nHash, codigo);
+    } else {
+      codigo = await redisRepo.hincrby("cache_usr_hijos", nHash, 1);
     }
     codigo = [padre.codigo, codigo + 1].join("-");
     return new Promise((resolve, reject) => {
