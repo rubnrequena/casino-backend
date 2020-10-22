@@ -85,6 +85,15 @@ function nuevo(usuario, ventas) {
         ticket: ticket.ops[0],
         saldo,
       });
+
+      //TODO: disminuir venta al anular ticket
+      ventas.forEach((venta) => {
+        redisRepo.hincrby(
+          `venta-${venta.moneda}-${venta.sorteo}`,
+          venta.numero,
+          venta.monto
+        );
+      });
     });
   });
 }
