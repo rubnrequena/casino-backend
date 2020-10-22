@@ -70,6 +70,7 @@ describe("enlaces", () => {
   });
   it("registrar enlaces", (done) => {
     const operadoraIds = operadoras.map((operadora) => operadora._id);
+    console.log(operadoraIds);
     request(app)
       .post("/operadora/enlace/nuevo")
       .set(comercialToken)
@@ -110,7 +111,7 @@ describe("enlaces", () => {
       .set(comercialToken)
       .send({
         usuario: hijoComercial._id,
-        enlace: enlaces[0]._id,
+        enlace: enlaces[enlaces.length - 2]._id,
         activo: false,
       })
       .expect(200)
@@ -120,12 +121,14 @@ describe("enlaces", () => {
     const enlaces = await operadoraRepo.buscar.enlacesUsuario(
       hijoComercial._id
     );
-    request(app)
+    const enlace = enlaces.pop();
+    console.log("removiendo enlace", enlace._id);
+    return request(app)
       .post("/operadora/enlace/remover")
       .set(comercialToken)
       .send({
         usuario: hijoComercial._id,
-        enlace: enlaces[1]._id,
+        enlace: enlace._id,
       })
       .expect(200)
       .then(anError);
