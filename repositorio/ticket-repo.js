@@ -36,12 +36,12 @@ function nuevo(usuario, ventas) {
       if (!saldo || saldo < monto) return reject("saldo insuficiente");
       online = true;
     }
-
+    const creado = new Date();
     const ticket = {
       codigo,
       serial,
       usuario: usuario._id,
-      creado: new Date(),
+      creado,
       monto,
       anulado: false,
       jerarquia: usuario.jerarquia,
@@ -72,6 +72,7 @@ function nuevo(usuario, ventas) {
         venta.jerarquia = usuario.jerarquia;
         venta.online = online;
         venta.moneda = usuario.moneda;
+        venta.creado = creado;
         return venta;
       });
       ventaModel.insertMany(ventas, (error, result) => {

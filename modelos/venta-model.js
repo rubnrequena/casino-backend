@@ -56,5 +56,10 @@ const esquema = new mongoose.Schema({
     required: true,
     index: true,
   },
+  creado: {
+    type: Date,
+    required: true,
+    index: true,
+  },
 });
 module.exports = mongoose.model("Venta", esquema);
