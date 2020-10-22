@@ -203,6 +203,21 @@ function flush() {
 }
 /**
  *
+ * @param {Number} cursor
+ * @param {String} match
+ * @param {Number} count
+ * @return {Promise<Array>}
+ */
+function scan(cursor = 0, match = "*", count = 1000) {
+  return new Promise((resolve, reject) => {
+    client.scan(cursor, "match", match, "count", count, (error, result) => {
+      if (error) return reject(error);
+      resolve(result);
+    });
+  });
+}
+/**
+ *
  * @param {String} hash
  * @param {String} campo
  * @param {Function} valor
@@ -255,4 +270,5 @@ module.exports = {
   del,
   flush,
   cache,
+  scan,
 };
