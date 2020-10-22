@@ -24,8 +24,8 @@ let sorteos;
 
 before(async function () {
   this.timeout(0);
-  await ticketModel.deleteMany();
-  await ventaModel.deleteMany();
+  /* await ticketModel.deleteMany();
+  await ventaModel.deleteMany(); */
   const hoy = new Date().toISOString().substr(0, 10);
   sorteos = await sorteoModel.find({ fecha: hoy });
 });

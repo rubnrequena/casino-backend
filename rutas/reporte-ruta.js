@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Usuario = require("../dto/usuario-dto");
 const { validarJerarquia } = require("../middlewares/usuario-middle");
+const redisRepo = require("../repositorio/redis-repo");
 const reporteService = require("../servicios/reporte-service");
 const { crearError } = require("../utils/error-util");
 
@@ -45,5 +46,8 @@ router.get("/usuario/negativos", validarJerarquia, (req, res) => {
     .usuario(req.usuario, desde, hasta)
     .then((reportes) => res.json(reportes))
     .catch((error) => res.json(crearError(error)));
+});
+router.get("/monitor/sorteos", (req, res) => {
+  redisRepo.scan;
 });
 module.exports = router;
