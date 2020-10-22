@@ -41,17 +41,26 @@ module.exports = {
         .validar(ventas, taquilla)
         .then(async () => {
           const ticket = await ticketRepo.nuevo(taquilla, ventas);
+          resolve(ticket);
           let hash;
+          //TODO: disminuir venta al anular ticket
           ventas.forEach((venta) => {
             taquilla.jerarquia.forEach((padre) => {
+              //padre-sorteo
               hash = `${venta.sorteo}_${padre}`;
               redisRepo.hincrby(hash, venta.numero, venta.monto);
+              redisRepo.expire(hash, 86400);
             });
+            //taquilla-sorteo
             hash = `${venta.sorteo}_${taquilla._id}`;
             redisRepo.hincrby(hash, venta.numero, venta.monto);
+            redisRepo.expire(hash, 86400);
+            //sorteo
+            hash = `venta-${venta.moneda}-${venta.sorteo}`;
+            redisRepo.hincrby(hash, venta.numero, venta.monto);
+            redisRepo.expire(hash, 86400);
           });
           //TODO notificar usuarios
-          resolve(ticket);
         })
         .catch((error) => reject(error));
     });

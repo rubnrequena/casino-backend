@@ -85,30 +85,16 @@ function nuevo(usuario, ventas) {
         ticket: ticket.ops[0],
         saldo,
       });
-
-      //TODO: disminuir venta al anular ticket
-      ventas.forEach((venta) => {
-        redisRepo.hincrby(
-          `venta-${venta.moneda}-${venta.sorteo}`,
-          venta.numero,
-          venta.monto
-        );
-      });
     });
   });
 }
 /**
- *
  * @param {Ticket} ticket
  */
 function anular(ticket) {
   ticketModel.updateOne(
-    {
-      _id: ticket._id,
-    },
-    {
-      anulado: true,
-    },
+    { _id: ticket._id },
+    { anulado: true },
     (error, result) => {
       if (error) return reject(error.message);
       //TODO guardar en una tabla aparte referencia del ticket anulado
