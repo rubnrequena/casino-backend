@@ -13,6 +13,8 @@ const ventaModel = require("_modelos/venta-model");
 const Sorteo = require("../dto/sorteo-dto.js");
 const Usuario = require("../dto/usuario-dto.js");
 const Venta = require("../dto/venta-dto.js");
+const { trailZero, getRandomInt } = require("../utils/number-util.js");
+const { expect } = require("chai");
 
 /** @type {Usuario} */
 let master;
@@ -27,30 +29,45 @@ before(async () => {
   master = await login({ usuario: "master", clave: "1234" });
   const fecha = new Date().toISOString().substr(0, 10);
   sorteos = await sorteoModel.find({ fecha }).lean();
-  ventas = await ventaModel.find().sort({ _id: -1 }).limit(1).lean();
+  const now = new Date();
+  /* sorteos = sorteos.filter((sorteo) => {
+    return new Date(sorteo.cierra) > now;
+  }); */
+  sorteos = sorteos.filter((sorteo) => {
+    return sorteo.operadora == "5f404c2b99166318ec20c508";
+  });
 });
 
 describe("premiar", () => {
-  it("reiniciar premio", function () {
-    return request(app)
-      .post("/sorteo/reiniciar")
-      .set(token(master.token))
-      .send({
-        sorteo: ventas[0].sorteo,
-      })
-      .expect(200)
-      .then(anError);
+  it("reiniciar premio", async function () {
+    expect(sorteos.length).greaterThan(0);
+    for (let i = 0; i < sorteos.length; i++) {
+      const sorteo = sorteos[i];
+      await request(app)
+        .post("/sorteo/reiniciar")
+        .set(token(master.token))
+        .send({
+          sorteo: sorteo._id,
+        })
+        .expect(200)
+        .then(anError);
+    }
   });
-  it("premiar", function () {
+  it("premiar", async function () {
     this.timeout(0);
-    return request(app)
-      .post("/sorteo/premiar")
-      .set(token(master.token))
-      .send({
-        sorteo: ventas[0].sorteo,
-        numero: ventas[0].numero,
-      })
-      .expect(200)
-      .then(anError);
+    for (let i = 0; i < sorteos.length; i++) {
+      const sorteo = sorteos[i];
+      await request(app)
+        .post("/sorteo/premiar")
+        .set(token(master.token))
+        .send({
+          sorteo: sorteo._id,
+          numero: trailZero(getRandomInt(0, 36)),
+        })
+        .expect(200)
+        .then((result) => {
+          if (result.body.error) console.error(result.body.error);
+        });
+    }
   });
 });
