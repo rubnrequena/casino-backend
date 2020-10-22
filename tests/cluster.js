@@ -4,10 +4,16 @@ const Sorteo = require("../dto/sorteo-dto");
 const { getRandomInt, trailZero } = require("../utils/number-util");
 
 const url = (path) => {
-  return `http://51.83.141.121:3000/${path}`;
+  return `http://127.0.0.1:3000/${path}`;
 };
 let sorteo;
 let ventas = [];
+let iventa = 0;
+let now;
+let tickets = [];
+let n = 0;
+let intervalo;
+let len;
 
 describe("pruebas", function () {
   this.timeout(0);
@@ -32,21 +38,22 @@ describe("pruebas", function () {
         done();
       });
   });
-  it("vender un ticket", function (done) {
+  it("vender un solo ticket", function (done) {
     const venta = {
       numero: trailZero(getRandomInt(1, 36)),
       sorteo,
       monto: getRandomInt(10, 100) * 100,
     };
     Axios.post(url("ticket/venta"), [venta]).then((data) => {
-      console.log(data.data.ticket.serial);
+      console.log("ticket vendido", data.data.ticket.serial);
       done();
     });
   });
-  it("vender", function (done) {
-    let n = 0;
-    const len = 100;
-    let tickets = [];
+  it("vender lote", function (done) {
+    len = 10000;
+    intervalo = len * 0.1;
+    const hilos = 20;
+
     for (let x = 0; x < len; x++) {
       tickets.push([
         {
@@ -71,13 +78,20 @@ describe("pruebas", function () {
         },
       ]);
     }
-    for (let i = 0; i < len; i++) {
-      Axios.post(url("ticket/venta"), [tickets[i]]).then((data) => {
-        ventas.push(data.data.ticket.serial);
-        if (++n == len) {
-          done();
-        }
-      });
-    }
+    now = Date.now();
+    for (let i = 0; i < hilos; i++) vender(done, vender);
   });
 });
+
+function vender(done, cb) {
+  Axios.post(url("ticket/venta"), tickets[iventa++]).then((data) => {
+    //console.log(hilo, "ticket", `#${n}`, data.data.ticket.serial);
+    ventas.push(data.data.ticket.serial);
+    if (n % intervalo == 0) {
+      console.log(`#${n} ${Date.now() - now}`);
+      now = Date.now();
+    }
+    if (++n == len) return done();
+    cb(done, cb);
+  });
+}
