@@ -14,6 +14,10 @@ let tickets = [];
 let n = 0;
 let intervalo;
 let len;
+/** @type {Sorteo[]} */
+let sorteos;
+let vendidos = 0;
+let rechazados = 0;
 
 describe("pruebas", function () {
   this.timeout(0);
@@ -33,8 +37,14 @@ describe("pruebas", function () {
       .then((result) => result.data)
       .then((data) => {
         /** @type {Sorteo[]} */
-        const sorteos = data.sorteos;
+        sorteos = data.sorteos;
+        const now = new Date();
+        sorteos = sorteos.filter((sorteo) => {
+          return new Date(sorteo.cierra) > now;
+        });
+        console.log("sorteos abiertos:", sorteos.length);
         sorteo = sorteos[sorteos.length - 1]._id;
+        expect(sorteos.length).greaterThan(0);
         done();
       });
   });
@@ -45,12 +55,12 @@ describe("pruebas", function () {
       monto: getRandomInt(10, 100) * 100,
     };
     Axios.post(url("ticket/venta"), [venta]).then((data) => {
-      console.log("ticket vendido", data.data.ticket.serial);
+      expect(data.data).have.not.ownProperty("error");
       done();
     });
   });
   it("vender lote", function (done) {
-    len = 10000;
+    len = 100;
     intervalo = len * 0.1;
     const hilos = 20;
 
@@ -58,22 +68,22 @@ describe("pruebas", function () {
       tickets.push([
         {
           numero: trailZero(getRandomInt(1, 36)),
-          sorteo,
+          sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
           monto: getRandomInt(10, 100) * 100,
         },
         {
           numero: trailZero(getRandomInt(1, 36)),
-          sorteo,
+          sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
           monto: getRandomInt(10, 100) * 100,
         },
         {
           numero: trailZero(getRandomInt(1, 36)),
-          sorteo,
+          sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
           monto: getRandomInt(10, 100) * 100,
         },
         {
           numero: trailZero(getRandomInt(1, 36)),
-          sorteo,
+          sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
           monto: getRandomInt(10, 100) * 100,
         },
       ]);
@@ -86,12 +96,17 @@ describe("pruebas", function () {
 function vender(done, cb) {
   Axios.post(url("ticket/venta"), tickets[iventa++]).then((data) => {
     //console.log(hilo, "ticket", `#${n}`, data.data.ticket.serial);
+    if (data.data.ticket) vendidos++;
+    else rechazados++;
     ventas.push(data.data.ticket.serial);
     if (n % intervalo == 0) {
       console.log(`#${n} ${Date.now() - now}`);
       now = Date.now();
     }
-    if (++n == len) return done();
+    if (++n == len) {
+      console.log({ vendidos, rechazados });
+      return done();
+    }
     cb(done, cb);
   });
 }

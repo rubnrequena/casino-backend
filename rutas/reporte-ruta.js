@@ -47,7 +47,4 @@ router.get("/usuario/negativos", validarJerarquia, (req, res) => {
     .then((reportes) => res.json(reportes))
     .catch((error) => res.json(crearError(error)));
 });
-router.get("/monitor/sorteos", (req, res) => {
-  redisRepo.scan;
-});
 module.exports = router;
