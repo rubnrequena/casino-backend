@@ -18,7 +18,9 @@ let token;
 let operadoras;
 
 before(async () => {
-  await sorteoModel.deleteMany();
+  await sorteoModel.deleteMany({
+    fecha: new Date().toISOString().substr(0, 10),
+  });
   master = await login({ usuario: "master", clave: "1234" });
   token = {
     Authorization: `Bearer ${master.token}`,
