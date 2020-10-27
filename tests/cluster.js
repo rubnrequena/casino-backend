@@ -19,20 +19,30 @@ let sorteos;
 let vendidos = 0;
 let rechazados = 0;
 
+let taquillas = [];
+
 describe("pruebas", function () {
   this.timeout(0);
-  it("login", function (done) {
+  it("login pos1", function (done) {
     Axios.post(url("auth"), { usuario: "pos1", clave: "1234" }).then(
       (result) => {
-        Axios.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${result.data.token}`;
+        taquillas.push(`Bearer ${result.data.token}`);
+        if (result.data.error) done(result.data.error);
+        else done();
+      }
+    );
+  });
+  it("login online1", function (done) {
+    Axios.post(url("auth"), { usuario: "online1", clave: "1234" }).then(
+      (result) => {
+        taquillas.push(`Bearer ${result.data.token}`);
         if (result.data.error) done(result.data.error);
         else done();
       }
     );
   });
   it("sorteos", function (done) {
+    Axios.defaults.headers.common["Authorization"] = taquillas[0];
     Axios.get(url(`sorteo/disponibles`))
       .then((result) => result.data)
       .then((data) => {
@@ -48,7 +58,7 @@ describe("pruebas", function () {
         done();
       });
   });
-  it("vender un solo ticket", function (done) {
+  it.skip("vender un solo ticket", function (done) {
     const venta = {
       numero: trailZero(getRandomInt(1, 36)),
       sorteo,
@@ -60,7 +70,7 @@ describe("pruebas", function () {
     });
   });
   it("vender lote", function (done) {
-    len = 100;
+    len = 10000;
     intervalo = len * 0.1;
     const hilos = 20;
 
@@ -94,11 +104,12 @@ describe("pruebas", function () {
 });
 
 function vender(done, cb) {
+  if (iventa >= tickets.length) return;
+  const pos = taquillas[getRandomInt(0, 1)];
+  Axios.defaults.headers.common["Authorization"] = pos;
   Axios.post(url("ticket/venta"), tickets[iventa++]).then((data) => {
-    //console.log(hilo, "ticket", `#${n}`, data.data.ticket.serial);
     if (data.data.ticket) vendidos++;
     else rechazados++;
-    ventas.push(data.data.ticket.serial);
     if (n % intervalo == 0) {
       console.log(`#${n} ${Date.now() - now}`);
       now = Date.now();

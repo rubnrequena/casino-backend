@@ -25,17 +25,17 @@ let sorteos;
 let ventas;
 
 before(async () => {
-  await reporteModel.deleteMany();
+  await reporteModel.deleteMany({ fecha: { $gte: new Date("2020", 9, 26) } });
   master = await login({ usuario: "master", clave: "1234" });
   const fecha = new Date().toISOString().substr(0, 10);
   sorteos = await sorteoModel.find({ fecha }).lean();
   const now = new Date();
-  /* sorteos = sorteos.filter((sorteo) => {
-    return new Date(sorteo.cierra) > now;
-  }); */
   sorteos = sorteos.filter((sorteo) => {
-    return sorteo.operadora == "5f404c2b99166318ec20c508";
+    return new Date(sorteo.cierra) > now;
   });
+  /* sorteos = sorteos.filter((sorteo) => {
+    return sorteo.operadora == "5f404c2b99166318ec20c508";
+  }); */
 });
 
 describe("premiar", () => {

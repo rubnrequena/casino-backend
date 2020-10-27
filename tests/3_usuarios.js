@@ -19,6 +19,8 @@ const operadora_pagaModel = require("_modelos/operadora_paga-model");
 const Operadora = require("../dto/operadora-dto.js");
 const operadoraModel = require("_modelos/operadora-model");
 const GrupoPago = require("../dto/grupo_pago-model.js");
+const comisionModel = require("_modelos/comision.model");
+const { assert } = require("chai");
 
 /** @type {Usuario} */
 let master = {};
@@ -37,6 +39,7 @@ before(async function () {
   await saldoModel.deleteMany();
   await grupo_pagoModel.deleteMany();
   await operadora_pagaModel.deleteMany();
+  await comisionModel.deleteMany();
   operadoras = await operadoraModel.find().lean();
 });
 
@@ -184,14 +187,40 @@ describe("asignar grupos de pago", () => {
   });
 });
 
-describe("comisiones", () => {
+describe("comisiones", function () {
+  this.timeout(0);
   it("registrar comisiones", async function () {
+    const comisiones = {
+      master: 0,
+      multi: 20,
+      banca: 19,
+      grupo: 18,
+      agencia: 17,
+      taquilla: 16,
+      agente: 20,
+      online: 0,
+    };
+    const participaciones = {
+      master: 0,
+      multi: 40,
+      banca: 30,
+      grupo: 20,
+      agencia: 10,
+      taquilla: 0,
+      agente: 40,
+      online: 0,
+    };
+    /** @type {Usuario[]} */
     let comerciales = await usuarioModel.find();
     for (let x = 0; x < comerciales.length; x++) {
-      const comercial = comerciales[x];
+      const usuario = comerciales[x];
+      let com;
+      let part;
       for (let i = 0; i < operadoras.length; i++) {
         const operadora = operadoras[i];
-        await comision(operadora._id, comercial._id, 10, 40, 25);
+        com = comisiones[usuario.rol];
+        part = participaciones[usuario.rol];
+        await comision(operadora._id, usuario._id, com, part, 0);
       }
     }
   });
@@ -245,6 +274,7 @@ function loginTest(_usuarios) {
 }
 
 async function comision(operadora, usuario, comision, participacion, utilidad) {
+  assert.isNumber(comision, usuario);
   return await request(app)
     .post("/usuario/comision/registro")
     .set(master.token)
