@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const Usuario = require("../dto/usuario-dto");
-const { validarJerarquia } = require("../middlewares/usuario-middle");
+const { validarJerarquia, esMaster } = require("../middlewares/usuario-middle");
 const redisRepo = require("../repositorio/redis-repo");
 const reporteService = require("../servicios/reporte-service");
 const { crearError } = require("../utils/error-util");
@@ -36,6 +36,22 @@ router.get("/operadoras", validarJerarquia, (req, res) => {
   let { desde, hasta, moneda } = req.query;
   reporteService.buscar
     .operadoras(req.usuario, desde, hasta, moneda)
+    .then((reportes) => res.json(reportes))
+    .catch((error) => res.json(crearError(error)));
+});
+router.get("/sorteos", validarJerarquia, (req, res) => {
+  //TODO: verificar moneda valida
+  let { operadora, desde, hasta, moneda } = req.query;
+  reporteService.buscar
+    .sorteos(req.usuario, operadora, desde, hasta, moneda)
+    .then((reportes) => res.json(reportes))
+    .catch((error) => res.json(crearError(error)));
+});
+router.get("/loterias", esMaster, (req, res) => {
+  //TODO: verificar moneda valida
+  let { desde, hasta, moneda } = req.query;
+  reporteService.buscar
+    .loterias(req.user, desde, hasta, moneda)
     .then((reportes) => res.json(reportes))
     .catch((error) => res.json(crearError(error)));
 });

@@ -3,7 +3,6 @@ const Usuario = require("../dto/usuario-dto");
 const operadoraRepo = require("../repositorio/operadora-repo");
 const reporteRepo = require("../repositorio/reporte-repo");
 const usuarioRepo = require("../repositorio/usuario-repo");
-const axios = require("axios").default;
 
 module.exports = {
   buscar: {
@@ -18,6 +17,7 @@ module.exports = {
         usuario = await usuarioRepo.buscar.usuario("master");
       return reporteRepo.buscar.usuario(
         usuario._id,
+        usuario.rol,
         operadoras,
         desde,
         hasta,
@@ -30,34 +30,51 @@ module.exports = {
      * @param {String} hasta
      */
     async operadoras(usuario, desde, hasta, moneda) {
-      let meta = await usuarioRepo.meta(usuario._id);
       let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario._id);
       if (usuario.rol == Usuario.AUDITOR)
         usuario = await usuarioRepo.buscar.usuario("master");
-
-      let otros_reportes = [];
-      if (meta && meta.operadoras_remotas) {
-        let url = String(meta.operadoras_remotas.srq);
-        url = url.replace(":inicio", desde);
-        url = url.replace(":fin", hasta);
-        result = await axios.get(url);
-        otros_reportes = result.data.map((reporte) => {
-          reporte.operadora = { nombre: reporte.operadora };
-          reporte.subtotal = reporte.venta - reporte.premio - reporte.comision;
-          reporte.total = reporte.subtotal - reporte.participacion;
-          reporte.tickets = 0;
-          reporte.sistema = "srq";
-          return reporte;
-        });
-      }
-      const reporte = await reporteRepo.buscar.operadoras(
+      return await reporteRepo.buscar.operadoras(
         usuario._id,
+        usuario.rol,
         operadoras,
         desde,
         hasta,
         moneda
       );
-      return [...reporte, ...otros_reportes];
+    },
+    /**
+     * @param {Usuario} usuario
+     * @param {Operadora} operadora
+     * @param {String} desde
+     * @param {String} hasta
+     */
+    async sorteos(usuario, operadora, desde, hasta, moneda) {
+      let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario._id);
+      operadoras = operadoras.filter((op) => {
+        const id = op.operadora._id.toString();
+        return id == operadora;
+      });
+      if (usuario.rol == Usuario.AUDITOR)
+        usuario = await usuarioRepo.buscar.usuario("master");
+      return await reporteRepo.buscar.sorteos(
+        usuario._id,
+        usuario.rol,
+        operadoras,
+        desde,
+        hasta,
+        moneda
+      );
+    },
+    async loterias(usuario, desde, hasta, moneda) {
+      //let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario._id);
+      if (usuario.rol == Usuario.AUDITOR)
+        usuario = await usuarioRepo.buscar.usuario("master");
+      return await reporteRepo.buscar.loterias(
+        usuario.rol,
+        desde,
+        hasta,
+        moneda
+      );
     },
     negativos: {
       /**
@@ -71,6 +88,7 @@ module.exports = {
           usuario = await usuarioRepo.buscar.usuario("master");
         return reporteRepo.buscar.negativos.usuario(
           usuario._id,
+          usuario.rol,
           operadoras,
           desde,
           hasta

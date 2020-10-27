@@ -3,6 +3,7 @@ const reporteModel = require("_modelos/reporte-model");
 const Reporte = require("../dto/reporte-dto");
 const mongoose = require("mongoose");
 const Operadora = require("../dto/operadora-dto");
+const Usuario = require("../dto/usuario-dto");
 const ObjectId = mongoose.Types.ObjectId;
 
 function nuevo() {}
@@ -108,197 +109,427 @@ async function admin(usuarioId, filtros) {
     })
     .lean();
 }
+const participacionMap = {
+  master: {
+    $cond: [
+      `$participacion.${Usuario.MULTI}`,
+      `$participacion.${Usuario.MULTI}`,
+      `$participacion.${Usuario.AGENTE}`,
+    ],
+  },
+  multi: `$participacion.${Usuario.BANCA}`,
+  banca: `$participacion.${Usuario.GRUPO}`,
+  grupo: `$participacion.${Usuario.AGENCIA}`,
+  agencia: `$participacion.${Usuario.TAQUILLA}`,
+  agente: `$participacion.${Usuario.ONLINE}`,
+};
+const comisionMap = {
+  master: {
+    $cond: [
+      `$comision.${Usuario.MULTI}`,
+      `$comision.${Usuario.MULTI}`,
+      `$comision.${Usuario.AGENTE}`,
+    ],
+  },
+  multi: `$comision.${Usuario.BANCA}`,
+  banca: `$comision.${Usuario.GRUPO}`,
+  grupo: `$comision.${Usuario.AGENCIA}`,
+  agencia: `$comision.${Usuario.TAQUILLA}`,
+  agente: `$comision.${Usuario.ONLINE}`,
+};
+/**
+ *
+ * @param {String} usuarioId
+ * @param {String} rol
+ * @param {Operadora[]} operadoras
+ * @param {String} desde
+ * @param {String} hasta
+ */
+function buscar_usuario(usuarioId, rol, operadoras, desde, hasta, moneda) {
+  const comision = comisionMap[rol];
+  const participacion = participacionMap[rol];
+  desde = new Date(desde);
+  desde.setHours(0, 0, 0);
+  hasta = new Date(hasta);
+  hasta.setHours(23, 59, 59);
+  return new Promise((resolve, reject) => {
+    operadoras = operadoras.map((operadora) => operadora.operadora._id);
+    reporteModel.aggregate(
+      [
+        {
+          $match: {
+            jerarquia: ObjectId(usuarioId),
+            fecha: { $gte: desde, $lte: hasta },
+            operadora: { $in: operadoras },
+            moneda,
+          },
+        },
+        {
+          $addFields: {
+            hijo: { $arrayElemAt: ["$jerarquia", 1] },
+            subtotal: {
+              $subtract: [
+                "$venta",
+                {
+                  $sum: ["$premio", { $multiply: ["$venta", comision, 0.01] }],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$hijo",
+            venta: { $sum: "$venta" },
+            premio: { $sum: "$premio" },
+            tickets: { $sum: "$numTickets" },
+            subtotal: { $sum: "$subtotal" },
+            comision: {
+              $sum: {
+                $multiply: ["$venta", comision, 0.01],
+              },
+            },
+            participacion: {
+              $sum: {
+                $multiply: ["$subtotal", participacion, 0.01],
+              },
+            },
+          },
+        },
+        {
+          $addFields: {
+            total: { $subtract: ["$subtotal", "$participacion"] },
+          },
+        },
+        {
+          $lookup: {
+            from: "usuarios",
+            localField: "_id",
+            foreignField: "_id",
+            as: "usuario",
+          },
+        },
+        { $addFields: { usuario: { $arrayElemAt: ["$usuario", 0] } } },
+        {
+          $project: {
+            venta: 1,
+            premio: 1,
+            tickets: 1,
+            comision: 1,
+            subtotal: 1,
+            participacion: 1,
+            total: 1,
+            "usuario.nombre": 1,
+            "usuario._id": 1,
+            "usuario.codigo": 1,
+          },
+        },
+        { $sort: { "usuario.codigo": 1 } },
+      ],
+      (error, reportes) => {
+        if (error) return reject(error.message);
+        resolve(reportes);
+      }
+    );
+  });
+}
+/**
+ *
+ * @param {String} usuarioId
+ * @param {String} operadoras
+ * @param {String} desde
+ * @param {String} hasta
+ * @returns {Reporte[]}
+ */
+function buscar_operadoras(usuarioId, rol, operadoras, desde, hasta, moneda) {
+  return new Promise((resolve, reject) => {
+    const comision = comisionMap[rol];
+    const participacion = participacionMap[rol];
+    desde = new Date(desde);
+    desde.setHours(0, 0, 0);
+    hasta = new Date(hasta);
+    hasta.setHours(23, 59, 59);
+    operadoras = operadoras.map((operadora) => operadora.operadora._id);
+    reporteModel.aggregate(
+      [
+        {
+          $match: {
+            jerarquia: ObjectId(usuarioId),
+            fecha: { $gte: desde, $lte: hasta },
+            operadora: { $in: operadoras },
+            moneda,
+          },
+        },
+        {
+          $addFields: {
+            subtotal: {
+              $subtract: [
+                "$venta",
+                {
+                  $sum: [
+                    "$premio",
+                    {
+                      $multiply: ["$venta", comision, 0.01],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$operadora",
+            venta: { $sum: "$venta" },
+            premio: { $sum: "$premio" },
+            tickets: { $sum: "$numTickets" },
+            subtotal: { $sum: "$subtotal" },
+            comision: {
+              $sum: {
+                $multiply: ["$venta", comision, 0.01],
+              },
+            },
+            participacion: {
+              $sum: {
+                $multiply: ["$subtotal", participacion, 0.01],
+              },
+            },
+          },
+        },
+        {
+          $addFields: {
+            total: { $subtract: ["$subtotal", "$participacion"] },
+          },
+        },
+        {
+          $lookup: {
+            from: "operadoras",
+            localField: "_id",
+            foreignField: "_id",
+            as: "operadora",
+          },
+        },
+        { $addFields: { operadora: { $arrayElemAt: ["$operadora", 0] } } },
+        {
+          $project: {
+            venta: 1,
+            premio: 1,
+            tickets: 1,
+            comision: 1,
+            subtotal: 1,
+            participacion: 1,
+            total: 1,
+            "operadora.nombre": 1,
+            "operadora.tipo": 1,
+            "operadora.paga": 1,
+          },
+        },
+        { $sort: { "operadora.nombre": 1 } },
+      ],
+      (error, reportes) => {
+        if (error) return reject(error.message);
+        resolve(reportes);
+      }
+    );
+  });
+}
+function buscar_loteria(rol, desde, hasta, moneda) {
+  return new Promise((resolve, reject) => {
+    const comision = comisionMap[rol];
+    const participacion = participacionMap[rol];
+    desde = new Date(desde);
+    desde.setHours(0, 0, 0);
+    hasta = new Date(hasta);
+    hasta.setHours(23, 59, 59);
 
+    reporteModel.aggregate(
+      [
+        {
+          $match: {
+            fecha: { $gte: desde, $lte: hasta },
+            moneda,
+          },
+        },
+        {
+          $addFields: {
+            hijo: { $arrayElemAt: ["$jerarquia", 1] },
+            cm_banca: { $multiply: ["$venta", comision, 0.01] },
+          },
+        },
+        {
+          $addFields: {
+            subtotal: {
+              $subtract: ["$venta", { $sum: ["$premio", "$comision"] }],
+            },
+          },
+        },
+        {
+          $addFields: {
+            pt_banca: {
+              $sum: { $multiply: ["$subtotal", participacion, 0.01] },
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$operadora",
+            venta: { $sum: "$venta" },
+            premio: { $sum: "$premio" },
+            tickets: { $sum: "$numTickets" },
+            subtotal: { $sum: "$subtotal" },
+            cm_banca: { $sum: "$cm_banca" },
+            pt_banca: { $sum: "$pt_banca" },
+          },
+        },
+        {
+          $lookup: {
+            from: "operadoras",
+            localField: "_id",
+            foreignField: "_id",
+            as: "operadora",
+          },
+        },
+        { $addFields: { operadora: { $arrayElemAt: ["$operadora", 0] } } },
+        {
+          $project: {
+            "operadora.nombre": 1,
+            "operadora.tipo": 1,
+            "operadora.paga": 1,
+            venta: 1,
+            premio: 1,
+            tickets: 1,
+            subtotal: 1,
+            cm_banca: 1,
+            pt_banca: 1,
+            pt_loteria: {
+              $multiply: ["$subtotal", "$operadora.participacion", 0.01],
+            },
+            cm_master: { $multiply: ["$venta", "$operadora.comision", 0.01] },
+          },
+        },
+        {
+          $addFields: {
+            pt_master: {
+              $subtract: ["$subtotal", { $sum: ["$pt_banca", "$pt_loteria"] }],
+            },
+            bancas: { $sum: ["$cm_banca", "$pt_banca"] },
+            master: { $sum: ["$cm_master", "$pt_master"] },
+          },
+        },
+        { $addFields: { total: { $sum: ["$pt_master", "$cm_master"] } } },
+        { $sort: { "operadora.nombre": 1 } },
+      ],
+      (error, reportes) => {
+        if (error) return reject(error.message);
+        resolve(reportes);
+      }
+    );
+  });
+}
+function buscar_sorteo(usuarioId, rol, operadoras, desde, hasta, moneda) {
+  return new Promise((resolve, reject) => {
+    const comision = comisionMap[rol];
+    const participacion = participacionMap[rol];
+    desde = new Date(desde);
+    desde.setHours(0, 0, 0);
+    hasta = new Date(hasta);
+    hasta.setHours(23, 59, 59);
+
+    operadoras = operadoras.map((operadora) => operadora.operadora._id);
+    reporteModel.aggregate(
+      [
+        {
+          $match: {
+            jerarquia: ObjectId(usuarioId),
+            fecha: { $gte: desde, $lte: hasta },
+            operadora: { $in: operadoras },
+            moneda,
+          },
+        },
+        {
+          $addFields: {
+            hijo: { $arrayElemAt: ["$jerarquia", 1] },
+            subtotal: {
+              $subtract: [
+                "$venta",
+                {
+                  $sum: [
+                    "$premio",
+                    {
+                      $multiply: ["$venta", comision, 0.01],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$sorteo",
+            venta: { $sum: "$venta" },
+            premio: { $sum: "$premio" },
+            tickets: { $sum: "$numTickets" },
+            subtotal: { $sum: "$subtotal" },
+            comision: {
+              $sum: {
+                $multiply: ["$venta", comision, 0.01],
+              },
+            },
+            participacion: {
+              $sum: {
+                $multiply: ["$subtotal", participacion, 0.01],
+              },
+            },
+          },
+        },
+        {
+          $addFields: {
+            total: { $subtract: ["$subtotal", "$participacion"] },
+          },
+        },
+        {
+          $lookup: {
+            from: "sorteos",
+            localField: "_id",
+            foreignField: "_id",
+            as: "sorteo",
+          },
+        },
+        { $addFields: { sorteo: { $arrayElemAt: ["$sorteo", 0] } } },
+        {
+          $project: {
+            venta: 1,
+            premio: 1,
+            tickets: 1,
+            comision: 1,
+            subtotal: 1,
+            participacion: 1,
+            total: 1,
+            sorteo: "$sorteo.descripcion",
+          },
+        },
+        { $sort: { sorteo: 1 } },
+      ],
+      (error, reportes) => {
+        if (error) return reject(error.message);
+        resolve(reportes);
+      }
+    );
+  });
+}
 module.exports = {
   nuevo,
   reiniciar,
   buscar: {
-    /**
-     *
-     * @param {String} usuarioId
-     * @param {Operadora[]} operadoras
-     * @param {String} desde
-     * @param {String} hasta
-     */
-    usuario(usuarioId, operadoras, desde, hasta, moneda) {
-      desde = new Date(desde);
-      desde.setHours(0, 0, 0);
-      hasta = new Date(hasta);
-      hasta.setHours(23, 59, 59);
-      return new Promise((resolve, reject) => {
-        operadoras = operadoras.map((operadora) => operadora.operadora._id);
-        reporteModel.aggregate(
-          [
-            {
-              $match: {
-                jerarquia: ObjectId(usuarioId),
-                fecha: { $gte: desde, $lte: hasta },
-                operadora: { $in: operadoras },
-                moneda,
-              },
-            },
-            {
-              $addFields: {
-                hijo: { $arrayElemAt: ["$jerarquia", 1] },
-                subtotal: {
-                  $subtract: [
-                    "$venta",
-                    {
-                      $sum: [
-                        "$premio",
-                        { $multiply: ["$venta", "$comision.agente"] },
-                      ],
-                    },
-                  ],
-                },
-              },
-            },
-            {
-              $group: {
-                _id: "$hijo",
-                venta: { $sum: "$venta" },
-                premio: { $sum: "$premio" },
-                tickets: { $sum: "$numTickets" },
-                subtotal: { $sum: "$subtotal" },
-                comision: {
-                  $sum: { $multiply: ["$venta", "$comision.agente"] },
-                },
-                participacion: {
-                  $sum: { $multiply: ["$subtotal", "$participacion.agente"] },
-                },
-              },
-            },
-            {
-              $addFields: {
-                total: { $subtract: ["$subtotal", "$participacion"] },
-              },
-            },
-            {
-              $lookup: {
-                from: "usuarios",
-                localField: "_id",
-                foreignField: "_id",
-                as: "usuario",
-              },
-            },
-            { $addFields: { usuario: { $arrayElemAt: ["$usuario", 0] } } },
-            {
-              $project: {
-                venta: 1,
-                premio: 1,
-                tickets: 1,
-                comision: 1,
-                subtotal: 1,
-                participacion: 1,
-                total: 1,
-                "usuario.nombre": 1,
-                "usuario._id": 1,
-                "usuario.codigo": 1,
-              },
-            },
-            { $sort: { "usuario.codigo": 1 } },
-          ],
-          (error, reportes) => {
-            if (error) return reject(error.message);
-            resolve(reportes);
-          }
-        );
-      });
-    },
-    /**
-     *
-     * @param {String} usuarioId
-     * @param {String} operadoras
-     * @param {String} desde
-     * @param {String} hasta
-     * @returns {Reporte[]}
-     */
-    operadoras(usuarioId, operadoras, desde, hasta, moneda) {
-      desde = new Date(desde);
-      desde.setHours(0, 0, 0);
-      hasta = new Date(hasta);
-      hasta.setHours(23, 59, 59);
-      return new Promise((resolve, reject) => {
-        operadoras = operadoras.map((operadora) => operadora.operadora._id);
-        reporteModel.aggregate(
-          [
-            {
-              $match: {
-                jerarquia: ObjectId(usuarioId),
-                fecha: { $gte: desde, $lte: hasta },
-                operadora: { $in: operadoras },
-                moneda,
-              },
-            },
-            {
-              $addFields: {
-                subtotal: {
-                  $subtract: [
-                    "$venta",
-                    {
-                      $sum: [
-                        "$premio",
-                        { $multiply: ["$venta", "$comision.agente"] },
-                      ],
-                    },
-                  ],
-                },
-              },
-            },
-            {
-              $group: {
-                _id: "$operadora",
-                venta: { $sum: "$venta" },
-                premio: { $sum: "$premio" },
-                tickets: { $sum: "$numTickets" },
-                subtotal: { $sum: "$subtotal" },
-                comision: {
-                  $sum: { $multiply: ["$venta", "$comision.agente"] },
-                },
-                participacion: {
-                  $sum: { $multiply: ["$subtotal", "$participacion.agente"] },
-                },
-              },
-            },
-            {
-              $addFields: {
-                total: { $subtract: ["$subtotal", "$participacion"] },
-              },
-            },
-            {
-              $lookup: {
-                from: "operadoras",
-                localField: "_id",
-                foreignField: "_id",
-                as: "operadora",
-              },
-            },
-            { $addFields: { operadora: { $arrayElemAt: ["$operadora", 0] } } },
-            {
-              $project: {
-                venta: 1,
-                premio: 1,
-                tickets: 1,
-                comision: 1,
-                subtotal: 1,
-                participacion: 1,
-                total: 1,
-                "operadora.nombre": 1,
-                "operadora.tipo": 1,
-                "operadora.paga": 1,
-              },
-            },
-            { $sort: { "operadora.nombre": 1 } },
-          ],
-          (error, reportes) => {
-            if (error) return reject(error.message);
-            resolve(reportes);
-          }
-        );
-      });
-    },
+    usuario: buscar_usuario,
+    operadoras: buscar_operadoras,
+    loterias: buscar_loteria,
+    sorteos: buscar_sorteo,
     negativos: {
-      usuario(usuarioId, operadoras, desde, hasta) {
+      usuario(usuarioId, rol, operadoras, desde, hasta, moneda = "ves") {
+        const comision = comisionMap[rol];
+        const participacion = participacionMap[rol];
         desde = new Date(desde);
         hasta = new Date(hasta);
         hasta.setHours(23, 59, 59);
@@ -311,6 +542,7 @@ module.exports = {
                   jerarquia: ObjectId(usuarioId),
                   fecha: { $gte: desde, $lte: hasta },
                   operadora: { $in: operadoras },
+                  moneda,
                 },
               },
               {
@@ -322,7 +554,7 @@ module.exports = {
                       {
                         $sum: [
                           "$premio",
-                          { $multiply: ["$venta", "$comision.agente"] },
+                          { $multiply: ["$venta", comision, 0.01] },
                         ],
                       },
                     ],
@@ -337,10 +569,14 @@ module.exports = {
                   tickets: { $sum: "$numTickets" },
                   subtotal: { $sum: "$subtotal" },
                   comision: {
-                    $sum: { $multiply: ["$venta", "$comision.agente"] },
+                    $sum: {
+                      $multiply: ["$venta", comision, 0.01],
+                    },
                   },
                   participacion: {
-                    $sum: { $multiply: ["$subtotal", "$participacion.agente"] },
+                    $sum: {
+                      $multiply: ["$subtotal", participacion, 0.01],
+                    },
                   },
                 },
               },
@@ -349,6 +585,7 @@ module.exports = {
                   total: { $subtract: ["$subtotal", "$participacion"] },
                 },
               },
+              { $match: { total: { $lt: 0 } } },
               {
                 $lookup: {
                   from: "usuarios",
@@ -372,7 +609,7 @@ module.exports = {
                   "usuario.codigo": 1,
                 },
               },
-              { $match: { total: { $lt: 0 } } },
+              { $sort: { "usuario.codigo": 1 } },
             ],
             (error, reportes) => {
               if (error) return reject(error.message);
