@@ -12,9 +12,12 @@ module.exports = {
      * @param {String} hasta
      */
     async usuario(usuario, desde, hasta, moneda) {
-      let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario._id);
-      if (usuario.rol == Usuario.AUDITOR)
+      let operadoras = null;
+      if (usuario.rol == Usuario.AUDITOR) {
         usuario = await usuarioRepo.buscar.usuario("master");
+        operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario);
+        operadoras = operadoras.map((operadora) => operadora.operadora);
+      }
       return reporteRepo.buscar.usuario(
         usuario._id,
         usuario.rol,
@@ -30,9 +33,12 @@ module.exports = {
      * @param {String} hasta
      */
     async operadoras(usuario, desde, hasta, moneda) {
-      let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario._id);
-      if (usuario.rol == Usuario.AUDITOR)
+      let operadoras;
+      if (usuario.rol == Usuario.AUDITOR) {
         usuario = await usuarioRepo.buscar.usuario("master");
+        operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario);
+        operadoras = operadoras.map((operadora) => operadora.operadora);
+      }
       return await reporteRepo.buscar.operadoras(
         usuario._id,
         usuario.rol,
@@ -49,17 +55,17 @@ module.exports = {
      * @param {String} hasta
      */
     async sorteos(usuario, operadora, desde, hasta, moneda) {
-      let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario._id);
-      operadoras = operadoras.filter((op) => {
-        const id = op.operadora._id.toString();
-        return id == operadora;
-      });
+      let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario);
+      const enlace = operadoras.find(
+        (op) => op.operadora.toString() == operadora
+      );
+
       if (usuario.rol == Usuario.AUDITOR)
         usuario = await usuarioRepo.buscar.usuario("master");
       return await reporteRepo.buscar.sorteos(
         usuario._id,
         usuario.rol,
-        operadoras,
+        enlace.operadora,
         desde,
         hasta,
         moneda
@@ -83,7 +89,8 @@ module.exports = {
        * @param {String} hasta
        */
       async usuario(usuario, desde, hasta) {
-        let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario._id);
+        let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario);
+        operadoras = operadoras.map((operadora) => operadora.operadora);
         if (usuario.rol == Usuario.AUDITOR)
           usuario = await usuarioRepo.buscar.usuario("master");
         return reporteRepo.buscar.negativos.usuario(

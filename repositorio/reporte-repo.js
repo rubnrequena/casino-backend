@@ -137,6 +137,15 @@ const comisionMap = {
   agencia: `$comision.${Usuario.TAQUILLA}`,
   agente: `$comision.${Usuario.ONLINE}`,
 };
+const rolMap = {
+  master: 1,
+  agente: 2,
+  online: 3,
+  multi: 2,
+  banca: 3,
+  grupo: 4,
+  agencia: 5,
+};
 /**
  *
  * @param {String} usuarioId
@@ -148,25 +157,30 @@ const comisionMap = {
 function buscar_usuario(usuarioId, rol, operadoras, desde, hasta, moneda) {
   const comision = comisionMap[rol];
   const participacion = participacionMap[rol];
+  const rolNivel = rolMap[rol];
   desde = new Date(desde);
   desde.setHours(0, 0, 0);
   hasta = new Date(hasta);
   hasta.setHours(23, 59, 59);
   return new Promise((resolve, reject) => {
-    operadoras = operadoras.map((operadora) => operadora.operadora._id);
+    let match = {
+      jerarquia: ObjectId(usuarioId),
+      fecha: { $gte: desde, $lte: hasta },
+      moneda,
+    };
+    if (operadoras) match.operadora = { $in: operadoras };
     reporteModel.aggregate(
       [
-        {
-          $match: {
-            jerarquia: ObjectId(usuarioId),
-            fecha: { $gte: desde, $lte: hasta },
-            operadora: { $in: operadoras },
-            moneda,
-          },
-        },
+        { $match: match },
         {
           $addFields: {
-            hijo: { $arrayElemAt: ["$jerarquia", 1] },
+            hijo: {
+              $cond: [
+                { $arrayElemAt: ["$jerarquia", rolNivel] },
+                { $arrayElemAt: ["$jerarquia", rolNivel] },
+                "$usuario",
+              ],
+            },
             subtotal: {
               $subtract: [
                 "$venta",
@@ -222,6 +236,7 @@ function buscar_usuario(usuarioId, rol, operadoras, desde, hasta, moneda) {
             "usuario.nombre": 1,
             "usuario._id": 1,
             "usuario.codigo": 1,
+            "usuario.rol": 1,
           },
         },
         { $sort: { "usuario.codigo": 1 } },
@@ -249,16 +264,16 @@ function buscar_operadoras(usuarioId, rol, operadoras, desde, hasta, moneda) {
     desde.setHours(0, 0, 0);
     hasta = new Date(hasta);
     hasta.setHours(23, 59, 59);
-    operadoras = operadoras.map((operadora) => operadora.operadora._id);
+    let match = {
+      jerarquia: ObjectId(usuarioId),
+      fecha: { $gte: desde, $lte: hasta },
+      moneda,
+    };
+    if (operadoras) match.operadora = { $in: operadoras };
     reporteModel.aggregate(
       [
         {
-          $match: {
-            jerarquia: ObjectId(usuarioId),
-            fecha: { $gte: desde, $lte: hasta },
-            operadora: { $in: operadoras },
-            moneda,
-          },
+          $match: match,
         },
         {
           $addFields: {
@@ -426,7 +441,7 @@ function buscar_loteria(rol, desde, hasta, moneda) {
     );
   });
 }
-function buscar_sorteo(usuarioId, rol, operadoras, desde, hasta, moneda) {
+function buscar_sorteo(usuarioId, rol, operadora, desde, hasta, moneda) {
   return new Promise((resolve, reject) => {
     const comision = comisionMap[rol];
     const participacion = participacionMap[rol];
@@ -434,15 +449,13 @@ function buscar_sorteo(usuarioId, rol, operadoras, desde, hasta, moneda) {
     desde.setHours(0, 0, 0);
     hasta = new Date(hasta);
     hasta.setHours(23, 59, 59);
-
-    operadoras = operadoras.map((operadora) => operadora.operadora._id);
     reporteModel.aggregate(
       [
         {
           $match: {
             jerarquia: ObjectId(usuarioId),
             fecha: { $gte: desde, $lte: hasta },
-            operadora: { $in: operadoras },
+            operadora,
             moneda,
           },
         },
@@ -530,11 +543,11 @@ module.exports = {
       usuario(usuarioId, rol, operadoras, desde, hasta, moneda = "ves") {
         const comision = comisionMap[rol];
         const participacion = participacionMap[rol];
+        const rolNivel = rolMap[rol];
         desde = new Date(desde);
         hasta = new Date(hasta);
         hasta.setHours(23, 59, 59);
         return new Promise((resolve, reject) => {
-          operadoras = operadoras.map((operadora) => operadora.operadora._id);
           reporteModel.aggregate(
             [
               {
@@ -547,7 +560,13 @@ module.exports = {
               },
               {
                 $addFields: {
-                  hijo: { $arrayElemAt: ["$jerarquia", 1] },
+                  hijo: {
+                    $cond: [
+                      { $arrayElemAt: ["$jerarquia", rolNivel] },
+                      { $arrayElemAt: ["$jerarquia", rolNivel] },
+                      "$usuario",
+                    ],
+                  },
                   subtotal: {
                     $subtract: [
                       "$venta",
