@@ -276,15 +276,61 @@ module.exports = {
       return await operadoraModel.find({}).lean();
     },
     /**
-     * @param {String} usuarioId
+     * @param {String[]} jerarquia
      * @returns {Promise<EnlaceOperadora[]>}
      */
-    async enlacesUsuario(usuarioId) {
+    async enlacesUsuario(jerarquia) {
       return new Promise((resolve, reject) => {
+        jerarquia = jerarquia.map((u) => ObjectId(u.toString()));
         enlace_operadoraModel.aggregate(
           [
             { $addFields: { usuario: { $arrayElemAt: ["$usuario", -1] } } },
-            { $match: { usuario: ObjectId(usuarioId) } },
+            { $match: { usuario: { $in: jerarquia } } },
+            { $sort: { nivel: 1 } },
+            {
+              $group: {
+                _id: "$operadora",
+                mostrar: { $first: "$mostrar" },
+                operadora: { $first: "$operadora" },
+                nivel: { $first: "$nivel" },
+              },
+            },
+            { $match: { mostrar: true } },
+            { $project: { operadora: 1, nivel: 1 } },
+          ],
+          (error, result) => {
+            if (error) return reject(error.message);
+            resolve(result);
+          }
+        );
+      });
+    },
+
+    /**
+     * @param {String[]} jerarquia
+     * @returns {Promise<EnlaceOperadora[]>}
+     */
+    async enlacesUsuarioFull(jerarquia) {
+      console.log(jerarquia);
+      return new Promise((resolve, reject) => {
+        jerarquia = jerarquia.map((u) => ObjectId(u.toString()));
+        enlace_operadoraModel.aggregate(
+          [
+            { $addFields: { usuario: { $arrayElemAt: ["$usuario", -1] } } },
+            { $match: { usuario: { $in: jerarquia } } },
+            { $sort: { nivel: 1 } },
+            { $sort: { nivel: 1 } },
+            {
+              $group: {
+                _id: "$operadora",
+                enlace: { $first: "$_id" },
+                mostrar: { $first: "$mostrar" },
+                operadora: { $first: "$operadora" },
+                nivel: { $first: "$nivel" },
+                creado: { $first: "$creado" },
+                usuario: { $first: "$usuario" },
+              },
+            },
             {
               $lookup: {
                 from: "operadoras",
@@ -293,13 +339,14 @@ module.exports = {
                 as: "operadora",
               },
             },
-            { $addFields: { operadora: { $arrayElemAt: ["$operadora", 0] } } },
             {
               $project: {
-                "operadora.sorteos": 0,
-                "operadora.tipo": 0,
-                "operadora.paga": 0,
-                "operadora.__v": 0,
+                mostrar: 1,
+                nivel: 1,
+                creado: 1,
+                usuario: 1,
+                enlace: 1,
+                operadora: { $arrayElemAt: ["$operadora.nombre", 0] },
               },
             },
           ],

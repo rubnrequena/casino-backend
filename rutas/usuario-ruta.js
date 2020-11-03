@@ -98,7 +98,7 @@ router.get("/saldo", validarJerarquia, (req, res) => {
 });
 router.get("/enlaces", enlaces, (req, res) => {
   operadoraRepo.buscar
-    .enlacesUsuario(req.usuario._id)
+    .enlacesUsuarioFull([...req.usuario.jerarquia, req.usuario._id])
     .then((enlaces) => res.json(enlaces))
     .catch((error) => res.json(crearError(error)));
 });

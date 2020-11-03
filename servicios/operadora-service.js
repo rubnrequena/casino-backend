@@ -31,14 +31,13 @@ module.exports = {
 
       const nivel = topeUtil.calcularNivel(usuario.rol);
       const enlacesPrevios = await operadoraRepo.buscar.enlacesUsuario(
-        usuarioId
+        usuario.jerarquia
       );
 
       const enlacePrevio = operadoraIds.find((operadoraId) => {
         return enlacesPrevios.find((enlace) => {
           return (
-            enlace.operadora._id.toString() == operadoraId &&
-            enlace.nivel == nivel
+            enlace.operadora.toString() == operadoraId && enlace.nivel == nivel
           );
         });
       });
