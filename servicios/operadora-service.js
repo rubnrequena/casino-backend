@@ -30,9 +30,7 @@ module.exports = {
       if (!usuario) return reject(`usuario '${usuarioId}' no existe`);
 
       const nivel = topeUtil.calcularNivel(usuario.rol);
-      const enlacesPrevios = await operadoraRepo.buscar.enlacesUsuario(
-        usuario.jerarquia
-      );
+      const enlacesPrevios = await operadoraRepo.buscar.enlacesUsuario(usuario);
 
       const enlacePrevio = operadoraIds.find((operadoraId) => {
         return enlacesPrevios.find((enlace) => {

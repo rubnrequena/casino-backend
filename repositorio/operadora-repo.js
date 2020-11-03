@@ -13,6 +13,7 @@ const Numero = require("../dto/numero-dto");
 const grupo_pagoModel = require("_modelos/grupo_pago-model");
 const GrupoPago = require("../dto/grupo_pago-model");
 const operadora_pagaModel = require("_modelos/operadora_paga-model");
+const Usuario = require("../dto/usuario-dto");
 
 module.exports = {
   /** JSDoc
@@ -276,12 +277,14 @@ module.exports = {
       return await operadoraModel.find({}).lean();
     },
     /**
-     * @param {String[]} jerarquia
+     * @param {Usuario} usuario
      * @returns {Promise<EnlaceOperadora[]>}
      */
-    async enlacesUsuario(jerarquia) {
+    async enlacesUsuario(usuario) {
       return new Promise((resolve, reject) => {
-        jerarquia = jerarquia.map((u) => ObjectId(u.toString()));
+        const jerarquia = [...usuario.jerarquia, usuario._id].map((id) =>
+          ObjectId(id.toString())
+        );
         enlace_operadoraModel.aggregate(
           [
             { $addFields: { usuario: { $arrayElemAt: ["$usuario", -1] } } },
