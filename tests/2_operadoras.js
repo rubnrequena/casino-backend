@@ -16,10 +16,10 @@ let master;
 let token;
 /** @type {Operadora[]} */
 let operadoras;
-
+const hoy = new Date().toISOString().substr(0, 10);
 before(async () => {
   await sorteoModel.deleteMany({
-    fecha: new Date().toISOString().substr(0, 10),
+    fecha: hoy,
   });
   master = await login({ usuario: "master", clave: "1234" });
   token = {
@@ -28,8 +28,8 @@ before(async () => {
   operadoras = await operadoraRepo.buscar.todas();
 });
 
-describe("registrar sorteos", () => {
-  const hoy = new Date().toISOString().substr(0, 10);
+describe("registrar sorteos", async function () {
+  this.timeout(0);
   it("registrar sorteos", async function () {
     let operadora = operadoras.shift();
     while (operadora) {

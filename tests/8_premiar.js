@@ -30,9 +30,9 @@ before(async () => {
   const fecha = new Date().toISOString().substr(0, 10);
   sorteos = await sorteoModel.find({ fecha }).lean();
   const now = new Date();
-  sorteos = sorteos.filter((sorteo) => {
+  /* sorteos = sorteos.filter((sorteo) => {
     return new Date(sorteo.cierra) > now;
-  });
+  }); */
   /* sorteos = sorteos.filter((sorteo) => {
     return sorteo.operadora == "5f404c2b99166318ec20c508";
   }); */

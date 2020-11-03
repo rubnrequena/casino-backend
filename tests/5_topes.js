@@ -5,7 +5,7 @@ const anError = (res) => {
   if (res.body.error) throw new Error(res.body.error);
   return res;
 };
-const { init, login } = require("./common.js");
+const { init, login, token } = require("./common.js");
 init(app, anError);
 
 const Operadora = require("../dto/operadora-dto.js");
@@ -17,7 +17,9 @@ const { topes } = require("./data.js");
 
 /** @type {Usuario} */
 let comercial;
-let token;
+/** @type {Usuario} */
+let master;
+
 /** @type {Operadora[]} */
 let operadoras;
 /** @type {Usuario[]} */
@@ -28,9 +30,7 @@ let topesData;
 before(async () => {
   await topeModel.deleteMany();
   comercial = await login(usuarios.comerciales[0]);
-  token = {
-    Authorization: `Bearer ${comercial.token}`,
-  };
+  master = await login({ usuario: "master", clave: "1234" });
   operadoras = await operadoraRepo.buscar.todas();
   hijos = await usuarioRepo.buscar.hijos(comercial._id);
   topesData = topes.filter((tope) => tope.padre == comercial.usuario);
@@ -38,7 +38,22 @@ before(async () => {
 
 describe("topes", () => {
   let topesUsuario = [];
-  it("registrar topes", async function () {
+  it("registrar tope master", async function () {
+    for (let i = 0; i < operadoras.length; i++) {
+      const operadora = operadoras[i];
+      await request(app)
+        .post("/sorteo/tope/nuevo")
+        .set(token(master.token))
+        .send({
+          usuario: master._id,
+          monto: 1000000,
+          operadora: operadora._id,
+        })
+        .expect(200)
+        .expect(anError);
+    }
+  });
+  it.skip("registrar topes", async function () {
     let tope = topesData.pop();
     while (tope) {
       const _tope = {
@@ -58,7 +73,7 @@ describe("topes", () => {
       tope = topesData.pop();
     }
   });
-  it("remover tope", function () {
+  it.skip("remover tope", function () {
     this.timeout(0);
     const tope = topesUsuario.pop();
     return request(app)
