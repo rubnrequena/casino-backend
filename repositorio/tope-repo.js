@@ -103,7 +103,7 @@ module.exports = {
       return new Promise((resolve, reject) => {
         let filtro = { nivel: usuario.rol };
         if (isObjectId(operadora)) filtro.operadora = operadora;
-        if (isObjectId(usuario._id)) filtro.jerarquia = usuario._id;
+        if (isObjectId(usuario._id)) filtro.jerarquia = usuario._id.toString();
         topeModel
           .find(
             filtro,
