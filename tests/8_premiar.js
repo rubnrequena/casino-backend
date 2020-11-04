@@ -25,7 +25,7 @@ let sorteos;
 let ventas;
 
 before(async () => {
-  await reporteModel.deleteMany({ fecha: { $gte: new Date("2020", 9, 26) } });
+  await reporteModel.deleteMany({ fecha: { $gte: new Date() } });
   master = await login({ usuario: "master", clave: "1234" });
   const fecha = new Date().toISOString().substr(0, 10);
   sorteos = await sorteoModel.find({ fecha }).lean();
