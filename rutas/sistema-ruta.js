@@ -58,4 +58,13 @@ router.get("/sys_stats", (req, res) => {
     });
   }
 });
+router.get("/menus", (req, res) => {
+  sistemaRepo
+    .menus()
+    .then((menus) => res.json(menus))
+    .catch((error) => res.json(crearError(error)));
+});
+router.post("/menu/nuevo", esMaster, (req, res) => {
+  return;
+});
 module.exports = router;

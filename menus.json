@@ -1,0 +1,131 @@
+[
+  {
+    "icon": "mdi-home",
+    "text": "Panel de Control",
+    "url": "/",
+    "grupo": "todos"
+  },
+  {
+    "text": "Operadora",
+    "url": "/operadora/operadoras",
+    "grupo": "operadora"
+  },
+  {
+    "text": "Sorteos",
+    "url": "/operadora/sorteos",
+    "grupo": "operadora"
+  },
+  {
+    "text": "Premiar",
+    "url": "/operadora/premiar",
+    "grupo": "operadora"
+  },
+  {
+    "icon": "mdi-set-merge",
+    "text": "Enlaces",
+    "url": "/operadora/enlaces",
+    "grupo": "operadora"
+  },
+  {
+    "icon": "mdi-account-cash-online",
+    "text": "Grupos de Pago",
+    "url": "/operadora/grupospago",
+    "grupo": "operadora"
+  },
+  {
+    "icon": "mdi-monitor-dashboard",
+    "text": "Monitoreo",
+    "url": "/operaciones/monitoreo",
+    "grupo": "monitor"
+  },
+  {
+    "icon": "mdi-account-plus-outline",
+    "text": "Nuevo",
+    "url": "/usuarios/nuevo",
+    "grupo": "usuario"
+  },
+  {
+    "icon": "mdi-contacts",
+    "text": "Lista",
+    "url": "/usuarios/lista",
+    "grupo": "usuario"
+  },
+  {
+    "icon": "mdi-account-lock-outline",
+    "text": "Permisos",
+    "url": "/usuarios/permisos",
+    "grupo": "usuario"
+  },
+  {
+    "icon": "mdi-menu",
+    "text": "Menu",
+    "url": "/usuarios/menu",
+    "grupo": "usuario"
+  },
+  {
+    "icon": "mdi-download-lock-outline",
+    "text": "Cupos",
+    "url": "/cupos",
+    "grupo": "usuario"
+  },
+  {
+    "icon": "mdi-book-account-outline",
+    "text": "General",
+    "url": "/informes",
+    "grupo": "informe"
+  },
+  {
+    "icon": "mdi-account-supervisor",
+    "text": "Usuarios",
+    "url": "/reportes/usuarios",
+    "grupo": "reporte"
+  },
+  {
+    "icon": "mdi-bank-outline",
+    "text": "Operadoras",
+    "url": "/reportes/operadoras",
+    "grupo": "reporte"
+  },
+  {
+    "icon": "mdi-bank-outline",
+    "text": "Sorteos",
+    "url": "/reportes/sorteos",
+    "grupo": "reporte"
+  },
+  {
+    "icon": "mdi-home-floor-negative-1",
+    "text": "Negativos",
+    "url": "/reportes/negativos",
+    "grupo": "reporte"
+  },
+  {
+    "icon": "mdi-bank-outline",
+    "text": "Loterias",
+    "url": "/reportes/loterias",
+    "grupo": "reporte"
+  },
+  {
+    "icon": "mdi-bank-transfer",
+    "text": "Saldos",
+    "url": "/saldo/historial",
+    "grupo": "saldo"
+  },
+  {
+    "icon": "mdi-bank-transfer-in",
+    "text": "Recargas",
+    "url": "/saldo/recargas",
+    "grupo": "saldo"
+  },
+  {
+    "icon": "mdi-bank-transfer-out",
+    "text": "Retiros",
+    "url": "/saldo/retiros",
+    "grupo": "saldo"
+  },
+  {
+    "icon": "mdi-wallet-outline",
+    "text": "Metodos de Pago",
+    "url": "/saldo/metodospago",
+    "grupo": "saldo"
+  }
+]
