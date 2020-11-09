@@ -10,15 +10,10 @@ function nuevo() {}
 
 function reiniciar(sorteoId) {
   return new Promise((resolve, reject) => {
-    reporteModel.deleteMany(
-      {
-        sorteo: sorteoId,
-      },
-      (error, result) => {
-        if (error) return reject(error.message);
-        resolve(result);
-      }
-    );
+    reporteModel.deleteMany({ sorteo: sorteoId }, (error, result) => {
+      if (error) return reject(error.message);
+      resolve(result);
+    });
   });
 }
 
