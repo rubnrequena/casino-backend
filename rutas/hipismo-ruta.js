@@ -1,7 +1,6 @@
 const router = require("express").Router();
 
 const axios = require("axios").default;
-const dateUtil = require("../utils/date-util");
 const Usuario = require("../dto/usuario-dto");
 const Saldo = require("../dto/saldo-dto");
 
