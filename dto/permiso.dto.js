@@ -1,89 +1,40 @@
 class Permiso {
+  /** @type {String} */ _id;
+  /** @type {Number[]} */ permisos;
+  /** @type {String} */ nombre;
+  /** @type {String} */ usuario;
+
   static operadora = {
-    leer: "operadora1",
-    crear: "operadora2",
-    edita: "operadora3",
-    elimina: "operadora4",
+    leer: 10,
+    modificar: 11,
   };
   static sorteos = {
-    leer: "sorteos1",
-    crear: "sorteos2",
-    edita: "sorteos3",
-    elimina: "sorteos4",
-    premia: "sorteos_prm",
+    leer: 20,
+    modificar: 21,
+    registro: 22,
+    premia: 23,
   };
   static permisos = {
-    leer: "permisos1",
-    crear: "permisos2",
-    edita: "permisos3",
-    elimina: "permisos4",
+    leer: 30,
+    modificar: 31,
   };
   static ventas = {
-    leer: "ventas1",
-    anular: "ventas2",
+    leer: 60,
+    anular: 61,
   };
   static saldos = {
-    leer: "saldo1",
-    recarga: "saldo2",
-    retiro: "saldo3",
-    historia: "saldo4",
+    leer: 70,
+    recarga: 71,
+    retiro: 72,
   };
   static usuarios = {
-    leer: "usuario1",
-    crear: "usuario2",
-    edita: "usuario3",
-    elimina: "usuario4",
-    crear_online: "usuario5",
+    leer: 50,
+    modificar: 51,
+    crear_online: 52,
   };
   static cupos = {
-    leer: "cupos1",
-    crear: "cupos2",
-    edita: "cupos3",
-    elimina: "cupos4",
+    leer: 40,
+    modificar: 41,
   };
-  static master() {
-    const _permisos = [
-      Permiso.operadora,
-      Permiso.sorteos,
-      Permiso.permisos,
-      Permiso.ventas,
-      Permiso.saldos,
-      Permiso.usuarios,
-      Permiso.cupos,
-    ];
-    return this.batchPermisos(_permisos);
-  }
-  static admin() {
-    const _permisos = [
-      Permiso.ventas,
-      Permiso.usuarios,
-      Permiso.cupos,
-      Permiso.sorteos,
-    ];
-    return this.batchPermisos(_permisos);
-  }
-  static agente() {
-    const _permisos = [
-      Permiso.ventas,
-      Permiso.usuarios,
-      Permiso.cupos,
-      Permiso.sorteos,
-      Permiso.saldos,
-    ];
-    return this.batchPermisos(_permisos);
-  }
-
-  static batchPermisos(permisos) {
-    let prm = [];
-    const a = permisos.map((permiso) => {
-      for (const campo in permiso) {
-        if (permiso.hasOwnProperty(campo)) {
-          const element = permiso[campo];
-          prm.push(element);
-        }
-      }
-    });
-    return prm;
-  }
 }
 module.exports = Permiso;

@@ -8,6 +8,7 @@ const transaccionModel = require("_modelos/transaccion-model");
 const RedisCache = require("../dto/redis-cache.dto");
 const { ultimoSaldo } = require("./saldo-repo");
 const ObjectId = require("mongoose").Types.ObjectId;
+const Permiso = require("../dto/permiso.dto");
 
 const NEW_OPT = { new: true };
 
@@ -368,20 +369,57 @@ module.exports = {
     },
   },
   permisos: {
-    todos() {
+    /**
+     *
+     * @param {String} usuarioId
+     * @return {Promise<Permiso[]>}
+     */
+    todos(usuarioId) {
       return new Promise((resolve, reject) => {
-        permisoModel.find(null, (error, result) => {
-          if (error) return reject(error.message);
-          resolve(result);
-        });
+        permisoModel.find(
+          { usuario: usuarioId },
+          "-usuario",
+          (error, result) => {
+            if (error) return reject(error.message);
+            resolve(result);
+          }
+        );
       });
     },
-    todos_lista() {
+    /**
+     * @param {String} usuarioId
+     * @param {String} permisoId
+     * @return {Promise<Boolean>}
+     */
+    asignar(usuarioId, permisoId) {
       return new Promise((resolve, reject) => {
-        permisoModel.find(null, "nombre rol", (error, result) => {
-          if (error) return reject(error.message);
-          resolve(result);
-        });
+        usuarioModel.updateOne(
+          { _id: usuarioId },
+          { permisos: permisoId },
+          (error, result) => {
+            if (error) return reject(error.message);
+            resolve(result.nModified ? true : false);
+          }
+        );
+      });
+    },
+    /**
+     *
+     * @param {String} usuarioId
+     * @param {String} permisoId
+     * @returns {Promise<Boolean>}
+     */
+    predefirnir(usuarioId, permisoId) {
+      return new Promise(async (resolve, reject) => {
+        await permisoModel.updateMany(
+          { usuario: usuarioId },
+          { predeterminado: false }
+        );
+        permisoModel
+          .updateOne({ _id: permisoId }, { predeterminado: true })
+          .then((result) => {
+            resolve(result.nModified > 0);
+          });
       });
     },
   },

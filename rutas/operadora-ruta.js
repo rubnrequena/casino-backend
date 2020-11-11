@@ -9,7 +9,7 @@ const Usuario = require("../dto/usuario-dto");
 
 //#region Permisos
 const operadoraNueva = [
-  validarPermisos(Permiso.operadora.crear),
+  validarPermisos(Permiso.operadora.modificar),
   validarPOST("nombre,tipo,paga:int,numeros:objectid,sorteos:array"),
 ];
 const buscarEnlace = [
@@ -19,22 +19,22 @@ const buscarEnlace = [
 ];
 const enlaceNuevo = [
   validarJerarquia,
-  validarPermisos(Permiso.sorteos.crear),
+  validarPermisos(Permiso.sorteos.modificar),
   validarPOST("usuario:objectid,operadora:array,mostrar:boolean"),
 ];
 const enlaceRemover = [
   validarPOST("usuario,enlace"),
   validarJerarquia,
-  validarPermisos(Permiso.sorteos.elimina),
+  validarPermisos(Permiso.sorteos.modificar),
 ];
 const enlaceActivar = [
   validarJerarquia,
-  validarPermisos(Permiso.sorteos.edita),
+  validarPermisos(Permiso.sorteos.modificar),
   validarPOST("usuario:objectid,enlace:objectid,activo:boolean"),
 ];
 
 const numeroNuevo = [
-  validarPermisos(Permiso.operadora.crear),
+  validarPermisos(Permiso.operadora.modificar),
   validarPOST("nombre,numeros:array"),
 ];
 

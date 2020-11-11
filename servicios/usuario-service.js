@@ -33,10 +33,19 @@ module.exports = {
   },
   permisos: {
     buscar: {
-      todos(modo) {
-        if (modo && modo == "lista") return usuarioRepo.permisos.todos_lista();
-        else usuarioRepo.permisos.todos();
+      /**
+       * @param {String} usuarioId
+       */
+      todos(usuarioId) {
+        return usuarioRepo.permisos.todos(usuarioId);
       },
+    },
+    /**
+     * @param {String} usuarioId
+     * @param {String} permisoId
+     */
+    asignar(usuarioId, permisoId) {
+      return usuarioRepo.permisos.asignar(usuarioId, permisoId);
     },
   },
   reportes: {

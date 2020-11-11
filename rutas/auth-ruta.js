@@ -10,8 +10,8 @@ const Permiso = require("../dto/permiso.dto");
 //#region middlewares
 const registro_online = validarPOST(AUTH_CLONAR_ROUTE_VALIDATION);
 const validarPermisoNuevo = [
-  validarPermisos(Permiso.permisos.crear),
-  validarPOST("nombre,rol,predeterminado:boolean,permisos:array"),
+  validarPermisos(Permiso.permisos.modificar),
+  validarPOST("nombre,predeterminado:boolean,permisos:array"),
 ];
 //#endregion
 
@@ -35,33 +35,11 @@ router.post("/", (req, res) => {
       });
     });
 });
-router.post("/registro", async (req, res) => {
-  let {
-    nombre,
-    usuario,
-    clave,
-    activo,
-    correo,
-    telefono,
-    comision,
-    participacion,
-    utilidad,
-    permisos,
-    padre,
-    rol,
-    moneda,
-    cedula,
-    grupoPago,
-  } = req.body;
-  /*let jerarquia;
-  if (padre) {
-    let papa = await usuarioRepo.buscar.id(padre);
-    if (!papa) return res.json(crearError("padre no existe"));
-    jerarquia = [...papa.jerarquia, papa._id];
-  } else jerarquia = [...req.user.jerarquia, req.user._id]; */
-  authService
-    .registro(
-      padre || req.user._id,
+router.post(
+  "/registro",
+  validarPermisos(Permiso.usuarios.modificar),
+  async (req, res) => {
+    let {
       nombre,
       usuario,
       clave,
@@ -72,14 +50,34 @@ router.post("/registro", async (req, res) => {
       participacion,
       utilidad,
       permisos,
+      padre,
       rol,
       moneda,
       cedula,
-      grupoPago
-    )
-    .then((usuario) => res.json(usuario))
-    .catch((error) => res.json(crearError(error)));
-});
+      grupoPago,
+    } = req.body;
+    authService
+      .registro(
+        padre || req.user._id,
+        nombre,
+        usuario,
+        clave,
+        activo,
+        correo,
+        telefono,
+        comision,
+        participacion,
+        utilidad,
+        permisos,
+        rol,
+        moneda,
+        cedula,
+        grupoPago
+      )
+      .then((usuario) => res.json(usuario))
+      .catch((error) => res.json(crearError(error)));
+  }
+);
 router.post("/registro_online", (req, res) => {
   const { usuario, nombre, cedula, correo, clave } = req.body;
   authService
@@ -122,15 +120,9 @@ router.post("/recuperar", validarPOST("llave,clave"), (req, res) => {
 });
 
 router.post("/permiso/nuevo", validarPermisoNuevo, (req, res) => {
-  const { nombre, rol, predeterminado, permisos, usuario } = req.body;
+  const { nombre, predeterminado, permisos, usuario } = req.body;
   authService.permisos
-    .nuevo(nombre, rol, predeterminado, permisos, usuario)
-    .then((permiso) => res.json(permiso))
-    .catch((error) => res.json(crearError(error)));
-});
-router.get("/permiso/usuario", (req, res) => {
-  authService.permisos.buscar
-    .usuario(req.user)
+    .nuevo(nombre, predeterminado, permisos, usuario)
     .then((permiso) => res.json(permiso))
     .catch((error) => res.json(crearError(error)));
 });

@@ -51,7 +51,6 @@ module.exports = {
           _usuario.menu = menu.menu;
         }
         //#endregion
-
         //#region monedas
         let monedas = [];
         await syncForEach(_usuario.moneda.split(","), async (siglas) => {
@@ -60,7 +59,12 @@ module.exports = {
         });
         _usuario.moneda = monedas;
         //#endregion
-        _usuario.token = jwtService.firmar(_usuario);
+        //#region permisos
+        const permiso = await permisosRepo.buscar.id(_usuario.permisos);
+        if (!permiso) reject("lo siento, no tiene permisos para acceder");
+        _usuario.permisos = permiso.permisos;
+        //#endregion
+        _usuario.token = jwtService.firmar(_usuario, permiso._id);
         if (_usuario.rol == Usuario.ONLINE) {
           let saldo = await saldoRepo.ultimoSaldo(_usuario);
           _usuario.saldo = saldo;
@@ -302,9 +306,10 @@ module.exports = {
   },
 
   permisos: {
-    nuevo(nombre, rol, predeterminado, permisos, usuario) {
-      return permisosRepo.nuevo(nombre, rol, predeterminado, permisos, usuario);
+    nuevo(nombre, predeterminado, permisos, usuario) {
+      return permisosRepo.nuevo(nombre, predeterminado, permisos, usuario);
     },
+    predefinir(usuario, permisoID) {},
     buscar: {
       /**
        * @param {Usuario} usuario

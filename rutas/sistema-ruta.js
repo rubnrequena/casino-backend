@@ -67,4 +67,10 @@ router.get("/menus", (req, res) => {
 router.post("/menu/nuevo", esMaster, (req, res) => {
   return;
 });
+router.get("/permisos", (req, res) => {
+  return sistemaService.permisos
+    .todos()
+    .then((permisos) => res.json(permisos))
+    .catch((error) => res.json(crearError(error)));
+});
 module.exports = router;

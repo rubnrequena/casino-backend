@@ -8,7 +8,7 @@ const RedisCache = require("../dto/redis-cache.dto");
 const md5 = require("md5");
 const menuModel = require("_modelos/menu-model");
 const redisRepo = require("../repositorio/redis-repo");
-const permisoModel = require("_modelos/permiso-model");
+const permisoModel = require("../modelos/permiso-model");
 const operadoraRepo = require("../repositorio/operadora-repo");
 const saldoRepo = require("../repositorio/saldo-repo");
 const monedaModel = require("_modelos/moneda-model");
@@ -16,6 +16,9 @@ const usuarioModel = require("_modelos/usuario-model");
 const { syncForEach } = require("../utils/array-util");
 const numerosModel = require("_modelos/numeros-model");
 const rolModel = require("_modelos/rol-model");
+const sys_permisoModel = require("_modelos/sys_permiso-model");
+const Permiso = require("../dto/permiso.dto");
+const usuarioRepo = require("../repositorio/usuario-repo");
 
 let connection;
 
@@ -189,20 +192,120 @@ async function initRedisCache() {
   //#endregion
 
   //#region permisos
-  let permisoOnline = await permisoModel.findOne({
-    rol: "online",
-    predeterminado: true,
-  });
-  if (!permisoOnline) {
-    new permisoModel({
-      rol: "online",
-      nombre: "online",
+  const _permisos = [
+    {
+      codigo: 1,
+      descripcion: "Iniciar sesion",
+      grupo: "sesion",
+    },
+    {
+      codigo: 10,
+      descripcion: "Ver Operadoras",
+      grupo: "operadoras",
+    },
+    {
+      codigo: 11,
+      descripcion: "Modificar Operadoras",
+      grupo: "operadoras",
+    },
+    {
+      codigo: 20,
+      descripcion: "Ver Sorteos",
+      grupo: "sorteos",
+    },
+    {
+      codigo: 21,
+      descripcion: "Modificar Sorteos",
+      grupo: "sorteos",
+    },
+    {
+      codigo: 22,
+      descripcion: "Registrar Sorteos",
+      grupo: "sorteos",
+    },
+    {
+      codigo: 23,
+      descripcion: "Premiar Sorteos",
+      grupo: "sorteos",
+    },
+    {
+      codigo: 30,
+      descripcion: "Ver Permisos",
+      grupo: "permisos",
+    },
+    {
+      codigo: 31,
+      descripcion: "Modificar Permisos",
+      grupo: "permisos",
+    },
+    {
+      codigo: 40,
+      descripcion: "Ver Cupos",
+      grupo: "cupos",
+    },
+    {
+      codigo: 41,
+      descripcion: "Mofidificar Cupos",
+      grupo: "cupos",
+    },
+    {
+      codigo: 50,
+      descripcion: "Ver Usuarios",
+      grupo: "usuarios",
+    },
+    {
+      codigo: 51,
+      descripcion: "Modificar Usuarios",
+      grupo: "usuarios",
+    },
+    {
+      codigo: 52,
+      descripcion: "Usuarios Online",
+      grupo: "usuarios",
+    },
+    {
+      codigo: 60,
+      descripcion: "Monitor Ventas",
+      grupo: "ventas",
+    },
+    {
+      codigo: 61,
+      descripcion: "Anular Ventas",
+      grupo: "ventas",
+    },
+    {
+      codigo: 70,
+      descripcion: "Ver saldos",
+      grupo: "saldo",
+    },
+    {
+      codigo: 71,
+      descripcion: "Recargar saldo",
+      grupo: "saldo",
+    },
+    {
+      codigo: 72,
+      descripcion: "Retirar saldo",
+      grupo: "saldo",
+    },
+  ];
+  if ((await sys_permisoModel.find().countDocuments()) == 0)
+    await sys_permisoModel.insertMany(_permisos);
+  /** @type {Permiso[]} */
+  let permisos = await permisoModel.find().lean();
+  if (permisos.length == 0) {
+    const master = await usuarioRepo.findByUsuario("master");
+    const permiso = new permisoModel({
+      nombre: "master",
+      permisos: _permisos.map((permiso) => permiso.codigo),
+      usuario: master._id,
       predeterminado: true,
-      permisos: ["venta1", "venta2", "saldo1"],
-    }).save();
+    });
+    await permiso.save();
+    console.log("[Init] Permiso de admin registrado");
+    usuarioRepo.permisos.asignar(master._id, permiso._id);
+    permisos = [permiso];
   }
-
-  const permisos = await permisoModel.find().lean();
   permisos.forEach((permiso) => {
     redisRepo.hjson(RedisCache.PERMISOS, permiso._id, permiso);
   });

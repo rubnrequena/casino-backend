@@ -109,12 +109,21 @@ router.get("/transaccion/stat", (req, res) => {
     .catch((error) => res.json(crearError(error)));
 });
 //#region PERMISOS
-router.get("/permisos/todos", (req, res) => {
+const predefinir = [validarPOST("permisoId"), validarJerarquia];
+
+router.get("/permiso/todos", (req, res) => {
   usuarioService.permisos.buscar
-    .todos(req.query.modo)
+    .todos(req.user)
     .then((permisos) => {
       res.json(permisos);
     })
+    .catch((error) => res.json(crearError(error)));
+});
+router.post("/permiso/predefinir", predefinir, (req, res) => {
+  const { permisoId } = req.body;
+  usuarioRepo.permisos
+    .predefirnir(req.user._id, permisoId)
+    .then((result) => res.json(result))
     .catch((error) => res.json(crearError(error)));
 });
 //#endregion

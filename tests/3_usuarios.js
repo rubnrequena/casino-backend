@@ -20,7 +20,8 @@ const Operadora = require("../dto/operadora-dto.js");
 const operadoraModel = require("_modelos/operadora-model");
 const GrupoPago = require("../dto/grupo_pago-model.js");
 const comisionModel = require("_modelos/comision.model");
-const { assert } = require("chai");
+const { assert, expect } = require("chai");
+const Permiso = require("../dto/permiso.dto.js");
 
 /** @type {Usuario} */
 let master = {};
@@ -32,6 +33,9 @@ let gruposPago = [];
 
 /** @type {Operadora[]} */
 let operadoras;
+
+/** @type {Permiso[]} */
+let permisos;
 
 before(async function () {
   this.timeout(0);
@@ -61,6 +65,17 @@ describe("probando master", () => {
           Authorization: `Bearer ${res.body.token}`,
         };
         done();
+      });
+  });
+  it("tiene permisos", function () {
+    return request(app)
+      .get("/usuario/permiso/todos")
+      .set(master.token)
+      .expect(200)
+      .then(anError)
+      .then((res) => {
+        expect(res.body).to.have.length.above(0);
+        permisos = res.body;
       });
   });
 });
@@ -233,6 +248,7 @@ describe("comisiones", function () {
  * @returns {Promise<Usuario>}
  */
 async function registrar_usuario(usuario) {
+  usuario.permisos = permisos.find((p) => p.predeterminado === true);
   return await request(app)
     .post("/auth/registro")
     .set(master.token)

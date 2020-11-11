@@ -70,7 +70,7 @@ describe("pruebas", function () {
     });
   });
   it("vender lote", function (done) {
-    len = 10000;
+    len = 1000;
     intervalo = len * 0.1;
     const hilos = 20;
 

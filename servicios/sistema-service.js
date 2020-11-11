@@ -1,6 +1,7 @@
 const juegoModel = require("_modelos/juego-model");
 const RedisCache = require("../dto/redis-cache.dto");
 const redisRepo = require("../repositorio/redis-repo");
+const sistemaRepo = require("../repositorio/sistema-repo");
 
 module.exports = {
   juegos: {
@@ -34,5 +35,11 @@ module.exports = {
     }
     stat.balance = balance;
     return stat;
+  },
+  permisos: {
+    nuevo() {},
+    todos() {
+      return sistemaRepo.permiso.todos();
+    },
   },
 };
