@@ -114,7 +114,7 @@ module.exports = {
         });
       }
       //TODO: validar monedas
-      if (typeof moneda == "array") moneda = moneda.join(",");
+      if (Array.isArray(moneda)) moneda = moneda.join(",");
 
       usuarioRepo
         .registro(
