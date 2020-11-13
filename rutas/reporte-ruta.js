@@ -1,7 +1,6 @@
 const router = require("express").Router();
 const Usuario = require("../dto/usuario-dto");
 const { validarJerarquia, esMaster } = require("../middlewares/usuario-middle");
-const redisRepo = require("../repositorio/redis-repo");
 const reporteService = require("../servicios/reporte-service");
 const { crearError } = require("../utils/error-util");
 

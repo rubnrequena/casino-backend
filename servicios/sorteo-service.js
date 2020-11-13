@@ -178,20 +178,12 @@ module.exports = {
      */
     disponibles(usuario, fecha) {
       return new Promise(async (resolve) => {
-        let enlaces;
-        let usuarios = [...usuario.jerarquia, usuario._id];
-        for (let i = usuarios.length - 1; i > 0; i--) {
-          const usuarioId = usuarios[i];
-          enlaces = await sorteoRepo.buscar.disponibles(usuarioId);
-          if (enlaces && enlaces.length > 0) break;
-        }
-        if (!enlaces || enlaces.length == 0)
-          return resolve({ sorteos: [], operadoras: [] });
-        enlaces = enlaces.filter((enlace) => enlace.mostrar == true);
-        if (enlaces.length > 0) {
-          const sorteos = await sorteoRepo.buscar.operadoras(enlaces, fecha);
-          resolve(sorteos);
-        } else resolve({ operadoras: [], sorteos: [], numeros: [] });
+        let jerarquia = [...usuario.jerarquia, usuario._id];
+        sorteoRepo.buscar
+          .disponibleEnlaces(fecha, jerarquia)
+          .then((sorteos) => {
+            resolve(sorteos);
+          });
       });
     },
   },

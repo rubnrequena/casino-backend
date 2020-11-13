@@ -7,8 +7,8 @@ const reporteRouter = require("./reporte-ruta");
 const saldoRouter = require("./saldo-ruta");
 const sistemaRouter = require("./sistema-ruta");
 const hipismoRouter = require("./hipismo-ruta");
+const pos = require("./api/pos.routes.js");
 /**
- *
  * @param {import('express').IRouter} app
  */
 module.exports = (app) => {
@@ -21,4 +21,6 @@ module.exports = (app) => {
   app.use("/saldo", saldoRouter);
   app.use("/sistema", sistemaRouter);
   app.use("/hipismo", hipismoRouter);
+
+  app.use("/api/pos", pos);
 };

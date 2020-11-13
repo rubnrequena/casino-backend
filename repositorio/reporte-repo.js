@@ -246,12 +246,110 @@ function buscar_usuario(usuarioId, rol, operadoras, desde, hasta, moneda) {
 /**
  *
  * @param {String} usuarioId
+ * @param {String} rol
+ * @param {Operadora[]} operadoras
+ * @param {String} desde
+ * @param {String} hasta
+ */
+function buscar_taquilla(usuarioId, rol, desde, hasta, moneda) {
+  const comision = comisionMap[rol];
+  const participacion = participacionMap[rol];
+  const rolNivel = rolMap[rol];
+  desde = new Date(desde);
+  desde.setHours(0, 0, 0);
+  hasta = new Date(hasta);
+  hasta.setHours(23, 59, 59);
+  return new Promise((resolve, reject) => {
+    let match = {
+      usuario: ObjectId(usuarioId),
+      fecha: { $gte: desde, $lte: hasta },
+      moneda,
+    };
+    reporteModel.aggregate(
+      [
+        {
+          $match: match,
+        },
+        {
+          $addFields: {
+            subtotal: {
+              $subtract: [
+                "$venta",
+                {
+                  $sum: [
+                    "$premio",
+                    {
+                      $multiply: ["$venta", comision, 0.01],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$operadora",
+            venta: { $sum: "$venta" },
+            premio: { $sum: "$premio" },
+            tickets: { $sum: "$numTickets" },
+            subtotal: { $sum: "$subtotal" },
+            comision: {
+              $sum: {
+                $multiply: ["$venta", comision, 0.01],
+              },
+            },
+            participacion: {
+              $sum: {
+                $multiply: ["$subtotal", participacion, 0.01],
+              },
+            },
+          },
+        },
+        {
+          $addFields: {
+            total: { $subtract: ["$subtotal", "$participacion"] },
+          },
+        },
+        {
+          $lookup: {
+            from: "operadoras",
+            localField: "_id",
+            foreignField: "_id",
+            as: "operadora",
+          },
+        },
+        { $addFields: { operadora: { $arrayElemAt: ["$operadora", 0] } } },
+        {
+          $project: {
+            venta: 1,
+            premio: 1,
+            tickets: 1,
+            comision: 1,
+            subtotal: 1,
+            participacion: 1,
+            total: 1,
+            operadora: "$operadora.nombre",
+          },
+        },
+        { $sort: { operadora: 1 } },
+      ],
+      (error, reportes) => {
+        if (error) return reject(error.message);
+        resolve(reportes);
+      }
+    );
+  });
+}
+/**
+ *
+ * @param {String} usuarioId
  * @param {String} operadoras
  * @param {String} desde
  * @param {String} hasta
  * @returns {Reporte[]}
  */
-function buscar_operadoras(usuarioId, rol, operadoras, desde, hasta, moneda) {
+function buscar_operadoras(usuarioId, rol, desde, hasta, moneda) {
   return new Promise((resolve, reject) => {
     const comision = comisionMap[rol];
     const participacion = participacionMap[rol];
@@ -526,6 +624,107 @@ function buscar_sorteo(usuarioId, rol, operadora, desde, hasta, moneda) {
     );
   });
 }
+function negativos_usuario(
+  usuarioId,
+  rol,
+  operadoras,
+  desde,
+  hasta,
+  moneda = "ves"
+) {
+  const comision = comisionMap[rol];
+  const participacion = participacionMap[rol];
+  const rolNivel = rolMap[rol];
+  desde = new Date(desde);
+  hasta = new Date(hasta);
+  hasta.setHours(23, 59, 59);
+  return new Promise((resolve, reject) => {
+    reporteModel.aggregate(
+      [
+        {
+          $match: {
+            jerarquia: ObjectId(usuarioId),
+            fecha: { $gte: desde, $lte: hasta },
+            operadora: { $in: operadoras },
+            moneda,
+          },
+        },
+        {
+          $addFields: {
+            hijo: {
+              $cond: [
+                { $arrayElemAt: ["$jerarquia", rolNivel] },
+                { $arrayElemAt: ["$jerarquia", rolNivel] },
+                "$usuario",
+              ],
+            },
+            subtotal: {
+              $subtract: [
+                "$venta",
+                {
+                  $sum: ["$premio", { $multiply: ["$venta", comision, 0.01] }],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$hijo",
+            venta: { $sum: "$venta" },
+            premio: { $sum: "$premio" },
+            tickets: { $sum: "$numTickets" },
+            subtotal: { $sum: "$subtotal" },
+            comision: {
+              $sum: {
+                $multiply: ["$venta", comision, 0.01],
+              },
+            },
+            participacion: {
+              $sum: {
+                $multiply: ["$subtotal", participacion, 0.01],
+              },
+            },
+          },
+        },
+        {
+          $addFields: {
+            total: { $subtract: ["$subtotal", "$participacion"] },
+          },
+        },
+        { $match: { total: { $lt: 0 } } },
+        {
+          $lookup: {
+            from: "usuarios",
+            localField: "_id",
+            foreignField: "_id",
+            as: "usuario",
+          },
+        },
+        { $addFields: { usuario: { $arrayElemAt: ["$usuario", 0] } } },
+        {
+          $project: {
+            venta: 1,
+            premio: 1,
+            tickets: 1,
+            comision: 1,
+            subtotal: 1,
+            participacion: 1,
+            total: 1,
+            "usuario.nombre": 1,
+            "usuario._id": 1,
+            "usuario.codigo": 1,
+          },
+        },
+        { $sort: { "usuario.codigo": 1 } },
+      ],
+      (error, reportes) => {
+        if (error) return reject(error.message);
+        resolve(reportes);
+      }
+    );
+  });
+}
 module.exports = {
   nuevo,
   reiniciar,
@@ -534,104 +733,9 @@ module.exports = {
     operadoras: buscar_operadoras,
     loterias: buscar_loteria,
     sorteos: buscar_sorteo,
+    taquilla: buscar_taquilla,
     negativos: {
-      usuario(usuarioId, rol, operadoras, desde, hasta, moneda = "ves") {
-        const comision = comisionMap[rol];
-        const participacion = participacionMap[rol];
-        const rolNivel = rolMap[rol];
-        desde = new Date(desde);
-        hasta = new Date(hasta);
-        hasta.setHours(23, 59, 59);
-        return new Promise((resolve, reject) => {
-          reporteModel.aggregate(
-            [
-              {
-                $match: {
-                  jerarquia: ObjectId(usuarioId),
-                  fecha: { $gte: desde, $lte: hasta },
-                  operadora: { $in: operadoras },
-                  moneda,
-                },
-              },
-              {
-                $addFields: {
-                  hijo: {
-                    $cond: [
-                      { $arrayElemAt: ["$jerarquia", rolNivel] },
-                      { $arrayElemAt: ["$jerarquia", rolNivel] },
-                      "$usuario",
-                    ],
-                  },
-                  subtotal: {
-                    $subtract: [
-                      "$venta",
-                      {
-                        $sum: [
-                          "$premio",
-                          { $multiply: ["$venta", comision, 0.01] },
-                        ],
-                      },
-                    ],
-                  },
-                },
-              },
-              {
-                $group: {
-                  _id: "$hijo",
-                  venta: { $sum: "$venta" },
-                  premio: { $sum: "$premio" },
-                  tickets: { $sum: "$numTickets" },
-                  subtotal: { $sum: "$subtotal" },
-                  comision: {
-                    $sum: {
-                      $multiply: ["$venta", comision, 0.01],
-                    },
-                  },
-                  participacion: {
-                    $sum: {
-                      $multiply: ["$subtotal", participacion, 0.01],
-                    },
-                  },
-                },
-              },
-              {
-                $addFields: {
-                  total: { $subtract: ["$subtotal", "$participacion"] },
-                },
-              },
-              { $match: { total: { $lt: 0 } } },
-              {
-                $lookup: {
-                  from: "usuarios",
-                  localField: "_id",
-                  foreignField: "_id",
-                  as: "usuario",
-                },
-              },
-              { $addFields: { usuario: { $arrayElemAt: ["$usuario", 0] } } },
-              {
-                $project: {
-                  venta: 1,
-                  premio: 1,
-                  tickets: 1,
-                  comision: 1,
-                  subtotal: 1,
-                  participacion: 1,
-                  total: 1,
-                  "usuario.nombre": 1,
-                  "usuario._id": 1,
-                  "usuario.codigo": 1,
-                },
-              },
-              { $sort: { "usuario.codigo": 1 } },
-            ],
-            (error, reportes) => {
-              if (error) return reject(error.message);
-              resolve(reportes);
-            }
-          );
-        });
-      },
+      usuarios: negativos_usuario,
     },
   },
 };

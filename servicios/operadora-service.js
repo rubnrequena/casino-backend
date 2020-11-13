@@ -47,9 +47,8 @@ module.exports = {
         const operadoraId = operadoraIds[i];
         const operadora = await operadoraRepo.buscar.id(operadoraId);
         if (!operadora) return reject(`operadora '${operadoraId}' no existe`);
-        const jerarquia = [...usuario.jerarquia, usuario._id];
         cola.push(
-          operadoraRepo.enlaceNuevo(jerarquia, operadora._id, mostrar, nivel)
+          operadoraRepo.enlaceNuevo(usuario._id, operadora._id, mostrar, nivel)
         );
       }
       Promise.all(cola)

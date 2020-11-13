@@ -47,15 +47,21 @@ describe("pruebas", function () {
       .then((result) => result.data)
       .then((data) => {
         /** @type {Sorteo[]} */
-        sorteos = data.sorteos;
+        sorteos = data.reduce((/** @type {Array} */ acc, operadora) => {
+          return acc.concat(operadora.sorteos);
+        }, []);
         const now = new Date();
         sorteos = sorteos.filter((sorteo) => {
           return new Date(sorteo.cierra) > now;
         });
         console.log("sorteos abiertos:", sorteos.length);
+        expect(sorteos).length.above(0, "no hay sorteos disponibles");
         sorteo = sorteos[sorteos.length - 1]._id;
         expect(sorteos.length).greaterThan(0);
         done();
+      })
+      .catch((error) => {
+        console.log(error.message);
       });
   });
   it.skip("vender un solo ticket", function (done) {
@@ -109,7 +115,10 @@ function vender(done, cb) {
   Axios.defaults.headers.common["Authorization"] = pos;
   Axios.post(url("ticket/venta"), tickets[iventa++]).then((data) => {
     if (data.data.ticket) vendidos++;
-    else rechazados++;
+    else {
+      rechazados++;
+      console.log(data.data.error);
+    }
     if (n % intervalo == 0) {
       console.log(`#${n} ${Date.now() - now}`);
       now = Date.now();

@@ -164,6 +164,50 @@ module.exports = {
         );
       });
     },
+    disponibleEnlaces(fecha, jerarquia) {
+      jerarquia = jerarquia.map((usuarioId) => ObjectId(usuarioId.toString()));
+      return new Promise((resolve, reject) => {
+        enlace_operadoraModel.aggregate(
+          [
+            { $match: { usuario: { $in: jerarquia } } },
+            { $sort: { nivel: 1 } },
+            {
+              $group: {
+                _id: "$operadora",
+                mostrar: { $first: "$mostrar" },
+                nivel: { $first: "$nivel" },
+              },
+            },
+            { $match: { mostrar: true } },
+            { $project: { operadora: 1 } },
+            {
+              $lookup: {
+                from: "operadoras",
+                foreignField: "_id",
+                localField: "_id",
+                as: "operadora",
+              },
+            },
+            {
+              $lookup: {
+                from: "sorteos",
+                pipeline: [
+                  { $match: { fecha: fecha } },
+                  { $project: { operadora: 0, _v: 0, fecha: 0 } },
+                ],
+                as: "sorteos",
+              },
+            },
+            { $addFields: { operadora: { $arrayElemAt: ["$operadora", 0] } } },
+            { $project: { operadora: "$operadora.nombre", sorteos: 1 } },
+          ],
+          (error, operadoras) => {
+            if (error) return reject(error.message);
+            resolve(operadoras);
+          }
+        );
+      });
+    },
     /**
      *
      * @param {[]} operadoras

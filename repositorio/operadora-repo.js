@@ -287,7 +287,6 @@ module.exports = {
         );
         enlace_operadoraModel.aggregate(
           [
-            { $addFields: { usuario: { $arrayElemAt: ["$usuario", -1] } } },
             { $match: { usuario: { $in: jerarquia } } },
             { $sort: { nivel: 1 } },
             {
@@ -314,12 +313,10 @@ module.exports = {
      * @returns {Promise<EnlaceOperadora[]>}
      */
     async enlacesUsuarioFull(jerarquia) {
-      console.log(jerarquia);
       return new Promise((resolve, reject) => {
         jerarquia = jerarquia.map((u) => ObjectId(u.toString()));
         enlace_operadoraModel.aggregate(
           [
-            { $addFields: { usuario: { $arrayElemAt: ["$usuario", -1] } } },
             { $match: { usuario: { $in: jerarquia } } },
             { $sort: { nivel: 1 } },
             { $sort: { nivel: 1 } },

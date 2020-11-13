@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 const esquema = new mongoose.Schema({
   usuario: {
-    type: [mongoose.Types.ObjectId],
+    type: mongoose.Types.ObjectId,
     required: true,
     ref: "Usuario",
+    index: true,
   },
   nivel: {
     type: Number,

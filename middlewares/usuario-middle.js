@@ -9,9 +9,7 @@ module.exports = {
     let reqUsuario =
       req.body.usuario || req.query.usuario || req.params.usuario;
     if (!reqUsuario || !isValidObjectId(reqUsuario)) reqUsuario = padre;
-    /* res.status(401).send({
-        error: "No se determino el usuario para la consulta",
-      }); */
+
     if (padre == reqUsuario) {
       req.usuario = req.user;
       return next();
