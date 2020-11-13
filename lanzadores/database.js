@@ -52,22 +52,27 @@ module.exports = {
 };
 
 async function crearAdmin() {
-  const usuario = await new Usuario({
-    usuario: "master",
-    clave: md5("1234"),
-    nombre: "Administrador",
-    correo: "admin@fullapuestas.com",
-    moneda: "ves,eur,usd",
-    codigo: 0,
-    permisos: "5f404c2399166318ec20c307",
-    rol: "master",
-  }).save((err) => {
-    if (err) console.log(err);
-    console.log("Un nuevo admin ha nacido");
-  });
+  console.log("deprecated database.js");
 }
 
 async function initRedisCache() {
+  const numUsuarios = await usuarioModel.countDocuments();
+  if (numUsuarios == 0) {
+    await new Usuario({
+      usuario: "master",
+      clave: md5("1234"),
+      nombre: "Administrador",
+      correo: "admin@fullapuestas.com",
+      moneda: "ves,eur,usd",
+      codigo: 0,
+      permisos: "5f404c2399166318ec20c307",
+      rol: "master",
+    }).save((err) => {
+      if (err) console.log(err);
+      console.log("Un nuevo admin ha nacido");
+    });
+  }
+
   console.log("iniciando cache a redis");
   //#region Roles
   let _roles = await rolModel.find().lean();
