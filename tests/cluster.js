@@ -2,6 +2,10 @@ const { default: Axios } = require("axios");
 const { expect } = require("chai");
 const Sorteo = require("../dto/sorteo-dto");
 const { getRandomInt, trailZero } = require("../utils/number-util");
+const redisRepo = require("../repositorio/redis-repo");
+const ticketModel = require("_modelos/ticket-model");
+const ventaModel = require("_modelos/venta-model");
+const config = require("../config");
 
 const url = (path) => {
   return `http://127.0.0.1:3000/${path}`;
@@ -18,31 +22,60 @@ let len;
 let sorteos;
 let vendidos = 0;
 let rechazados = 0;
+let ventasUsuario = {};
 
-let taquillas = [];
+let usuarios = [];
+
+let numeros = [];
+for (let i = 0; i <= 36; i++) {
+  numeros.push(trailZero(i));
+}
+
+before(async function () {
+  this.timeout(0);
+  const mongoose = require("mongoose");
+  mongoose.connect(
+    config.databaseURL,
+    {
+      useNewUrlParser: true,
+      useCreateIndex: true,
+      useUnifiedTopology: true,
+      useFindAndModify: false,
+    },
+    async (err) => {
+      if (err) return err;
+      /* await ticketModel.deleteMany();
+      await ventaModel.deleteMany(); */
+    }
+  );
+});
 
 describe("pruebas", function () {
   this.timeout(0);
   it("login pos1", function (done) {
     Axios.post(url("auth"), { usuario: "pos1", clave: "1234" }).then(
       (result) => {
-        taquillas.push(`Bearer ${result.data.token}`);
-        if (result.data.error) done(result.data.error);
-        else done();
+        if (result.data.error) return done(result.data.error);
+        result.data.token = `Bearer ${result.data.token}`;
+        usuarios.push(result.data);
+        ventasUsuario[result.data.usuario] = 0;
+        done();
       }
     );
   });
   it("login online1", function (done) {
     Axios.post(url("auth"), { usuario: "online1", clave: "1234" }).then(
       (result) => {
-        taquillas.push(`Bearer ${result.data.token}`);
-        if (result.data.error) done(result.data.error);
-        else done();
+        if (result.data.error) return done(result.data.error);
+        result.data.token = `Bearer ${result.data.token}`;
+        usuarios.push(result.data);
+        ventasUsuario[result.data.usuario] = 0;
+        done();
       }
     );
   });
   it("sorteos", function (done) {
-    Axios.defaults.headers.common["Authorization"] = taquillas[0];
+    Axios.defaults.headers.common["Authorization"] = usuarios[0].token;
     Axios.get(url(`sorteo/disponibles`))
       .then((result) => result.data)
       .then((data) => {
@@ -78,27 +111,29 @@ describe("pruebas", function () {
   it("vender lote", function (done) {
     len = 1000;
     intervalo = len * 0.1;
-    const hilos = 20;
+    const hilos = 1;
 
     for (let x = 0; x < len; x++) {
+      const nums = [];
+
       tickets.push([
         {
-          numero: trailZero(getRandomInt(1, 36)),
+          numero: numeroAleatorio(nums),
           sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
           monto: getRandomInt(10, 100) * 100,
         },
         {
-          numero: trailZero(getRandomInt(1, 36)),
+          numero: numeroAleatorio(nums),
           sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
           monto: getRandomInt(10, 100) * 100,
         },
         {
-          numero: trailZero(getRandomInt(1, 36)),
+          numero: numeroAleatorio(nums),
           sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
           monto: getRandomInt(10, 100) * 100,
         },
         {
-          numero: trailZero(getRandomInt(1, 36)),
+          numero: numeroAleatorio(nums),
           sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
           monto: getRandomInt(10, 100) * 100,
         },
@@ -111,22 +146,32 @@ describe("pruebas", function () {
 
 function vender(done, cb) {
   if (iventa >= tickets.length) return;
-  const pos = taquillas[getRandomInt(0, 1)];
-  Axios.defaults.headers.common["Authorization"] = pos;
+  const pos = usuarios[getRandomInt(0, 1)];
+  Axios.defaults.headers.common["Authorization"] = pos.token;
   Axios.post(url("ticket/venta"), tickets[iventa++]).then((data) => {
-    if (data.data.ticket) vendidos++;
-    else {
+    if (data.data.ticket) {
+      vendidos++;
+      ventasUsuario[pos.usuario] = ventasUsuario[pos.usuario] + 1;
+    } else {
       rechazados++;
-      console.log(data.data.error);
     }
     if (n % intervalo == 0) {
       console.log(`#${n} ${Date.now() - now}`);
       now = Date.now();
     }
     if (++n == len) {
-      console.log({ vendidos, rechazados });
+      console.log({ vendidos, rechazados, ventasUsuario });
       return done();
     }
     cb(done, cb);
   });
+}
+
+function numeroAleatorio(/** @type {Number[]} */ nums) {
+  let num;
+  do {
+    num = getRandomInt(0, 36);
+  } while (nums.indexOf(num) > -1);
+  nums.push(num);
+  return num;
 }

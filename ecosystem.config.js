@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "caribe",
       script: "bin/www",
-      watch: false,
+      watch: true,
       ignore_watch: ["node_modules", "tests"],
       instances: 4,
       exec_mode: "cluster",

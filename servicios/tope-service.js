@@ -45,6 +45,7 @@ module.exports = {
    */
   validar(ventas, taquilla) {
     return new Promise(async (resolve, reject) => {
+      let topeValido = false;
       let operadoras = ventas.reduce((rventas, venta) => {
         if (rventas.indexOf(venta.operadora) == -1)
           rventas.push(venta.operadora);
@@ -58,20 +59,28 @@ module.exports = {
           operadora
         );
       });
+      var montoJugado;
+      var montoActual;
       for (let i = 0; i < ventas.length; i++) {
-        const venta = ventas[i];
+        var venta = ventas[i];
         const topes = topesOperadora[venta.operadora];
         for (let j = 0; j < topes.length; j++) {
           const tope = topes[j];
-          let montoJugado = await buscarMontoJugado(venta, tope);
-          montoJugado = montoJugado + venta.monto;
-          if (String(tope.sorteo) == venta.sorteo || tope.sorteo == null)
-            if (tope.numero == venta.numero || tope.numero == null)
-              if (montoJugado > tope.monto)
+          montoActual = await buscarMontoJugado(venta, tope);
+          montoJugado = montoActual + venta.monto;
+          if (String(tope.sorteo) == venta.sorteo || tope.sorteo == null) {
+            if (tope.numero == venta.numero || tope.numero == null) {
+              if (montoJugado > tope.monto) {
                 return reject({ error: "Venta excede tope", venta });
+              } else topeValido = true;
+            }
+          }
         }
       }
-      resolve();
+      if (topeValido) resolve();
+      else {
+        reject("venta exede tope");
+      }
     });
   },
 };
