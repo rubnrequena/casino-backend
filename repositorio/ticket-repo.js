@@ -233,12 +233,39 @@ async function buscar_fecha(usuarioId, desde, hasta) {
   return await ticketModel.find(condicion).lean();
 }
 
-async function buscar_pos(usuarioId) {
-  await ticketModel.find({ usuario: usuarioId }).lean();
-}
-
 async function buscar_usuario(usuarioId) {
   await ticketModel.find({ jerarquia: usuarioId }).lean();
+}
+/**
+ *
+ * @param {String} usuarioId
+ * @param {String} fecha
+ * @returns {Promise<Ticket[]>}
+ */
+async function buscar_pos(usuarioId, fecha) {
+  return new Promise((resolve, reject) => {
+    const desde = new Date(fecha);
+    const hasta = new Date(fecha);
+    hasta.setHours(24);
+    ticketModel.aggregate(
+      [
+        {
+          $match: {
+            usuario: ObjectId(usuarioId),
+            creado: {
+              $gte: desde,
+              $lte: hasta,
+            },
+          },
+        },
+        { $project: { usuario: 0, jerarquia: 0, online: 0, moneda: 0 } },
+      ],
+      (error, tickets) => {
+        if (error) return reject(error.message);
+        resolve(tickets);
+      }
+    );
+  });
 }
 
 /**

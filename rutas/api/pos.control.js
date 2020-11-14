@@ -4,6 +4,8 @@ const { crearError } = require("../../utils/error-util");
 const Usuario = require("../../dto/usuario-dto");
 const reporteRepo = require("../../repositorio/reporte-repo");
 const ticketService = require("../../servicios/ticket-service");
+const reporteModel = require("_modelos/reporte-model");
+const ticketRepo = require("../../repositorio/ticket-repo");
 
 function auth(params) {}
 
@@ -21,8 +23,23 @@ function reporte_general(req, res) {
     .catch((error) => res.json(crearError(error)));
 }
 
-function reporte_tickets() {}
-function reporte_caja() {}
+/**
+ * @param {request} req
+ * @param {response} res
+ */
+function reporte_tickets(req, res) {
+  const { fecha } = req.query;
+  ticketRepo.buscar
+    .pos(req.user._id, fecha)
+    .then((tickets) => res.json(tickets))
+    .catch((error) => res.json(crearError(error)));
+}
+
+/**
+ * @param {request} req
+ * @param {response} res
+ */
+function reporte_caja(req, res) {}
 
 /**
  * @param {request} req
