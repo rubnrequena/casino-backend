@@ -4,7 +4,7 @@ const anError = (res) => {
   if (res.body.error) throw new Error(JSON.stringify(res.body.error));
   return res;
 };
-const { init, login } = require("./common.js");
+const { init, login, token } = require("./common.js");
 init(app, anError);
 
 const { expect } = require("chai");
@@ -22,6 +22,9 @@ let posMap = [];
 /** @type {Sorteo[]} */
 let sorteos;
 
+/** @type {Usuario} */
+let pos1;
+
 before(async function () {
   this.timeout(0);
   /* vaciar ventas
@@ -30,8 +33,26 @@ before(async function () {
   */
   const hoy = new Date().toISOString().substr(0, 10);
   sorteos = await sorteoModel.find({ fecha: hoy });
-});
 
+  pos1 = await login({ usuario: "online1", clave: "1234" });
+});
+describe.only("anular", () => {
+  it("anular ticket", async function () {
+    this.timeout(0);
+    return request(app)
+      .post("/api/pos/ticket/anular")
+      .set(token(pos1.token))
+      .send({
+        serial: "A111418",
+        codigo: 3196,
+      })
+      .expect(200)
+      .then(anError)
+      .then((result) => {
+        console.log("anular", result.data);
+      });
+  });
+});
 describe("ventas", () => {
   it("inicio sesion", async function () {
     const posList = usuarios.pos;
