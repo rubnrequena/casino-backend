@@ -9,5 +9,6 @@ class Venta {
   /** @type {String} */ usuario;
   /** @type {Boolean} */ online;
   /** @type {String} */ moneda;
+  /** @type {Date} */ creado;
 }
 module.exports = Venta;

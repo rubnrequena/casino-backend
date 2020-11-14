@@ -1,16 +1,75 @@
-const ticketRepo = require("../repositorio/ticket-repo");
-const topeService = require("./tope-service");
-const redisRepo = require("../repositorio/redis-repo");
-const sorteoRepo = require("../repositorio/sorteo-repo");
+const sorteoUtil = require("../utils/sorteo-util");
+const mongoose = require("mongoose");
+const { ObjectId } = mongoose.Types;
 
 const Ticket = require("../dto/ticket-dto");
 const Usuario = require("../dto/usuario-dto");
 const Venta = require("../dto/venta-dto");
 
-const sorteoUtil = require("../utils/sorteo-util");
+const anuladoModel = require("../modelos/anulado-model");
+
+const sorteoRepo = require("../repositorio/sorteo-repo");
+const ticketRepo = require("../repositorio/ticket-repo");
+const redisRepo = require("../repositorio/redis-repo");
 const operadoraRepo = require("../repositorio/operadora-repo");
-const { medirTiempo } = require("../utils/date-util");
-const RedisCache = require("../dto/redis-cache.dto");
+
+const topeService = require("./tope-service");
+
+/**
+ * @param {Usuario} usuario
+ * @param {String} serial
+ * @returns {Promise<Ticket>}
+ */
+function buscar_serial(usuario, serial) {
+  return ticketRepo.buscar.serial(serial).then((ticket) => {
+    if (ticket.usuario.equals(ObjectId(usuario._id.toString()))) return ticket;
+    else return null;
+  });
+}
+/**
+ * @param {Usuario} usuario
+ * @param {String} serial
+ * @param {String} codigo
+ */
+function anular(usuario, serial, codigo) {
+  return new Promise(async (resolve, reject) => {
+    const ticket = await buscar_serial(usuario, serial);
+    //#region validacion
+    if (!ticket) return reject("ticket no existe");
+    const esPOS = usuario.rol.match(/taquilla|online/);
+    if (esPOS)
+      if (ticket.codigo != codigo)
+        return reject("codigo de seguridad invalido");
+    //#endregion
+    const ventas = await ticketRepo.buscar.ventas(ticket._id);
+    for (let i = 0; i < ventas.length; i++) {
+      const venta = ventas[i];
+      const sorteo = await sorteoRepo.buscar.id(venta.sorteo);
+      const now = Date.now();
+      const sorteoCerrado = sorteo.abierta === false;
+      const sorteoTiempoCerrado = now > sorteo.cierra.getTime();
+      const tiempoVentaTranscurrido = now - venta.creado.getTime();
+      if (
+        sorteoCerrado ||
+        sorteoTiempoCerrado ||
+        tiempoVentaTranscurrido > 1000000
+      ) {
+        return reject("tiempo de anulacion expiró");
+      }
+    }
+    new anuladoModel({
+      ticketId: ticket._id,
+      anulado: new Date(),
+    }).save((error) => {
+      if (error) {
+        if (error.code == 11000) return reject("ticket previamente anulado");
+        else reject(error);
+      }
+      resolve(ticket);
+    });
+  });
+}
+
 let cacheOperadora = {};
 module.exports = {
   /** JSDoc
@@ -20,7 +79,6 @@ module.exports = {
    */
   nuevo(taquilla, ventas) {
     return new Promise(async (resolve, reject) => {
-      const now = new Date();
       var sorteosCerrados = [];
       for (let i = 0; i < ventas.length; i++) {
         const venta = ventas[i];
@@ -65,6 +123,7 @@ module.exports = {
         .catch((error) => reject(error));
     });
   },
+  anular,
   monitor: {
     async admin(sorteoId, rol, moneda) {
       let sorteo = await sorteoRepo.buscar.id(sorteoId);
@@ -76,5 +135,8 @@ module.exports = {
       let operadora = await operadoraRepo.buscar.id(sorteo.operadora);
       return ticketRepo.monitor.numeros(sorteoId, operadora.paga, moneda);
     },
+  },
+  buscar: {
+    serial: buscar_serial,
   },
 };

@@ -23,7 +23,7 @@ router.post("/venta", venta, (req, res) => {
 
 router.get("/buscar/serial", usuarioMiddle.validarJerarquia, (req, res) => {
   const { serial } = req.query;
-  ticketRepo.buscar
+  ticketService.buscar
     .serial(req.usuario._id, serial)
     .then((ticket) => res.json(ticket))
     .catch((error) => res.json(crearError(error)));

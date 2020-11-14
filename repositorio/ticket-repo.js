@@ -16,7 +16,7 @@ const saldoService = require("../servicios/saldo-service");
 const redisRepo = require("./redis-repo");
 const RedisCache = require("../dto/redis-cache.dto");
 
-/** JSDoc
+/**
  * @param {Usuario} usuario
  * @param {Array<Venta>} ventas
  * @returns {Promise<Ticket>}
@@ -40,7 +40,7 @@ function nuevo(usuario, ventas) {
     const ticket = {
       codigo,
       serial,
-      usuario: usuario._id,
+      usuario: ObjectId(usuario._id),
       creado,
       monto,
       anulado: false,
@@ -154,20 +154,16 @@ async function buscar_id(id) {
 }
 /**
  *
- * @param {String} usuarioId
  * @param {String} serial
+ * @return {Promise<Ticket>}
  */
-async function buscar_serial(usuarioId, serial) {
+async function buscar_serial(serial) {
   return new Promise((resolve, reject) => {
     ticketModel.aggregate(
       [
         {
           $match: {
             serial: serial.toUpperCase(),
-            $or: [
-              { usuario: ObjectId(usuarioId) },
-              { jerarquia: ObjectId(usuarioId) },
-            ],
           },
         },
         {
@@ -403,6 +399,14 @@ async function ultimos_premiados(
       }
     );
   });
+}
+/**
+ *
+ * @param {String} ticketId
+ * @returns {Promise<Venta[]>}
+ */
+async function ventas(ticketId) {
+  return await ventaModel.find({ ticketId }).lean();
 }
 //#endregion
 
@@ -754,6 +758,7 @@ module.exports = {
     usuarioJugado_numero,
     ultimos: buscar_ultimos,
     ultimos_premiados,
+    ventas,
   },
   monitor: {
     numeros: monitor_numeros,

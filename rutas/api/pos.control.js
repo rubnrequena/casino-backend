@@ -1,7 +1,9 @@
 const { request, response } = require("express");
+const { crearError } = require("../../utils/error-util");
+
 const Usuario = require("../../dto/usuario-dto");
 const reporteRepo = require("../../repositorio/reporte-repo");
-const { crearError } = require("../../utils/error-util");
+const ticketService = require("../../servicios/ticket-service");
 
 function auth(params) {}
 
@@ -22,10 +24,25 @@ function reporte_general(req, res) {
 function reporte_tickets() {}
 function reporte_caja() {}
 
+/**
+ * @param {request} req
+ * @param {response} res
+ */
+function ticket_anular(req, res) {
+  const { serial, codigo } = req.body;
+  ticketService
+    .anular(req.user, serial, codigo)
+    .then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
+}
+
 module.exports = {
   reportes: {
     general: reporte_general,
     tickets: reporte_tickets,
     caja: reporte_caja,
+  },
+  tickets: {
+    anular: ticket_anular,
   },
 };

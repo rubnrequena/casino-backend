@@ -1,13 +1,16 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const esquema = new mongoose.Schema({
-  ticket: {
+  ticketId: {
     type: mongoose.Types.ObjectId,
     required: true,
+    index: true,
+    unique: true,
   },
-  creado: {
+  anulado: {
     type: Date,
     required: true,
-    default: new Date()
+    default: new Date(),
+    index: true,
   },
-})
-module.exports = mongoose.model("Anulado", esquema)
+});
+module.exports = mongoose.model("Anulado", esquema);

@@ -1,6 +1,6 @@
-const { validarGET } = require("../../middlewares");
+const { validarGET, validarPOST } = require("../../middlewares");
 const { validarJerarquia } = require("../../middlewares/usuario-middle");
-const { reportes } = require("./pos.control");
+const { reportes, tickets } = require("./pos.control");
 
 const router = require("express").Router();
 
@@ -12,5 +12,8 @@ router.get("/reporte/general/usuario", general, reportes.general);
 
 router.get("/reporte/tickets", reportes.tickets);
 router.get("/reporte/caja", reportes.caja);
+
+const anular = validarPOST("serial,codigo:number");
+router.post("/ticket/anular", anular, tickets.anular);
 //#endregion
 module.exports = router;
