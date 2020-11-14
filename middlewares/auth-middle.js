@@ -13,6 +13,7 @@ const excluciones = [
   "/auth/recuperar",
   "/hipismo/saldo",
   "/hipismo/transaccion",
+  "/.well-known",
 ];
 
 module.exports = {
