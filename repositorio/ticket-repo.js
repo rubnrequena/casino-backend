@@ -779,6 +779,22 @@ function usuarioJugado_numero(usuarioId, sorteoId, numero) {
   });
 }
 
+/**
+ * @param {String} sorteoId
+ * @param {String} ganador
+ */
+function marcarPremiados(sorteoId, ganador) {
+  return new Promise((resolve, reject) => {
+    ventaModel.updateMany(
+      { sorteo: sorteoId, numero: ganador },
+      { premio: true },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+  });
+}
 module.exports = {
   nuevo,
   anular,
@@ -802,6 +818,9 @@ module.exports = {
     admin: monitor_admin,
     ticket_admin,
     ticket_admin_numero,
+  },
+  ventas: {
+    marcarPremiados,
   },
   operadora,
 };

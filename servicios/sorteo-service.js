@@ -123,13 +123,7 @@ module.exports = {
       //ticketRepo.ventasPremiadas(sorteoId, ganador, operadora.paga);
 
       //Marcar tickets premiados
-      ventaModel.updateMany(
-        { sorteo: sorteoId, numero: ganador },
-        { premio: true },
-        (error, result) => {
-          console.log("tickets premiados", result);
-        }
-      );
+      ticketRepo.ventas.marcarPremiados(sorteoId, ganador);
       resolve({
         jugadoGlobal,
         premioGlobal,
