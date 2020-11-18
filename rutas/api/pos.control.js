@@ -186,7 +186,7 @@ function ticket_anular(req, res) {
   const { serial, codigo } = req.body;
   ticketService
     .anular(req.user, serial, codigo)
-    .then((result) => res.json({ error: "OK", ...result }))
+    .then((ticket) => res.json({ error: "OK", ticket }))
     .catch((error) => res.json(crearError(error)));
 }
 /** POST
