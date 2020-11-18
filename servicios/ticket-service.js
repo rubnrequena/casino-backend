@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const Ticket = require("../dto/ticket-dto");
 const Usuario = require("../dto/usuario-dto");
 const Venta = require("../dto/venta-dto");
+const Errores = require("../dto/errores.dto");
 
 const anuladoModel = require("../modelos/anulado-model");
 
@@ -104,10 +105,14 @@ module.exports = {
         }
         venta.operadora = sorteo.operadora.toString();
         const abierto = sorteoUtil.estaAbierto(sorteo);
-        if (!abierto) sorteosCerrados.push(sorteo.descripcion);
+        if (!abierto) sorteosCerrados.add(sorteo._id);
       }
       if (sorteosCerrados.length > 0)
-        return reject({ error: `sorteos invalidos`, sorteos: sorteosCerrados });
+        return reject({
+          code: Errores.SORTEO_CERRADO,
+          error: `sorteos invalidos`,
+          sorteos: sorteosCerrados,
+        });
       topeService
         .validar(ventas, taquilla)
         .then(async () => {
