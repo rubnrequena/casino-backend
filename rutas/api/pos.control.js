@@ -68,10 +68,10 @@ function recuperar_clave(req, res) {
  * @param {response} res
  */
 function sorteo_disponibles(req, res) {
-  const hoy = isoDate();
+  const { fecha } = req.query;
   sorteoRepo.buscar
-    .disponibleEnlaces(hoy, req.user.jerarquia)
-    .then((result) => res.json({ error: "OK", ...result }))
+    .disponibleEnlaces(fecha, req.user.jerarquia)
+    .then((operadoras) => res.json({ error: "OK", operadoras }))
     .catch((error) => res.json(crearError(error)));
 }
 /** GET api/sorteos/buscar
