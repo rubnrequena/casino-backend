@@ -1,0 +1,7 @@
+module.exports = {
+  USUARIO_INACTIVO: 10,
+  SORTEO_CERRADO: 20,
+  CUPO_EXCEDIDO: 30,
+  NO_EXISTE: 404,
+  ERROR_INTERNO: 505,
+};
