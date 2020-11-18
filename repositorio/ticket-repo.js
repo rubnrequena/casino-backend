@@ -261,7 +261,6 @@ async function buscar_pos(usuarioId, fecha) {
       fecha_array[2],
       23
     );
-    console.log(usuarioId, fecha, desde, hasta);
     ticketModel.aggregate(
       [
         {
