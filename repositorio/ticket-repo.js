@@ -256,7 +256,7 @@ async function buscar_pos(usuarioId, fecha) {
     const desde = new Date(fecha);
     const hasta = new Date(fecha);
     hasta.setHours(24);
-    console.log(usuarioId, fecha desde, hasta);
+    console.log(usuarioId, fecha, desde, hasta);
     ticketModel.aggregate(
       [
         {

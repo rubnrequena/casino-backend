@@ -146,7 +146,6 @@ describe("reportes", () => {
 
 function crearTickets(n = 36) {
   const operadora = operadoras[0];
-  console.log("operadora :>> ", operadora);
   const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
   let jugadas = [];
   for (let i = 0; i < 36; i++) {
