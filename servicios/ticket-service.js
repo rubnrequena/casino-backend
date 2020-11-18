@@ -14,6 +14,7 @@ const redisRepo = require("../repositorio/redis-repo");
 const operadoraRepo = require("../repositorio/operadora-repo");
 
 const topeService = require("./tope-service");
+const ticketModel = require("_modelos/ticket-model");
 
 /**
  * @param {Usuario} usuario
@@ -22,7 +23,18 @@ const topeService = require("./tope-service");
  */
 function buscar_serial(usuario, serial) {
   return ticketRepo.buscar.serial(serial).then((ticket) => {
-    if (ticket.usuario.equals(ObjectId(usuario._id.toString()))) return ticket;
+    if (ticket.usuario.toString() == usuario._id.toString()) return ticket;
+    else return null;
+  });
+}
+/**
+ * @param {Usuario} usuario
+ * @param {String} serial
+ * @returns {Promise<Ticket>}
+ */
+function buscar_ticket_serial(usuario, serial) {
+  return ticketRepo.buscar.ticket_serial(serial).then((ticket) => {
+    if (ticket.usuario.toString() == usuario._id.toString()) return ticket;
     else return null;
   });
 }
@@ -33,7 +45,7 @@ function buscar_serial(usuario, serial) {
  */
 function anular(usuario, serial, codigo) {
   return new Promise(async (resolve, reject) => {
-    const ticket = await buscar_serial(usuario, serial);
+    const ticket = await buscar_ticket_serial(usuario, serial);
     //#region validacion
     if (!ticket) return reject("ticket no existe");
     const esPOS = usuario.rol.match(/taquilla|online/);
@@ -57,15 +69,17 @@ function anular(usuario, serial, codigo) {
         return reject("tiempo de anulacion expiró");
       }
     }
-    new anuladoModel({
+    const anulado = new anuladoModel({
       ticketId: ticket._id,
       anulado: new Date(),
-    }).save((error) => {
+    });
+    anulado.save(async (error) => {
       if (error) {
         if (error.code == 11000) return reject("ticket previamente anulado");
         else reject(error);
       }
-      resolve(ticket);
+      await ticketModel.updateOne({ _id: ticket._id }, { anulado: true });
+      resolve(anulado);
     });
   });
 }
@@ -138,5 +152,6 @@ module.exports = {
   },
   buscar: {
     serial: buscar_serial,
+    ticketSerial: buscar_ticket_serial,
   },
 };

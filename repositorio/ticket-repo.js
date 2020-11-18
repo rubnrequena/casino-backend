@@ -87,10 +87,6 @@ function nuevo(usuario, ventas) {
             saldoService.rollback(usuario, saldo);
         }
       });
-      resolve({
-        ticket: ticket.ops[0],
-        saldo,
-      });
     });
   });
 }
@@ -159,7 +155,6 @@ async function buscar_id(id) {
   }
 }
 /**
- *
  * @param {String} serial
  * @return {Promise<Ticket>}
  */
