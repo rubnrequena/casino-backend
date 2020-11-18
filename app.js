@@ -34,4 +34,6 @@ lanzadores.database.conectar().then(() => {
   lanzadores.database.verificarDatosIniciales();
 });
 
+const prototipos = require("./utils/prototipos");
+
 module.exports = app;
