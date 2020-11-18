@@ -1,6 +1,5 @@
 const sorteoUtil = require("../utils/sorteo-util");
 const mongoose = require("mongoose");
-const { ObjectId } = mongoose.Types;
 
 const Ticket = require("../dto/ticket-dto");
 const Usuario = require("../dto/usuario-dto");
