@@ -11,6 +11,9 @@ const anError = (res) => {
   return res;
 };
 const { init, login, token } = require("./common.js");
+const { mapObject } = require("../utils/object-util.js");
+const sorteoRepo = require("../repositorio/sorteo-repo.js");
+const sorteoService = require("../servicios/sorteo-service.js");
 init(app, anError);
 
 /** @type {Usuario} */
@@ -18,11 +21,13 @@ let taquilla;
 let authToken;
 let operadoras;
 
-function url(url) {
-  return `/api/pos/${url}`;
+function url(url, query) {
+  query = mapObject(query, (campo, valor) => `${campo}=${valor}`).join("&");
+  const uri = `/api/pos/${url}?${encodeURI(query)}`;
+  return uri;
 }
 
-describe("iniciar sesion", () => {
+describe("prueba de API POS", () => {
   /** @type {Ticket} */ let ticketVendido;
   it("login", async () => {
     return request(app)
@@ -39,13 +44,18 @@ describe("iniciar sesion", () => {
       });
   });
   it("sorteos disponibles", function () {
+    const hoy = isoDate();
     return request(app)
-      .get(url("sorteo/disponibles"))
+      .get(url("sorteo/disponibles", { fecha: hoy }))
       .set(authToken)
       .expect(200)
       .then(anError)
       .then((result) => {
-        operadoras = result.body;
+        operadoras = result.body.operadoras;
+        expect(operadoras).length.above(0);
+        operadoras.forEach((operadora) => {
+          expect(operadora.sorteos).length.above(0);
+        });
       });
   });
   it("vender", async function () {
@@ -63,7 +73,7 @@ describe("iniciar sesion", () => {
   });
   it("buscar ticket", async function () {
     return request(app)
-      .get(url(`ticket/buscar?serial=${ticketVendido.serial}`))
+      .get(url(`ticket/buscar`, { serial: ticketVendido.serial }))
       .set(authToken)
       .expect(200)
       .then(anError);
@@ -71,7 +81,7 @@ describe("iniciar sesion", () => {
   it("reporte ventas", async function () {
     const hoy = isoDate();
     return request(app)
-      .get(url(`reporte/tickets?fecha="${hoy}&moneda=ves`))
+      .get(url(`reporte/tickets`, { fecha: hoy, moneda: "ves" }))
       .set(authToken)
       .expect(200)
       .then(anError)
@@ -95,7 +105,7 @@ describe("iniciar sesion", () => {
   });
   it("buscar ticket anulado", async function () {
     return request(app)
-      .get(url(`ticket/buscar?serial=${ticketVendido.serial}`))
+      .get(url(`ticket/buscar`, { serial: ticketVendido.serial }))
       .set(authToken)
       .expect(200)
       .then(anError)
@@ -106,14 +116,43 @@ describe("iniciar sesion", () => {
   });
 });
 
-function crearTickets(n) {
+describe("premiar", () => {
+  it("reiniciar sorteo", async function () {
+    const operadora = operadoras[0];
+    const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
+    return sorteoService.reiniciar(sorteo._id);
+  });
+  it("premiar sorteo", async function () {
+    const operadora = operadoras[0];
+    const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
+    return sorteoService.premiar(sorteo._id, getRandomInt(0, 36));
+  });
+});
+
+describe("reportes", () => {
+  it("reporte general", async function () {
+    const hoy = isoDate();
+    return request(app)
+      .get(url("reporte/general", { desde: hoy, hasta: hoy, moneda: "ves" }))
+      .set(authToken)
+      .expect(200)
+      .then(anError)
+      .then((result) => result.body)
+      .then((body) => {
+        expect(body.reportes).length.above(0);
+      });
+  });
+});
+
+function crearTickets(n = 36) {
   const operadora = operadoras[0];
+  console.log("operadora :>> ", operadora);
   const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
   let jugadas = [];
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < 36; i++) {
     jugadas.push({
       sorteo: sorteo._id,
-      numero: trailZero(getRandomInt(0, 36)),
+      numero: trailZero(i),
       monto: getRandomInt(10, 100) * 100,
     });
   }
