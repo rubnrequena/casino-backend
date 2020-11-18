@@ -30,6 +30,12 @@ function login(req, res) {
   authService
     .login(usuario, clave)
     .then((usuario) => {
+      delete usuario.jerarquia;
+      delete usuario.clave;
+      delete usuario.utilidad;
+      delete usuario.activo;
+      delete usuario.grupoPago;
+      delete usuario.permisos;
       res.json({ error: "OK", ...usuario });
       //sesion
       var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
@@ -158,7 +164,13 @@ function ticket_buscar(req, res) {
   const { serial } = req.query;
   ticketService.buscar
     .serial(req.usuario, serial)
-    .then((ticket) => res.json({ error: "OK", ...ticket }))
+    .then((ticket) => {
+      delete ticket.jerarquia;
+      delete ticket.codigo;
+      delete ticket.online;
+
+      res.json({ error: "OK", ...ticket });
+    })
     .catch((error) => res.json(crearError(error)));
 }
 /** POST
