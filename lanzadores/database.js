@@ -26,6 +26,7 @@ module.exports = {
   connection,
   conectar() {
     return new Promise((resolve, reject) => {
+      console.log("conectando con:", config.databaseURL);
       connection = mongoose.connect(
         config.databaseURL,
         {
