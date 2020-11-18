@@ -215,6 +215,14 @@ async function buscar_serial(serial) {
     );
   });
 }
+
+/**
+ * @param {String} serial
+ * @return {Promise<Ticket>}
+ */
+async function buscar_ticket_serial(serial) {
+  return await ticketModel.findOne({ serial }).lean();
+}
 /**
  * @param {String} usuarioId
  * @param {Date} desde
@@ -777,6 +785,7 @@ module.exports = {
   buscar: {
     id: buscar_id,
     serial: buscar_serial,
+    ticket_serial: buscar_ticket_serial,
     pos: buscar_pos,
     usuario: buscar_usuario,
     sorteo: buscar_sorteo,
