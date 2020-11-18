@@ -123,6 +123,7 @@ describe("premiar", () => {
     return sorteoService.reiniciar(sorteo._id);
   });
   it("premiar sorteo", async function () {
+    this.timeout(0);
     const operadora = operadoras[0];
     const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
     return sorteoService.premiar(sorteo._id, getRandomInt(0, 36));
