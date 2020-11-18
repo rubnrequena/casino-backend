@@ -1,4 +1,3 @@
-const config = require("./config/index");
 const lanzadores = require("./lanzadores/index");
 
 var express = require("express");
