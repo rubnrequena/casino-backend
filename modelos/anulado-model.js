@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const esquema = new mongoose.Schema({
-  ticketId: {
+  ticket: {
     type: mongoose.Types.ObjectId,
     required: true,
     index: true,
