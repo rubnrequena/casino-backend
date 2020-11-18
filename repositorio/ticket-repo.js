@@ -55,9 +55,15 @@ function nuevo(usuario, ventas) {
         `VENTA TICKET #${serial} `,
         monto
       );
-    redisRepo.hjson("tickets", ticket.serial, ticket);
+
+    await redisRepo.hjson("tickets", ticket.serial, ticket);
     resolve({
-      ticket: ticket,
+      ticket: {
+        serial: ticket.serial,
+        codigo: ticket.codigo,
+        creado: ticket.creado,
+        monto: ticket.monto,
+      },
       saldo,
     });
     ticketModel.collection.insertOne(ticket, (error, ticket) => {
