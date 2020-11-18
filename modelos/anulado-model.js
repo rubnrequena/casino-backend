@@ -8,9 +8,12 @@ const esquema = new mongoose.Schema({
   },
   anulado: {
     type: Date,
-    required: true,
     default: new Date(),
     index: true,
+  },
+  responsable: {
+    type: mongoose.Types.ObjectId,
+    required: true,
   },
 });
 module.exports = mongoose.model("Anulado", esquema);

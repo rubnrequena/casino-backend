@@ -42,8 +42,9 @@ function buscar_ticket_serial(usuario, serial) {
  * @param {Usuario} usuario
  * @param {String} serial
  * @param {String} codigo
+ * @param {Responsable} responsable
  */
-function anular(usuario, serial, codigo) {
+function anular(usuario, serial, codigo, responsable) {
   return new Promise(async (resolve, reject) => {
     const ticket = await buscar_ticket_serial(usuario, serial);
     //#region validacion
@@ -72,6 +73,7 @@ function anular(usuario, serial, codigo) {
     const anulado = new anuladoModel({
       ticketId: ticket._id,
       anulado: new Date(),
+      responsable,
     });
     anulado.save(async (error) => {
       if (error) {
