@@ -6,20 +6,23 @@ const Usuario = require("../dto/usuario-dto");
 
 const AUTH_CLONAR_ROUTE_VALIDATION = "usuario,nombre,clave,correo,telefono";
 const excluciones = [
-  "/auth",
-  "/auth/registro_online",
-  "/auth/activar",
-  "/images",
-  "/auth/recuperar",
-  "/hipismo/saldo",
-  "/hipismo/transaccion",
-  "/.well-known",
+  /^\/auth/,
+  /^\/auth\/registro_online/,
+  /^\/auth\/activar/,
+  /^\/images/,
+  /^\/auth\/recuperar/,
+  /^\/hipismo\/saldo/,
+  /^\/hipismo\/transaccion/,
+  /^\/api\/pos\/auth/,
+  /^\/.well-known/,
 ];
 
 module.exports = {
   authJWT(req, res, next) {
-    let url = req.url.split("?")[0];
-    const excluir = excluciones.indexOf(url) > -1;
+    /** @type {String} */ let url = req.url.split("?")[0];
+    const excluir = excluciones.find((e) => {
+      return url.match(e) ? true : false;
+    });
     if (excluir) return next();
     var token = req.headers.authorization;
     if (!token) {
