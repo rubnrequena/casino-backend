@@ -253,9 +253,14 @@ async function buscar_usuario(usuarioId) {
  */
 async function buscar_pos(usuarioId, fecha) {
   return new Promise((resolve, reject) => {
+    const fecha_array = fecha.split("-");
     const desde = new Date(fecha);
-    const hasta = new Date(fecha);
-    hasta.setHours(23);
+    const hasta = new Date(
+      fecha_array[0],
+      parseInt(fecha_array[1]) - 1,
+      fecha_array[2],
+      23
+    );
     console.log(usuarioId, fecha, desde, hasta);
     ticketModel.aggregate(
       [
