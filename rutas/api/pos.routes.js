@@ -21,8 +21,10 @@ router.get("/auth/recuperar_clave", auth.recuperar);
 //#endregion
 
 //#region SORTEO
+const buscarFecha = validarGET("fecha");
+
 router.get("/sorteo/disponibles", sorteos.disponibles);
-router.get("/sorteo/buscar/fecha", sorteos.buscar);
+router.get("/sorteo/buscar/fecha", buscarFecha, sorteos.buscar);
 //#endregion
 
 //#region REPORTES
