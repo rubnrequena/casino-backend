@@ -16,6 +16,62 @@ const operadoraRepo = require("../repositorio/operadora-repo");
 const topeService = require("./tope-service");
 const ticketModel = require("_modelos/ticket-model");
 
+/** JSDoc
+ * @param {Usuario} taquilla
+ * @param {Array<Venta>} ventas
+ * @returns {Promise<Ticket>}
+ */
+function nuevo(taquilla, ventas) {
+  return new Promise(async (resolve, reject) => {
+    var sorteosCerrados = [];
+    for (let i = 0; i < ventas.length; i++) {
+      const venta = ventas[i];
+      let sorteo = cacheOperadora[venta.sorteo];
+      cache = true;
+      if (!sorteo) {
+        sorteo = await sorteoRepo.buscar.id(venta.sorteo);
+        cacheOperadora[venta.sorteo] = sorteo;
+        cache = false;
+      }
+      venta.operadora = sorteo.operadora.toString();
+      const abierto = sorteoUtil.estaAbierto(sorteo);
+      if (!abierto) sorteosCerrados.add(sorteo._id);
+    }
+    if (sorteosCerrados.length > 0)
+      return reject({
+        code: Errores.SORTEO_CERRADO,
+        error: `sorteos invalidos`,
+        sorteos: sorteosCerrados,
+      });
+    topeService
+      .validar(ventas, taquilla)
+      .then(async () => {
+        const ticket = await ticketRepo.nuevo(taquilla, ventas);
+        resolve(ticket);
+        let hash;
+        //TODO: disminuir venta al anular ticket
+        ventas.forEach((venta) => {
+          taquilla.jerarquia.forEach((padre) => {
+            //padre-sorteo
+            hash = `${venta.sorteo}_${padre}`;
+            redisRepo.hincrby(hash, venta.numero, venta.monto);
+            redisRepo.expire(hash, 86400);
+          });
+          //taquilla-sorteo
+          hash = `${venta.sorteo}_${taquilla._id}`;
+          redisRepo.hincrby(hash, venta.numero, venta.monto);
+          redisRepo.expire(hash, 86400);
+          //sorteo
+          hash = `venta-${venta.moneda}-${venta.sorteo}`;
+          redisRepo.hincrby(hash, venta.numero, venta.monto);
+          redisRepo.expire(hash, 86400);
+        });
+        //TODO notificar usuarios
+      })
+      .catch((error) => reject(error));
+  });
+}
+
 /**
  * @param {Usuario} usuario
  * @param {String} serial
@@ -104,61 +160,8 @@ function anular(usuario, serial, codigo, responsable) {
 
 let cacheOperadora = {};
 module.exports = {
-  /** JSDoc
-   * @param {Usuario} taquilla
-   * @param {Array<Venta>} ventas
-   * @returns {Promise<Ticket>}
-   */
-  nuevo(taquilla, ventas) {
-    return new Promise(async (resolve, reject) => {
-      var sorteosCerrados = [];
-      for (let i = 0; i < ventas.length; i++) {
-        const venta = ventas[i];
-        let sorteo = cacheOperadora[venta.sorteo];
-        cache = true;
-        if (!sorteo) {
-          sorteo = await sorteoRepo.buscar.id(venta.sorteo);
-          cacheOperadora[venta.sorteo] = sorteo;
-          cache = false;
-        }
-        venta.operadora = sorteo.operadora.toString();
-        const abierto = sorteoUtil.estaAbierto(sorteo);
-        if (!abierto) sorteosCerrados.add(sorteo._id);
-      }
-      if (sorteosCerrados.length > 0)
-        return reject({
-          code: Errores.SORTEO_CERRADO,
-          error: `sorteos invalidos`,
-          sorteos: sorteosCerrados,
-        });
-      topeService
-        .validar(ventas, taquilla)
-        .then(async () => {
-          const ticket = await ticketRepo.nuevo(taquilla, ventas);
-          resolve(ticket);
-          let hash;
-          //TODO: disminuir venta al anular ticket
-          ventas.forEach((venta) => {
-            taquilla.jerarquia.forEach((padre) => {
-              //padre-sorteo
-              hash = `${venta.sorteo}_${padre}`;
-              redisRepo.hincrby(hash, venta.numero, venta.monto);
-              redisRepo.expire(hash, 86400);
-            });
-            //taquilla-sorteo
-            hash = `${venta.sorteo}_${taquilla._id}`;
-            redisRepo.hincrby(hash, venta.numero, venta.monto);
-            redisRepo.expire(hash, 86400);
-            //sorteo
-            hash = `venta-${venta.moneda}-${venta.sorteo}`;
-            redisRepo.hincrby(hash, venta.numero, venta.monto);
-            redisRepo.expire(hash, 86400);
-          });
-          //TODO notificar usuarios
-        })
-        .catch((error) => reject(error));
-    });
-  },
+  nuevo,
+  pagar,
   anular,
   monitor: {
     async admin(sorteoId, rol, moneda) {
