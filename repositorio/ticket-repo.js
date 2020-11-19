@@ -104,6 +104,12 @@ function anular(ticket) {
     }
   );
 }
+/**
+ * @param {Ticket} ticket
+ */
+function pagar(ticket) {
+  return new Promise((resolve, reject) => {});
+}
 async function ventasPremiadas(sorteoId, ganador, operadoraPaga) {
   /** @type {Venta[]} */
   const ventas = await ventaModel.aggregate([
@@ -806,6 +812,7 @@ function marcarPremiados(sorteoId, ganador) {
 module.exports = {
   nuevo,
   anular,
+  pagar,
   ventasPremiadas,
   buscar: {
     id: buscar_id,

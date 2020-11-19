@@ -39,6 +39,22 @@ function buscar_ticket_serial(usuario, serial) {
   });
 }
 /**
+ *
+ * @param {Usuario} usuario
+ * @param {String} serial
+ * @param {String} codigo
+ * @param {String} responsable
+ */
+function pagar(usuario, serial, codigo, responsable) {
+  return new Promise(async (resolve, reject) => {
+    const ticket = await buscar_ticket_serial(usuario, serial);
+    ticketRepo
+      .pagar(ticket)
+      .then((result) => resolve(result))
+      .catch((error) => reject(error));
+  });
+}
+/**
  * @param {Usuario} usuario
  * @param {String} serial
  * @param {String} codigo
