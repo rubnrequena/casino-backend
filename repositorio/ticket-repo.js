@@ -514,7 +514,7 @@ function monitor_numeros(sorteoId, operadoraPaga, moneda) {
   return new Promise((resolve, reject) => {
     ventaModel.aggregate(
       [
-        { $match: { sorteo: ObjectId(sorteoId), moneda } },
+        { $match: { sorteo: ObjectId(sorteoId), moneda, anulado: false } },
         {
           $project: {
             premio: 1,
@@ -550,7 +550,7 @@ function monitor_admin(sorteoId, rol, operadoraPaga, moneda) {
     const rolIndex = Usuario.NIVELES.indexOf(rol);
     ventaModel.aggregate(
       [
-        { $match: { sorteo: ObjectId(sorteoId), moneda } },
+        { $match: { sorteo: ObjectId(sorteoId), moneda, anulado: false } },
         {
           $project: {
             premio: 1,
@@ -728,6 +728,7 @@ function ticket_admin_numero(sorteoId, numero) {
           $match: {
             sorteo: ObjectId(sorteoId),
             numero: numero,
+            anulado: false,
           },
         },
         {
@@ -808,6 +809,7 @@ function usuarioJugado_numero(usuarioId, sorteoId, numero) {
           $match: {
             sorteo: ObjectId(sorteoId),
             numero,
+            anulado: false,
             $or: [
               { usuario: ObjectId(usuarioId) },
               { jerarquia: ObjectId(usuarioId) },
