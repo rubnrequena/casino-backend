@@ -16,6 +16,7 @@ const operadoraRepo = require("../repositorio/operadora-repo");
 const topeService = require("./tope-service");
 const ticketModel = require("_modelos/ticket-model");
 const ventaRepo = require("../repositorio/venta-repo");
+const ventaModel = require("_modelos/venta-model");
 
 /** JSDoc
  * @param {Usuario} taquilla
@@ -109,9 +110,9 @@ function pagar(usuario, serial, codigo, responsable) {
  * @param {Usuario} usuario
  * @param {String} serial
  * @param {String} codigo
- * @param {Responsable} responsable
+ * @param {String} responsableId
  */
-function anular(usuario, serial, codigo, responsable) {
+function anular(usuario, serial, codigo, responsableId) {
   return new Promise(async (resolve, reject) => {
     const ticket = await buscar_ticket_serial(usuario, serial);
     //#region validacion
@@ -140,14 +141,16 @@ function anular(usuario, serial, codigo, responsable) {
     const anulado = new anuladoModel({
       ticket: ticket._id,
       anulado: new Date(),
-      responsable,
+      responsable: responsableId,
     });
     anulado.save(async (error) => {
       if (error) {
         if (error.code == 11000) return reject("ticket previamente anulado");
         else reject(error);
       }
-      await ticketModel.updateOne({ _id: ticket._id }, { anulado: true });
+      const anular = { anulado: true };
+      await ticketModel.updateOne({ _id: ticket._id }, anular);
+      await ventaModel.updateMany({ ticketId: ticket._id }, anular);
       resolve(anulado);
     });
   });

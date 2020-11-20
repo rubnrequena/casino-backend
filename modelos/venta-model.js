@@ -61,5 +61,10 @@ const esquema = new mongoose.Schema({
     required: true,
     index: true,
   },
+  anulado: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
 });
 module.exports = mongoose.model("Venta", esquema);

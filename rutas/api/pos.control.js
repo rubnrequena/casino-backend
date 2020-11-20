@@ -3,7 +3,6 @@ const { request, response } = require("express");
 var geoip = require("geoip-lite");
 
 const { crearError } = require("../../utils/error-util");
-const { isoDate } = require("../../utils/date-util");
 
 const Usuario = require("../../dto/usuario-dto");
 
@@ -191,7 +190,7 @@ function ticket_pagar(req, res) {
 function ticket_anular(req, res) {
   const { serial, codigo } = req.body;
   ticketService
-    .anular(req.user, serial, codigo)
+    .anular(req.user, serial, codigo, req.user._id)
     .then((ticket) => res.json({ error: "OK", ticket }))
     .catch((error) => res.json(crearError(error)));
 }
