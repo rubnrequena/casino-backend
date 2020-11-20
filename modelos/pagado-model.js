@@ -4,6 +4,10 @@ const esquema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true,
   },
+  numero: {
+    type: String,
+    required: true,
+  },
   pagado: {
     type: Date,
     required: true,

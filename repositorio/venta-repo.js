@@ -1,3 +1,4 @@
+const ventaModel = require("_modelos/venta-model");
 const Usuario = require("../dto/usuario-dto");
 const Venta = require("../dto/venta-dto");
 const redisRepo = require("./redis-repo");
@@ -39,6 +40,14 @@ function disminuir(usuarioId, venta) {
       .catch((error) => reject(error));
   });
 }
+/**
+ * @param {String} ticketId
+ * @param {String} numero
+ * @returns {Promise<Venta>}
+ */
+async function buscar_venta_premiada(ticketId, numero) {
+  return await ventaModel.findOne({ ticketId, numero, premio: true }).lean();
+}
 
 module.exports = {
   cache: {
@@ -55,5 +64,8 @@ module.exports = {
       });
       return Promise.all(usuarios);
     },
+  },
+  buscar: {
+    premiado: buscar_venta_premiada,
   },
 };

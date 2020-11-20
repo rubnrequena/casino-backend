@@ -1,20 +1,23 @@
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
+const { getRandomInt } = require("../utils/number-util");
+const { ticketSerial } = require("../utils/ticket-util");
+
 const Usuario = require("../dto/usuario-dto");
 const Venta = require("../dto/venta-dto");
 const Ticket = require("../dto/ticket-dto");
 const Premiado = require("../dto/premiado-dto");
 const Premio = require("../dto/premio-dto");
+const RedisCache = require("../dto/redis-cache.dto");
 
-const mongoose = require("mongoose");
-const ObjectId = mongoose.Types.ObjectId;
-const { getRandomInt } = require("../utils/number-util");
-const { ticketSerial } = require("../utils/ticket-util");
 const ticketModel = require("_modelos/ticket-model");
 const ventaModel = require("_modelos/venta-model");
 const premioModel = require("_modelos/premio-model");
-const saldoRepo = require("./saldo-repo");
-const saldoService = require("../servicios/saldo-service");
+const pagadoModel = require("_modelos/pagado-model");
+
 const redisRepo = require("./redis-repo");
-const RedisCache = require("../dto/redis-cache.dto");
+
+const saldoService = require("../servicios/saldo-service");
 
 /**
  * @param {Usuario} usuario
@@ -105,10 +108,24 @@ function anular(ticket) {
   );
 }
 /**
- * @param {Ticket} ticket
+ * @param {Venta} venta
+ * @param {String} responsableId
  */
-function pagar(ticket) {
-  return new Promise((resolve, reject) => {});
+function pagar(venta, responsableId) {
+  return new Promise((resolve, reject) => {
+    const pagado = {
+      ticket: venta.ticketId,
+      numero: venta.numero,
+      pagado: new Date(),
+      responsable: responsableId,
+    };
+    pagadoModel.collection.insertOne(pagado, async (error, result) => {
+      if (error) return reject(error);
+      await ventaModel.updateOne({ _id: venta._id }, { pagado: true });
+      pagado._id = result.insertedId;
+      resolve(pagado);
+    });
+  });
 }
 async function ventasPremiadas(sorteoId, ganador, operadoraPaga) {
   /** @type {Venta[]} */

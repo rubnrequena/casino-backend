@@ -71,6 +71,19 @@ describe("prueba de API POS", () => {
         ticketVendido = ticket.ticket;
       });
   });
+  it("vender para anular", async function () {
+    const tickets = crearTickets(4);
+    return request(app)
+      .post(url("ticket/venta"))
+      .set(authToken)
+      .send(tickets)
+      .expect(200)
+      .then(anError)
+      .then((result) => result.body)
+      .then((ticket) => {
+        ticketVendido = ticket.ticket;
+      });
+  });
   it("buscar ticket", async function () {
     const payload = { serial: ticketVendido.serial };
     return request(app)
@@ -92,6 +105,7 @@ describe("prueba de API POS", () => {
       });
   });
   it("anular", async function () {
+    this.timeout(0);
     return request(app)
       .post(url("ticket/anular"))
       .set(authToken)
@@ -100,11 +114,7 @@ describe("prueba de API POS", () => {
         codigo: ticketVendido.codigo,
       })
       .expect(200)
-      .then(anError)
-      .then((result) => result.body)
-      .then((body) => {
-        console.log(JSON.stringify(body));
-      });
+      .then(anError);
   });
   it("buscar ticket anulado", async function () {
     return request(app)
@@ -131,14 +141,43 @@ describe("premiar", () => {
     const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
     return await sorteoService.premiar(sorteo._id, getRandomInt(0, 36));
   });
-  it.skip("pagar ticket", async function () {
+});
+
+describe("pagar tickets", () => {
+  let ticketPremiado;
+  it("buscar premiados", async function () {
+    const hoy = isoDate();
     return request(app)
-      .get(url("ticket/pagar"))
+      .get(url(`reporte/tickets`, { fecha: hoy, moneda: "ves" }))
       .set(authToken)
       .expect(200)
       .then(anError)
       .then((result) => result.body)
-      .then((body) => {});
+      .then((reporte) => {
+        expect(reporte.tickets).length.above(0);
+        ticketPremiado = reporte.tickets.find(
+          (ticket) => ticket.premiados.length > 0
+        );
+        console.log(ticketPremiado);
+      });
+  });
+  it("pagar ticket", async function () {
+    this.timeout(0);
+    const numeroPremiado = ticketPremiado.premiados[0];
+    return request(app)
+      .post(url("ticket/pagar"))
+      .set(authToken)
+      .send({
+        serial: ticketPremiado.serial,
+        codigo: ticketPremiado.codigo,
+        numero: numeroPremiado.numero,
+      })
+      .expect(200)
+      .then(anError)
+      .then((result) => result.body)
+      .then((body) => {
+        console.log(body);
+      });
   });
 });
 

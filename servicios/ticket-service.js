@@ -92,16 +92,20 @@ function buscar_ticket_serial(usuario, serial) {
 }
 /**
  *
- * @param {Usuario} usuario
+ * @param {Usuario} pos
  * @param {String} serial
  * @param {String} codigo
- * @param {String} responsable
+ * @param {String} numero
+ * @param {Usuario} responsable
  */
-function pagar(usuario, serial, codigo, responsable) {
+function pagar(pos, serial, codigo, numero, responsable) {
   return new Promise(async (resolve, reject) => {
-    const ticket = await buscar_ticket_serial(usuario, serial);
+    const ticket = await buscar_ticket_serial(pos, serial);
+    if (ticket.codigo != codigo)
+      return reject({ code: 0, error: "codigo de ticket invalido" });
+    const venta = await ventaRepo.buscar.premiado(ticket._id, numero);
     ticketRepo
-      .pagar(ticket)
+      .pagar(venta, responsable._id)
       .then((result) => resolve(result))
       .catch((error) => reject(error));
   });

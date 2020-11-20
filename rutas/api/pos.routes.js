@@ -38,14 +38,15 @@ router.get("/api/pos/reporte/caja/generar", (req, res) => {});
 //#endregion
 
 //#region TICKET
-const anular = validarPOST("serial,codigo:number");
+const anularTicket = validarPOST("serial,codigo:number");
 const buscarTicket = [validarGET("serial"), validarJerarquia];
+const pagarTicket = [validarPOST("serial,codigo:number,numero")];
 
 router.post("/ticket/venta", puedeVender, reporteTickets.venta);
 router.get("/ticket/buscar", buscarTicket, reporteTickets.buscar);
 router.get("/ticket/buscar/ultimos", (req, res) => {});
-router.post("/ticket/anular", anular, reporteTickets.anular);
-router.get("/ticket/pagar", reporteTickets.pagar);
+router.post("/ticket/anular", anularTicket, reporteTickets.anular);
+router.post("/ticket/pagar", pagarTicket, reporteTickets.pagar);
 router.post("/ticket/devolucion", reporteTickets.devolucion);
 //#endregion
 module.exports = router;

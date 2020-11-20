@@ -177,9 +177,9 @@ function ticket_buscar(req, res) {
  * @param {response} res
  */
 function ticket_pagar(req, res) {
-  const { serial, codigo } = req.body;
+  const { serial, codigo, numero } = req.body;
   ticketService
-    .pagar(req.user, serial, codigo, req.user._id)
+    .pagar(req.user, serial, codigo, numero, req.user)
     .then((result) => res.json({ error: "OK", result }))
     .catch((error) => res.json(crearError(error)));
 }

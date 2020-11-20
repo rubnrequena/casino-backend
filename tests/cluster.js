@@ -106,7 +106,7 @@ describe("pruebas", function () {
     });
   });
   it("vender lote", function (done) {
-    len = 10;
+    len = 100;
     intervalo = len * 0.1;
     const hilos = 10;
 
