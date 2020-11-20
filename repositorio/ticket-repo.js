@@ -281,7 +281,39 @@ async function buscar_pos(usuarioId, fecha) {
             },
           },
         },
-        { $project: { usuario: 0, jerarquia: 0, online: 0, moneda: 0 } },
+        {
+          $lookup: {
+            from: "ventas",
+            let: { ticket: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$ticketId", "$$ticket"] },
+                      { $eq: ["$premio", true] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "premiados",
+          },
+        },
+        {
+          $project: {
+            codigo: 1,
+            serial: 1,
+            creado: 1,
+            anulado: 1,
+            monto: 1,
+            "premiados.pagado": 1,
+            "premiados.numero": 1,
+            "premiados.monto": 1,
+            "premiados.sorteo": 1,
+            "premiados.operadora": 1,
+          },
+        },
       ],
       (error, tickets) => {
         if (error) return reject(error.message);
