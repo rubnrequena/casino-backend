@@ -17,93 +17,6 @@ function reiniciar(sorteoId) {
   });
 }
 
-/**
- * @param {String} taquilaId
- * @returns {Promise<Reporte[]>}
- */
-async function taquilla(usuarioId, filtros) {
-  return await reporteModel
-    .find(
-      {
-        usuario: usuarioId,
-        ...filtros,
-      },
-      "-comision.agencia -comision.grupo -comision.banca -comision.comercial -participacion"
-    )
-    .lean();
-}
-
-/**
- * @param {String} usuarioId
- * @returns {Promise<Reporte[]>}
- */
-async function agencia(usuarioId, filtros) {
-  return await reporteModel
-    .find(
-      {
-        jerarquia: usuarioId,
-        ...filtros,
-      },
-      "-comision.grupo -comision.banca -comision.comercial -participacion.grupo -participacion.banca -participacion.comercial"
-    )
-    .lean();
-}
-/**
- * @param {String} usuarioId
- * @returns {Promise<Reporte[]>}
- */
-async function grupo(usuarioId, filtros) {
-  return await reporteModel
-    .find(
-      {
-        jerarquia: usuarioId,
-        ...filtros,
-      },
-      "-comision.banca -comision.comercial -participacion.banca -participacion.comercial"
-    )
-    .lean();
-}
-/**
- * @param {String} usuarioId
- * @returns {Promise<Reporte[]>}
- */
-async function banca(usuarioId, filtros) {
-  return await reporteModel
-    .find(
-      {
-        jerarquia: usuarioId,
-        ...filtros,
-      },
-      "-comision.comercial -participacion.comercial"
-    )
-    .lean();
-}
-/**
- * @param {String} usuarioId
- * @returns {Promise<Reporte[]>}
- */
-async function comercial(usuarioId, filtros) {
-  return await reporteModel
-    .find({
-      jerarquia: usuarioId,
-      ...filtros,
-    })
-    .lean();
-}
-/**
- *
- * @param {String} usuarioId
- * @param {Object=} filtros
- * @returns {Reporte[]}
- */
-async function admin(usuarioId, filtros) {
-  return await reporteModel
-    .find({
-      jerarquia: usuarioId,
-      ...filtros,
-    })
-    .lean();
-}
 const participacionMap = {
   master: {
     $cond: [
@@ -254,7 +167,6 @@ function buscar_usuario(usuarioId, rol, operadoras, desde, hasta, moneda) {
 function buscar_taquilla(usuarioId, rol, desde, hasta, moneda) {
   const comision = comisionMap[rol];
   const participacion = participacionMap[rol];
-  const rolNivel = rolMap[rol];
   desde = new Date(desde);
   desde.setHours(0, 0, 0);
   hasta = new Date(hasta);
