@@ -1,3 +1,4 @@
+const Usuario = require("../dto/usuario-dto");
 const Venta = require("../dto/venta-dto");
 const redisRepo = require("./redis-repo");
 
@@ -6,10 +7,11 @@ const UN_DIA = 86400;
 /**
  * @param {String} usuarioId
  * @param {Venta} venta
+ * @param {String} moneda
  */
-function incrementar(usuarioId, venta) {
+function incrementar(usuarioId, venta, moneda) {
   return new Promise((resolve, reject) => {
-    hash = `${venta.sorteo}_${usuarioId}_${venta.moneda}`;
+    hash = `${venta.sorteo}_${usuarioId}_${moneda}`;
     redisRepo
       .hincrby(hash, venta.numero, venta.monto)
       .then((result) => {
@@ -41,6 +43,17 @@ function disminuir(usuarioId, venta) {
 module.exports = {
   cache: {
     incrementar,
-    disminuir,
+    /**
+     *
+     * @param {Usuario} pos
+     * @param {Venta} venta
+     */
+    disminuir: (pos, venta) => {
+      const usuarios = [disminuir(pos._id, venta)];
+      pos.jerarquia.forEach((usuario) => {
+        usuarios.push(disminuir(usuario, venta));
+      });
+      return Promise.all(usuarios);
+    },
   },
 };

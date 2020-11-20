@@ -55,12 +55,12 @@ function nuevo(taquilla, ventas) {
         ventas.forEach((venta) => {
           taquilla.jerarquia.forEach((padre) => {
             //padre-sorteo
-            ventaRepo.cache.incrementar(padre, venta);
+            ventaRepo.cache.incrementar(padre, venta, taquilla.moneda);
           });
           //taquilla-sorteo
-          ventaRepo.cache.incrementar(taquilla._id, venta);
+          ventaRepo.cache.incrementar(taquilla._id, venta, taquilla.moneda);
           //sorteo
-          ventaRepo.cache.incrementar("venta", venta);
+          ventaRepo.cache.incrementar("venta", venta, taquilla.moneda);
         });
         //TODO notificar usuarios
       })
@@ -107,17 +107,17 @@ function pagar(usuario, serial, codigo, responsable) {
   });
 }
 /**
- * @param {Usuario} usuario
+ * @param {Usuario} pos
  * @param {String} serial
  * @param {String} codigo
  * @param {String} responsableId
  */
-function anular(usuario, serial, codigo, responsableId) {
+function anular(pos, serial, codigo, responsableId) {
   return new Promise(async (resolve, reject) => {
-    const ticket = await buscar_ticket_serial(usuario, serial);
+    const ticket = await buscar_ticket_serial(pos, serial);
     //#region validacion
     if (!ticket) return reject("ticket no existe");
-    const esPOS = usuario.rol.match(/taquilla|online/);
+    const esPOS = pos.rol.match(/taquilla|online/);
     if (esPOS)
       if (ticket.codigo != codigo)
         return reject("codigo de seguridad invalido");
@@ -133,7 +133,7 @@ function anular(usuario, serial, codigo, responsableId) {
       if (
         sorteoCerrado ||
         sorteoTiempoCerrado ||
-        tiempoVentaTranscurrido > 1000000
+        tiempoVentaTranscurrido > 300000
       ) {
         return reject("tiempo de anulacion expiró");
       }
@@ -149,6 +149,9 @@ function anular(usuario, serial, codigo, responsableId) {
         else reject(error);
       }
       const anular = { anulado: true };
+      ventas.forEach((venta) => {
+        ventaRepo.cache.disminuir(pos, venta);
+      });
       await ticketModel.updateOne({ _id: ticket._id }, anular);
       await ventaModel.updateMany({ ticketId: ticket._id }, anular);
       resolve(anulado);
