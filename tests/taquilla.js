@@ -59,7 +59,7 @@ describe("prueba de API POS", () => {
       });
   });
   it("vender", async function () {
-    const tickets = crearTickets(5);
+    const tickets = crearTickets(4);
     return request(app)
       .post(url("ticket/venta"))
       .set(authToken)
@@ -72,8 +72,9 @@ describe("prueba de API POS", () => {
       });
   });
   it("buscar ticket", async function () {
+    const payload = { serial: ticketVendido.serial };
     return request(app)
-      .get(url(`ticket/buscar`, { serial: ticketVendido.serial }))
+      .get(url(`ticket/buscar`, payload))
       .set(authToken)
       .expect(200)
       .then(anError);
@@ -101,7 +102,9 @@ describe("prueba de API POS", () => {
       .expect(200)
       .then(anError)
       .then((result) => result.body)
-      .then((body) => {});
+      .then((body) => {
+        console.log(JSON.stringify(body));
+      });
   });
   it("buscar ticket anulado", async function () {
     return request(app)
@@ -128,6 +131,15 @@ describe("premiar", () => {
     const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
     return await sorteoService.premiar(sorteo._id, getRandomInt(0, 36));
   });
+  it.skip("pagar ticket", async function () {
+    return request(app)
+      .get(url("ticket/pagar"))
+      .set(authToken)
+      .expect(200)
+      .then(anError)
+      .then((result) => result.body)
+      .then((body) => {});
+  });
 });
 
 describe("reportes", () => {
@@ -139,17 +151,17 @@ describe("reportes", () => {
       .expect(200)
       .then(anError)
       .then((result) => result.body)
-      .then((body) => {
-        expect(body.reportes).length.above(0);
+      .then((reportes) => {
+        expect(reportes.reportes).length.above(0);
       });
   });
 });
 
 function crearTickets(n = 36) {
   const operadora = operadoras[0];
-  const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
+  const sorteo = operadora.sorteos[operadora.sorteos.length - 2];
   let jugadas = [];
-  for (let i = 0; i < 36; i++) {
+  for (let i = 0; i < n; i++) {
     jugadas.push({
       sorteo: sorteo._id,
       numero: trailZero(i),

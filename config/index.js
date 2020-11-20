@@ -8,10 +8,7 @@ if (env.error) {
   throw new Error("⚠️Couldn't find .env file⚠️");
 }
 module.exports = {
-  databaseURL:
-    isDev == "development"
-      ? process.env.MONGODB_URI_DEV
-      : process.env.MONGODB_URI_PROD,
+  databaseURL: process.env.MONGODB_URI,
   jwtSecret: process.env.JWT_SECRETO,
   baseUrl: process.env.BASE_URL,
   email: {

@@ -2,9 +2,6 @@ const { default: Axios } = require("axios");
 const { expect } = require("chai");
 const Sorteo = require("../dto/sorteo-dto");
 const { getRandomInt, trailZero } = require("../utils/number-util");
-const redisRepo = require("../repositorio/redis-repo");
-const ticketModel = require("_modelos/ticket-model");
-const ventaModel = require("_modelos/venta-model");
 const config = require("../config");
 
 const url = (path) => {
@@ -109,9 +106,9 @@ describe("pruebas", function () {
     });
   });
   it("vender lote", function (done) {
-    len = 1000;
+    len = 10;
     intervalo = len * 0.1;
-    const hilos = 1;
+    const hilos = 10;
 
     for (let x = 0; x < len; x++) {
       const nums = [];

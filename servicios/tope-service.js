@@ -90,7 +90,9 @@ module.exports = {
  * @param {Tope} tope
  */
 async function buscarMontoJugado(venta, tope) {
-  const hashVenta = `${venta.sorteo}_${tope.usuario.toString()}`;
+  const hashVenta = `${venta.sorteo}_${tope.usuario.toString()}_${
+    venta.moneda
+  }`;
   let monto = await redisRepo.hget(hashVenta, venta.numero);
   if (monto) return Number(monto);
   else {

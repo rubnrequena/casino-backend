@@ -15,6 +15,7 @@ const operadoraRepo = require("../repositorio/operadora-repo");
 
 const topeService = require("./tope-service");
 const ticketModel = require("_modelos/ticket-model");
+const ventaRepo = require("../repositorio/venta-repo");
 
 /** JSDoc
  * @param {Usuario} taquilla
@@ -53,18 +54,12 @@ function nuevo(taquilla, ventas) {
         ventas.forEach((venta) => {
           taquilla.jerarquia.forEach((padre) => {
             //padre-sorteo
-            hash = `${venta.sorteo}_${padre}`;
-            redisRepo.hincrby(hash, venta.numero, venta.monto);
-            redisRepo.expire(hash, 86400);
+            ventaRepo.cache.incrementar(padre, venta);
           });
           //taquilla-sorteo
-          hash = `${venta.sorteo}_${taquilla._id}`;
-          redisRepo.hincrby(hash, venta.numero, venta.monto);
-          redisRepo.expire(hash, 86400);
+          ventaRepo.cache.incrementar(taquilla._id, venta);
           //sorteo
-          hash = `venta-${venta.moneda}-${venta.sorteo}`;
-          redisRepo.hincrby(hash, venta.numero, venta.monto);
-          redisRepo.expire(hash, 86400);
+          ventaRepo.cache.incrementar("venta", venta);
         });
         //TODO notificar usuarios
       })

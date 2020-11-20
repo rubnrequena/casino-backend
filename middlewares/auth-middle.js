@@ -6,14 +6,14 @@ const Usuario = require("../dto/usuario-dto");
 
 const AUTH_CLONAR_ROUTE_VALIDATION = "usuario,nombre,clave,correo,telefono";
 const excluciones = [
-  /^\/auth/,
+  /^\/auth$/,
   /^\/auth\/registro_online/,
   /^\/auth\/activar/,
   /^\/images/,
   /^\/auth\/recuperar/,
   /^\/hipismo\/saldo/,
   /^\/hipismo\/transaccion/,
-  /^\/api\/pos\/auth/,
+  /^\/api\/pos\/auth$/,
   /^\/.well-known/,
 ];
 
