@@ -143,7 +143,7 @@ function anular(pos, serial, codigo, responsableId) {
       }
     }
     const anulado = new anuladoModel({
-      ticket: ticket._id,
+      _id: ticket._id,
       anulado: new Date(),
       responsable: responsableId,
     });
