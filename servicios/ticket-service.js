@@ -101,8 +101,20 @@ function buscar_ticket_serial(usuario, serial) {
 function pagar(pos, serial, codigo, numero, responsable) {
   return new Promise(async (resolve, reject) => {
     const ticket = await buscar_ticket_serial(pos, serial);
+    if (!ticket)
+      return reject({ code: Errores.NO_EXISTE, error: "TICKET NO EXISTE" });
+    const estaPagado = ticketRepo.buscar.pagado(ticket._id);
+    if (estaPagado)
+      return reject({
+        code: Errores.TICKET_PAGADO,
+        error: "TICKET PAGADO PREVIAMENTE",
+      });
+
     if (ticket.codigo != codigo)
-      return reject({ code: 0, error: "codigo de ticket invalido" });
+      return reject({
+        code: Errores.TICKET_CODIGO_INVALIDO,
+        error: "CODIGO DE TICKET INVALIDO",
+      });
     const venta = await ventaRepo.buscar.premiado(ticket._id, numero);
     ticketRepo
       .pagar(venta, responsable._id)
@@ -120,11 +132,21 @@ function anular(pos, serial, codigo, responsableId) {
   return new Promise(async (resolve, reject) => {
     const ticket = await buscar_ticket_serial(pos, serial);
     //#region validacion
-    if (!ticket) return reject("ticket no existe");
+    if (!ticket) return reject({ code: Errores.NO_EXISTE });
+    const estaAnulado = await ticketRepo.buscar.anulado(ticket._id);
+    if (estaAnulado)
+      return reject({
+        code: Errores.TICKET_ANULADO,
+        error: "TICKET ANULADO PREVIAMENTE",
+      });
+
     const esPOS = pos.rol.match(/taquilla|online/);
     if (esPOS)
       if (ticket.codigo != codigo)
-        return reject("codigo de seguridad invalido");
+        return reject({
+          code: Errores.TICKET_CODIGO_INVALIDO,
+          error: "CODIGO DE TICKET INVALIDO",
+        });
     //#endregion
     const ventas = await ticketRepo.buscar.ventas(ticket._id);
     for (let i = 0; i < ventas.length; i++) {
@@ -149,7 +171,11 @@ function anular(pos, serial, codigo, responsableId) {
     });
     anulado.save(async (error) => {
       if (error) {
-        if (error.code == 11000) return reject("ticket previamente anulado");
+        if (error.code == 11000)
+          return reject({
+            code: Errores.TICKET_ANULADO,
+            error: "TICKET ANULADO PREVIAMENTE",
+          });
         else reject(error);
       }
       const anular = { anulado: true };
