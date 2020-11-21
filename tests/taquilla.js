@@ -162,7 +162,6 @@ describe("pagar tickets", () => {
       });
   });
   it("pagar ticket", async function () {
-    this.timeout(0);
     const numeroPremiado = ticketPremiado.premiados[0];
     return request(app)
       .post(url("ticket/pagar"))

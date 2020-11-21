@@ -1,6 +1,6 @@
 module.exports = {
   trailZero(n) {
-    return n < 10 ? `0${n}` : n.toString();
+    return parseInt(n) < 10 ? `0${n}` : n.toString();
   },
   getRandomInt(min, max) {
     min = Math.ceil(min);
