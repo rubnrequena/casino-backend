@@ -114,7 +114,7 @@ function anular(ticket) {
 function pagar(venta, responsableId) {
   return new Promise((resolve, reject) => {
     const pagado = {
-      ticket: venta.ticketId,
+      _id: venta.ticketId,
       numero: venta.numero,
       pagado: new Date(),
       responsable: responsableId,

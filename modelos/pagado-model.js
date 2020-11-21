@@ -1,8 +1,10 @@
 const mongoose = require("mongoose");
 const esquema = new mongoose.Schema({
-  ticket: {
+  _id: {
     type: mongoose.Types.ObjectId,
     required: true,
+    index: true,
+    unique: true,
   },
   numero: {
     type: String,
