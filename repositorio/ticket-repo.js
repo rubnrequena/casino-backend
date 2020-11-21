@@ -507,6 +507,21 @@ async function ultimos_premiados(
 async function ventas(ticketId) {
   return await ventaModel.find({ ticketId }).lean();
 }
+/**
+ *
+ * @param {String} ticketId
+ * @returns {Promise<Ticket>}
+ */
+async function buscar_anulado(ticketId) {
+  return await anuladoModel.findById(ticketId).lean();
+}
+/**
+ * @param {String} ticketId
+ * @returns {Promise<Venta>}
+ */
+async function buscar_pagado(ticketId) {
+  return await pagadoModel.findById(ticketId).lean();
+}
 //#endregion
 
 function operadora(operadoraId) {}
@@ -878,6 +893,8 @@ module.exports = {
     ultimos: buscar_ultimos,
     ultimos_premiados,
     ventas,
+    anulado: buscar_anulado,
+    pagado: buscar_pagado,
   },
   monitor: {
     numeros: monitor_numeros,
