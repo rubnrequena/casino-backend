@@ -3,6 +3,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const { getRandomInt } = require("../utils/number-util");
 const { ticketSerial } = require("../utils/ticket-util");
 
+const Error = require("../dto/errores.dto");
 const Usuario = require("../dto/usuario-dto");
 const Venta = require("../dto/venta-dto");
 const Ticket = require("../dto/ticket-dto");
@@ -14,6 +15,7 @@ const ticketModel = require("_modelos/ticket-model");
 const ventaModel = require("_modelos/venta-model");
 const premioModel = require("_modelos/premio-model");
 const pagadoModel = require("_modelos/pagado-model");
+const anuladoModel = require("_modelos/anulado-model");
 
 const redisRepo = require("./redis-repo");
 
@@ -120,7 +122,14 @@ function pagar(venta, responsableId) {
       responsable: responsableId,
     };
     pagadoModel.collection.insertOne(pagado, async (error, result) => {
-      if (error) return reject(error);
+      if (error) {
+        if (error.code == 11000)
+          return reject({
+            code: Error.TICKET_PAGADO,
+            error: "TICKET PAGADO PREVIAMENTE",
+          });
+        else return reject(error);
+      }
       await ventaModel.updateOne({ _id: venta._id }, { pagado: true });
       pagado._id = result.insertedId;
       resolve(pagado);
