@@ -79,7 +79,12 @@ function sorteo_disponibles(req, res) {
     .disponibleEnlaces(fecha, req.user.jerarquia)
     .then((operadoras) => {
       const ahora = new Date()
-
+      operadoras.forEach(operadora => {
+        console.log('operadora.sorteos :>> ', operadora.sorteos.length);
+        operadora.sorteos = operadora.sorteos.filter(sorteo => {
+          return sorteo.cierra > ahora
+        })
+      })
       res.json({ error: "OK", operadoras })
     })
     .catch((error) => res.json(crearError(error)));
