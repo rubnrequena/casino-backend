@@ -41,8 +41,8 @@ module.exports = {
       });
     });
   },
-  editar(sorteoId, campos) {},
-  remover(sorteoId) {},
+  editar(sorteoId, campos) { },
+  remover(sorteoId) { },
 
   cerrar(sorteoId) {
     return new Promise((resolve, reject) => {
@@ -199,7 +199,7 @@ module.exports = {
               },
             },
             { $addFields: { operadora: { $arrayElemAt: ["$operadora", 0] } } },
-            { $project: { operadora: "$operadora.nombre", sorteos: 1 } },
+            { $project: { operadora: "$operadora.nombre", tipo: "$operadora.tipo", sorteos: 1 } },
           ],
           (error, operadoras) => {
             if (error) return reject(error.message);
