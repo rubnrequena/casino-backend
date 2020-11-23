@@ -82,7 +82,7 @@ function sorteo_disponibles(req, res) {
       const ahora = new Date()
       operadoras.forEach(operadora => {
         operadora.sorteos = operadora.sorteos.filter(sorteo => {
-          return sorteo.cierra > ahora
+          return sorteo.cierra > ahora && sorteo.abierta == true
         })
       })
       res.json({ error: "OK", operadoras })
