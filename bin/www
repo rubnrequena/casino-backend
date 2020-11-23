@@ -8,7 +8,7 @@ var app = require("../app");
 var debug = require("debug")("backend:server");
 var http;
 if (process.env.NODE_ENV == "development") http = require("http");
-else http = require("https");
+else http = require("http");
 /**
  * Get port from environment and store in Express.
  */
