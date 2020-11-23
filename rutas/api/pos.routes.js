@@ -21,10 +21,10 @@ router.get("/auth/recuperar_clave", auth.recuperar);
 //#endregion
 
 //#region SORTEO
-const buscarFecha = validarGET("fecha");
+const buscarFecha = validarGET("fecha,operadora:objectid");
 
 router.get("/sorteo/disponibles", sorteos.disponibles);
-router.get("/sorteo/buscar/fecha", buscarFecha, sorteos.buscar);
+router.get("/sorteo/buscar", buscarFecha, sorteos.buscar);
 //#endregion
 
 //#region REPORTES
@@ -34,7 +34,7 @@ const reporte_tickets = [validarGET("fecha,moneda"), validarJerarquia];
 router.get("/reporte/general", reporte_general, reportes.general);
 router.get("/reporte/tickets", reporte_tickets, reportes.tickets);
 router.get("/reporte/caja", validarJerarquia, reportes.caja);
-router.get("/reporte/caja/generar", (req, res) => {});
+router.get("/reporte/caja/generar", (req, res) => { });
 //#endregion
 
 //#region TICKET
@@ -44,7 +44,7 @@ const pagarTicket = [validarPOST("serial,codigo:number,numero")];
 
 router.post("/ticket/venta", puedeVender, reporteTickets.venta);
 router.get("/ticket/buscar", buscarTicket, reporteTickets.buscar);
-router.get("/ticket/buscar/ultimos", (req, res) => {});
+router.get("/ticket/buscar/ultimos", (req, res) => { });
 router.post("/ticket/anular", anularTicket, reporteTickets.anular);
 router.post("/ticket/pagar", pagarTicket, reporteTickets.pagar);
 router.post("/ticket/devolucion", reporteTickets.devolucion);

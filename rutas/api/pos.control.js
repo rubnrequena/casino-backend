@@ -14,6 +14,7 @@ const authService = require("../../servicios/auth-service");
 const ticketService = require("../../servicios/ticket-service");
 const usuarioService = require("../../servicios/usuario-service");
 const sesionRepo = require("../../repositorio/sesion-repo");
+const sorteoService = require("../../servicios/sorteo-service");
 //#endregion
 
 //#region AUTH
@@ -76,7 +77,15 @@ function sorteo_disponibles(req, res) {
   const { fecha } = req.query;
   sorteoRepo.buscar
     .disponibleEnlaces(fecha, req.user.jerarquia)
-    .then((operadoras) => res.json({ error: "OK", operadoras }))
+    .then((operadoras) => {
+      const ahora = new Date()
+      operadoras.forEach(operadora => {
+        operadora.sorteos = operadora.sorteos.filter(sorteo => {
+          return sorteo.cierra > ahora
+        })
+      })
+      res.json({ error: "OK", operadoras })
+    })
     .catch((error) => res.json(crearError(error)));
 }
 /** GET api/sorteos/buscar
@@ -85,9 +94,9 @@ function sorteo_disponibles(req, res) {
  */
 function sorteo_buscar(req, res) {
   let { fecha, operadora } = req.query;
-  sorteoRepo.buscar
-    .fecha(fecha, fecha, operadora, "")
-    .then((sorteos) => res.json({ error: "OK", ...sorteos }))
+  sorteoService.buscar
+    .fecha(fecha, operadora)
+    .then((sorteos) => res.json({ error: "OK", sorteos }))
     .catch((error) => res.json(crearError(error)));
 }
 //#endregion
@@ -133,7 +142,7 @@ function reporte_tickets(req, res) {
  * @param {request} req
  * @param {response} res
  */
-function reporte_caja(req, res) {}
+function reporte_caja(req, res) { }
 //#endregion
 
 //#region TICKETS

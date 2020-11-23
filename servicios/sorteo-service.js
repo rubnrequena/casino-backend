@@ -162,8 +162,12 @@ module.exports = {
     });
   },
   buscar: {
-    fecha(desde, hasta) {
-      return sorteoRepo.buscar.fecha(desde, hasta);
+    /**
+     * @param {String} fecha 
+     * @param {String} operadoraId 
+     */
+    fecha(fecha, operadoraId) {
+      return sorteoRepo.buscar.fecha(fecha, operadoraId);
     },
     /**
      * @param {Usuario} usuario

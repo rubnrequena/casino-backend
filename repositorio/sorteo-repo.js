@@ -12,6 +12,7 @@ const operadoraRepo = require("./operadora-repo");
 const numeroRepo = require("./numero-repo");
 
 const { parseDateString, formatDate } = require("../utils/date-util");
+const OperadoraSorteo = require("../dto/operadora-sorteo.dto");
 
 module.exports = {
   /** JSDoc
@@ -114,27 +115,18 @@ module.exports = {
       return await sorteoModel.findOne({ fecha, operadora });
     },
     /**JSDoc
-     * @param {Date} desde
-     * @param {Date} hasta
+     * @param {Date} fecha
      * @param {String} operadora
      * @param {String} campos
      * @returns {Promise<Sorteo[]>}
      */
-    async fecha(desde, hasta, operadora, campos) {
+    async fecha(fecha, operadora) {
       let filtro = {
-        fecha: {
-          $gte: desde,
-          $lte: hasta,
-        },
+        fecha,
+        operadora
       };
-      var populate;
-      if (operadora) {
-        filtro.operadora = operadora;
-        populate = "";
-      } else populate = "operadora";
       const sorteos = await sorteoModel
-        .find(filtro, "cierra descripcion fecha operadora ganador abierta")
-        .populate(populate, "nombre")
+        .find(filtro, "cierra descripcion ganador abierta")
         .lean();
       return sorteos;
     },
@@ -164,6 +156,10 @@ module.exports = {
         );
       });
     },
+    /**
+     * @param {String} usuarioId
+     * @returns {Promise<OperadoraSorteo[]>}
+     */
     disponibleEnlaces(fecha, jerarquia) {
       jerarquia = jerarquia.map((usuarioId) => ObjectId(usuarioId.toString()));
       return new Promise((resolve, reject) => {

@@ -21,7 +21,7 @@ const esquema = new mongoose.Schema({
   },
   ganador: {
     type: String,
-    validate: /d{2,3}/,
+    default: "",
   },
   operadora: {
     type: mongoose.Types.ObjectId,
