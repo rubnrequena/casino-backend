@@ -50,6 +50,17 @@ router.post("/nueva", operadoraNueva, (req, res) => {
     })
     .catch((err) => res.json(crearError(err)));
 });
+router.post("/editar", (req, res) => {
+  const {
+    _id, sorteos, comision, participacion, nombre, tipo, paga, numeros,
+  } = req.body;
+  operadoraService
+    .editar(_id, {
+      sorteos, comision, participacion, nombre, tipo, paga, numeros
+    })
+    .then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
+});
 
 router.get("/buscar/enlaces", buscarEnlace, (req, res) => {
   const usuario = req.usuario;
@@ -67,6 +78,16 @@ router.get("/buscar/disponibles", (req, res) => {
   operadoraRepo.buscar.disponibles().then((operadoras) => {
     res.json(operadoras);
   });
+});
+router.get('/buscar/id', (req, res) => {
+  const { operadora } = req.query
+  operadoraRepo.buscar.id(operadora).then((operadora) => res.json(operadora))
+    .catch((error) => res.json(crearError(error)));
+});
+router.get('/remover', (req, res) => {
+  const { id } = req.query;
+  operadoraService.remover(id).then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
 });
 
 router.post("/enlace/nuevo", enlaceNuevo, (req, res) => {
@@ -157,6 +178,7 @@ router.get("/grupopago/todos", validarJerarquia, (req, res) => {
   function result(grupos) {
     res.json(grupos);
   }
+
   function error(error) {
     res.json(crearError(error));
   }

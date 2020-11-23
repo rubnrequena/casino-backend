@@ -19,6 +19,17 @@ module.exports = {
     return operadoraRepo.guardar(nombre, tipo, paga, sorteos, numeros);
   },
   /**
+   * @param {String} operadoraId
+   * @param {Operadora} datos
+   * @returns {Promise<Boolean>}
+   */
+  editar(operadoraId, datos) {
+    return operadoraRepo.editar(operadoraId, datos);
+  },
+  remover(operadoraId) {
+    return operadoraRepo.remover(operadoraId)
+  },
+  /**
    *
    * @param {String} usuarioId
    * @param {String[]} operadoraIds

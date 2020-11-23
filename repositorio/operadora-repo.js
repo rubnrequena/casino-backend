@@ -37,6 +37,26 @@ module.exports = {
       });
     });
   },
+  /**
+   * @param {String} operadoraId
+   * @param {Operadora} datos
+   */
+  editar(operadoraId, datos) {
+    return new Promise((resolve, reject) => {
+      operadoraModel.updateOne({ _id: operadoraId }, datos, (error, result) => {
+        if (error) return reject(error.message);
+        resolve(result);
+      });
+    });
+  },
+  remover(operadoraId) {
+    return new Promise((resolve, reject) => {
+      operadoraModel.deleteOne({ _id: operadoraId }, (error, result) => {
+        if (error) return reject(error.message)
+        resolve(result)
+      })
+    });
+  },
   /** JSDoc
    * @param {String} operadoraId
    * @param {Boolean=} lean
