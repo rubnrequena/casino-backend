@@ -199,6 +199,7 @@ module.exports = {
           ],
           (error, operadoras) => {
             if (error) return reject(error.message);
+            console.log('sorteos', JSON.stringify(operadoras, null, 2));
             resolve(operadoras);
           }
         );
