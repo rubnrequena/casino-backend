@@ -52,6 +52,7 @@ describe("prueba de API POS", () => {
       .then(anError)
       .then((result) => {
         operadoras = result.body.operadoras;
+        console.log(result.body);
         expect(operadoras).length.above(0);
         operadoras.forEach((operadora) => {
           expect(operadora.sorteos).length.above(0);
