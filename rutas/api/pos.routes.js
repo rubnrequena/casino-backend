@@ -34,7 +34,7 @@ const reporte_tickets = [validarGET("fecha,moneda"), validarJerarquia];
 router.get("/reporte/general", reporte_general, reportes.general);
 router.get("/reporte/tickets", reporte_tickets, reportes.tickets);
 router.get("/reporte/caja", validarJerarquia, reportes.caja);
-router.get("/api/pos/reporte/caja/generar", (req, res) => {});
+router.get("/reporte/caja/generar", (req, res) => {});
 //#endregion
 
 //#region TICKET
