@@ -29,11 +29,10 @@ module.exports = {
   registrar(desde, hasta, operadora) {
     return new Promise(async (resolve, reject) => {
       let finicio = new Date(desde);
-      let ffinal = new Date(hasta);
-      ffinal.setHours(23, 59);
+      let ffinal = new Date(finicio.getFullYear(), finicio.getMonth(), finicio.getDate() + 1);
       let rangoFechas = [];
       let fecha;
-      while (finicio < ffinal) {
+      while (finicio <= ffinal) {
         fecha = finicio.toISOString().substr(0, 10);
         let existe = await sorteoRepo.buscar.registrado(fecha, operadora);
         if (!existe) rangoFechas.push(sorteoRepo.registrar(fecha, operadora));
@@ -44,6 +43,7 @@ module.exports = {
           resolve(result);
         })
         .catch((error) => {
+          reject(error)
           console.log(
             "Ocurrio un error mientras se registraban los sorteos",
             error

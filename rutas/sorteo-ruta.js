@@ -30,9 +30,7 @@ router.post("/nuevo", nuevo, (req, res) => {
   let { desde, hasta, operadora } = req.body;
   sorteoService
     .registrar(desde, hasta, operadora)
-    .then((sorteo) => {
-      res.json(sorteo);
-    })
+    .then((sorteo) => res.json(sorteo))
     .catch((error) => res.json(crearError(error)));
 });
 router.get("/disponibles", (req, res) => {
@@ -82,9 +80,9 @@ router.post("/reiniciar", reiniciar, (req, res) => {
 });
 
 router.get("/buscar/fecha", (req, res) => {
-  let { desde, hasta, operadora, campos } = req.query;
-  sorteoRepo.buscar
-    .fecha(desde, hasta, operadora, campos)
+  let { fecha, operadora } = req.query;
+  sorteoService.buscar
+    .fecha(fecha, operadora)
     .then((sorteos) => res.json(sorteos))
     .catch((error) => res.json(crearError(error)));
 });
