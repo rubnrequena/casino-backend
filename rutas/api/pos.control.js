@@ -15,6 +15,7 @@ const ticketService = require("../../servicios/ticket-service");
 const usuarioService = require("../../servicios/usuario-service");
 const sesionRepo = require("../../repositorio/sesion-repo");
 const sorteoService = require("../../servicios/sorteo-service");
+const { isoDate } = require("../../utils/date-util");
 //#endregion
 
 //#region AUTH
@@ -74,7 +75,7 @@ function recuperar_clave(req, res) {
  * @param {response} res
  */
 function sorteo_disponibles(req, res) {
-  const { fecha } = req.query;
+  const fecha = isoDate()
   sorteoRepo.buscar
     .disponibleEnlaces(fecha, req.user.jerarquia)
     .then((operadoras) => {
