@@ -14,11 +14,13 @@ const { init, login, token } = require("./common.js");
 const { mapObject } = require("../utils/object-util.js");
 const sorteoRepo = require("../repositorio/sorteo-repo.js");
 const sorteoService = require("../servicios/sorteo-service.js");
+const OperadoraSorteo = require("../dto/operadora-sorteo.dto.js");
 init(app, anError);
 
+let authToken;
 /** @type {Usuario} */
 let taquilla;
-let authToken;
+/** @type {OperadoraSorteo[]} */
 let operadoras;
 
 function url(url, query) {
@@ -52,12 +54,21 @@ describe("prueba de API POS", () => {
       .then(anError)
       .then((result) => {
         operadoras = result.body.operadoras;
-        console.log(result.body);
+        console.log(JSON.stringify(operadoras, null, 2));
         expect(operadoras).length.above(0);
         operadoras.forEach((operadora) => {
           expect(operadora.sorteos).length.above(0);
         });
       });
+  });
+  it('sorteos', async function () {
+    const payload = {
+      fecha: isoDate(),
+      operadora: operadoras[0]._id
+    }
+    return request(app).get(url('sorteo/buscar', payload)).set(authToken)
+      .expect(200)
+      .then(anError)
   });
   it("vender", async function () {
     const tickets = crearTickets(4);
