@@ -31,6 +31,7 @@ function nuevo(usuario, ventas) {
     const codigo = getRandomInt(1000, 9999);
     const serial = await ticketSerial();
     const monto = ventas.reduce((total, venta) => total + venta.monto, 0);
+    const jerarquia = usuario.jerarquia.map(usuario => ObjectId(usuario.toString()))
     let online = false;
     if (usuario.rol == Usuario.ONLINE) {
       let saldo = await redisRepo.hget(
@@ -49,7 +50,7 @@ function nuevo(usuario, ventas) {
       creado,
       monto,
       anulado: false,
-      jerarquia: usuario.jerarquia,
+      jerarquia: jerarquia,
       online,
       moneda: usuario.moneda,
     };
@@ -188,15 +189,18 @@ async function buscar_id(id) {
 }
 /**
  * @param {String} serial
+ * @param {String[]} usuarios
  * @return {Promise<Ticket>}
  */
-async function buscar_serial(serial) {
+async function buscar_serial(serial, usuarios) {
+  const jerarquia = usuarios.map(usuario => ObjectId(usuario.toString()))
   return new Promise((resolve, reject) => {
     ticketModel.aggregate(
       [
         {
           $match: {
-            serial: serial.toUpperCase(),
+            serial,
+            jerarquia: { $in: jerarquia }
           },
         },
         {
@@ -254,10 +258,31 @@ async function buscar_serial(serial) {
 
 /**
  * @param {String} serial
+ * @param {String[]} usuarios
  * @return {Promise<Ticket>}
  */
-async function buscar_ticket_serial(serial) {
-  return await ticketModel.findOne({ serial }).lean();
+function buscar_ticket_serial(serial, usuarios) {
+  return new Promise((resolve, reject) => {
+    const jerarquia = usuarios.map(usuario => ObjectId(usuario.toString()))
+    return ticketModel.aggregate([
+      {
+        $match: {
+          serial,
+          jerarquia: { $in: jerarquia }
+        }
+      },
+      {
+        $project: {
+          jerarquia: 0,
+          moneda: 0
+        }
+      }
+    ], (error, tickets) => {
+      if (error) return reject(error.message);
+      if (tickets.length > 0) resolve(tickets[0]);
+      else reject("ticket no existe");
+    })
+  });
 }
 /**
  * @param {String} usuarioId
@@ -533,7 +558,7 @@ async function buscar_pagado(ticketId) {
 }
 //#endregion
 
-function operadora(operadoraId) {}
+function operadora(operadoraId) { }
 
 /**
  * @param {String} ticketId

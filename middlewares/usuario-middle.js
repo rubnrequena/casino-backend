@@ -40,10 +40,7 @@ module.exports = {
     }
   },
   async puedeVender(req, res, next) {
-    //TODO: optimizar REDIS
-    const usuario = await redisRepo.cache("usuarios", req.user._id, () =>
-      usuarioRepo.findById(req.user._id)
-    );
+    const usuario = await redisRepo.cache("usuarios", req.user._id, buscarUsuario_mongo)
     if (!usuario)
       return res.status(401).send({
         error: "Usuario no existe",
@@ -56,5 +53,10 @@ module.exports = {
         error: "No tiene permisos para acceder a este recurso",
       });
     }
+
+    async function buscarUsuario_mongo() {
+      return await usuarioRepo.findById(req.user._id)
+    }
   },
 };
+

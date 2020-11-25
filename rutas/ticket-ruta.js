@@ -21,10 +21,19 @@ router.post("/venta", venta, (req, res) => {
     .catch((error) => res.json(crearError(error)));
 });
 
+const anularTicket = validarPOST("serial")
+router.post("/anular", anularTicket, (req, res) => {
+  const { serial, codigo } = req.body;
+  ticketService
+    .anular(req.user, serial, codigo, req.user._id)
+    .then((ticket) => res.json(ticket))
+    .catch((error) => res.json(crearError(error)));
+});
+
 router.get("/buscar/serial", usuarioMiddle.validarJerarquia, (req, res) => {
   const { serial } = req.query;
   ticketService.buscar
-    .serial(req.usuario._id, serial)
+    .serial(req.usuario, serial)
     .then((ticket) => res.json(ticket))
     .catch((error) => res.json(crearError(error)));
 });
@@ -81,4 +90,6 @@ router.get("/administrador", usuarioMiddle.validarJerarquia, (req, res) => {
     })
     .catch((error) => res.json(crearError(error)));
 });
+
+
 module.exports = router;

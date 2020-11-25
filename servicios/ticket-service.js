@@ -74,10 +74,8 @@ function nuevo(taquilla, ventas) {
  * @returns {Promise<Ticket>}
  */
 function buscar_serial(usuario, serial) {
-  return ticketRepo.buscar.serial(serial).then((ticket) => {
-    if (ticket.usuario.toString() == usuario._id.toString()) return ticket;
-    else return null;
-  });
+  const jerarquia = [...usuario.jerarquia, usuario._id]
+  return ticketRepo.buscar.serial(serial, jerarquia)
 }
 /**
  * @param {Usuario} usuario
@@ -85,13 +83,10 @@ function buscar_serial(usuario, serial) {
  * @returns {Promise<Ticket>}
  */
 function buscar_ticket_serial(usuario, serial) {
-  return ticketRepo.buscar.ticket_serial(serial).then((ticket) => {
-    if (ticket.usuario.toString() == usuario._id.toString()) return ticket;
-    else return null;
-  });
+  const jerarquia = [...usuario.jerarquia, usuario._id]
+  return ticketRepo.buscar.ticket_serial(serial, jerarquia);
 }
 /**
- *
  * @param {Usuario} pos
  * @param {String} serial
  * @param {String} codigo
@@ -156,12 +151,11 @@ function anular(pos, serial, codigo, responsableId) {
       const sorteoCerrado = sorteo.abierta === false;
       const sorteoTiempoCerrado = now > sorteo.cierra.getTime();
       const tiempoVentaTranscurrido = now - venta.creado.getTime();
-      if (
-        sorteoCerrado ||
-        sorteoTiempoCerrado ||
-        tiempoVentaTranscurrido > 300000
-      ) {
-        return reject("tiempo de anulacion expiró");
+      if (sorteoCerrado || sorteoTiempoCerrado) {
+        return reject({ codigo: Errores.SORTEO_CERRADO, error: "SORTEO CERRADO" })
+      } else {
+        if (esPOS && tiempoVentaTranscurrido > 300000)
+          return reject({ codigo: Errores.TICKET_ANULAR_TIEMPO_AGOTADO, error: "TIEMPO DE ANULACION EXPIRADO" });
       }
     }
     const anulado = new anuladoModel({

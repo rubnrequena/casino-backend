@@ -1,6 +1,9 @@
 module.exports = {
   crearError(error) {
-    if (error.message) return {
+    if (error.error) {
+      return error
+    }
+    else if (error.message) return {
       error: error.message
     }
     else if (error.errmsg) return {
