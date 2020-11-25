@@ -5,7 +5,7 @@ module.exports = {
       script: "bin/www",
       watch: false,
       ignore_watch: ["node_modules", "tests"],
-      instances: 2,
+      instances: 4,
       exec_mode: "cluster",
       env: {
         PORT: 3000,
