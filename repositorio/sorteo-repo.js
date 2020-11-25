@@ -82,7 +82,7 @@ module.exports = {
           _id: sorteoId,
         },
         {
-          $unset: { ganador: 1 },
+          $set: { ganador: "" },
         },
         (error, result) => {
           if (error) return reject(error.message);
