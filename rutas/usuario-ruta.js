@@ -136,11 +136,21 @@ const comisionRegistro = [
   ),
   validarJerarquia,
 ];
+const comisionEditar = [validarPOST("usuario:objectid,comision:objectid,comisiones:object"), validarJerarquia]
 router.post("/comision/registro", comisionRegistro, (req, res) => {
   const { operadora, comision, participacion, utilidad } = req.body;
   comisionService
     .registrar(req.usuario, operadora, comision, participacion, utilidad)
     .then((result) => res.json(result))
+    .catch((error) => res.json(crearError(error)));
+});
+router.get('/comision/usuario', validarJerarquia, (req, res) => {
+  comisionService.buscar.usuario(req.usuario).then((comisiones) => res.json(comisiones))
+    .catch((error) => res.json(crearError(error)));
+});
+router.post('/comision/editar', comisionEditar, (req, res) => {
+  const { comision, comisiones } = req.body
+  comisionService.modificar(req.usuario, comision, comisiones).then((comisiones) => res.json(comisiones))
     .catch((error) => res.json(crearError(error)));
 });
 //#endregion
