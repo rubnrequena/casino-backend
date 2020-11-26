@@ -32,6 +32,7 @@ function nuevo(taquilla, ventas) {
       cache = true;
       if (!sorteo) {
         sorteo = await sorteoRepo.buscar.id(venta.sorteo);
+        if (!sorteo) return reject({ code: Errores.NO_EXISTE, error: 'SORTEOS INVALIDOS' })
         cacheOperadora[venta.sorteo] = sorteo;
         cache = false;
       }

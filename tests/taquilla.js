@@ -54,7 +54,6 @@ describe("prueba de API POS", () => {
       .then(anError)
       .then((result) => {
         operadoras = result.body.operadoras;
-        console.log(JSON.stringify(operadoras, null, 2));
         expect(operadoras).length.above(0);
         operadoras.forEach((operadora) => {
           expect(operadora.sorteos).length.above(0);
@@ -72,6 +71,7 @@ describe("prueba de API POS", () => {
   });
   it("vender", async function () {
     const tickets = crearTickets(4);
+    console.log('tickets :>> ', tickets);
     return request(app)
       .post(url("ticket/venta"))
       .set(authToken)
@@ -80,6 +80,7 @@ describe("prueba de API POS", () => {
       .then(anError)
       .then((result) => result.body)
       .then((ticket) => {
+        console.log('ticket :>> ', ticket);
         ticketVendido = ticket.ticket;
       });
   });
@@ -213,7 +214,7 @@ function crearTickets(n = 36) {
   let jugadas = [];
   for (let i = 0; i < n; i++) {
     jugadas.push({
-      sorteo: sorteo._id,
+      sorteo: "5fbbfa9c5601092938b392x9",
       numero: trailZero(i),
       monto: getRandomInt(10, 100) * 100,
     });
