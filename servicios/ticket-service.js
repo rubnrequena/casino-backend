@@ -32,7 +32,7 @@ function nuevo(taquilla, ventas) {
       cache = true;
       if (!sorteo) {
         sorteo = await sorteoRepo.buscar.id(venta.sorteo);
-        if (!sorteo) return reject({ code: Errores.NO_EXISTE, error: 'SORTEOS INVALIDOS' })
+        if (!sorteo) return reject({ error: 'SORTEOS INVALIDOS' })
         cacheOperadora[venta.sorteo] = sorteo;
         cache = false;
       }
@@ -51,7 +51,6 @@ function nuevo(taquilla, ventas) {
       .then(async () => {
         const ticket = await ticketRepo.nuevo(taquilla, ventas);
         resolve(ticket);
-        let hash;
         //TODO: disminuir venta al anular ticket
         ventas.forEach((venta) => {
           taquilla.jerarquia.forEach((padre) => {
