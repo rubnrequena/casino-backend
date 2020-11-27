@@ -6,6 +6,7 @@ const { validarPOST, validarPermisos, validarGET } = require("../middlewares");
 const operadoraRepo = require("../repositorio/operadora-repo");
 const Permiso = require("../dto/permiso.dto");
 const Usuario = require("../dto/usuario-dto");
+const sorteoRepo = require("../repositorio/sorteo-repo");
 
 //#region Permisos
 const operadoraNueva = [
@@ -131,6 +132,12 @@ router.post("/numero", numeroNuevo, (req, res) => {
   operadoraRepo.numeros
     .nuevo()
     .then((numero) => res.json(numero))
+    .catch((error) => res.json(crearError(error)));
+});
+
+router.get('/ultimos_ganadores', (req, res) => {
+  const { operadora } = req.query
+  sorteoRepo.buscar.historial_ganadores(operadora).then((historial) => res.json(historial))
     .catch((error) => res.json(crearError(error)));
 });
 

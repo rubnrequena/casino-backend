@@ -14,6 +14,24 @@ const numeroRepo = require("./numero-repo");
 const { parseDateString, formatDate } = require("../utils/date-util");
 const OperadoraSorteo = require("../dto/operadora-sorteo.dto");
 
+/**
+ * @param {String} operadoraId
+ * @returns {Promise<Array>} 
+ */
+function historial_ganadores(operadoraId) {
+  return new Promise((resolve, reject) => {
+    sorteoModel.aggregate([
+      { $match: { operadora: ObjectId(operadoraId.toString()), ganador: { $ne: "" } } },
+      { $sort: { cierra: -1 } },
+      { $group: { _id: "$ganador", fecha: { $first: "$fecha" } } },
+      { $project: { numero: "$_id", fecha: 1, _id: 0 } }
+    ], (error, numeros) => {
+      if (error) return reject(error.message)
+      resolve(numeros)
+    })
+  });
+}
+
 module.exports = {
   /** JSDoc
    * @param {String} fecha
@@ -126,7 +144,7 @@ module.exports = {
         operadora
       };
       const sorteos = await sorteoModel
-        .find(filtro, "cierra descripcion ganador abierta")
+        .find(filtro, "cierra descripcion ganador abierta operadora")
         .lean();
       return sorteos;
     },
@@ -302,13 +320,6 @@ module.exports = {
         );
       });
     },
+    historial_ganadores
   },
 };
-
-function serializar(sorteo) {
-  sorteo.cierra = new Date(sorteo.cierra);
-  sorteo.fecha = new Date(sorteo.fecha);
-  sorteo.operadora = new mongoose.Types.ObjectId(sorteo.operadora);
-  sorteo._id = new mongoose.Types.ObjectId(sorteo.operadora);
-  return sorteo;
-}

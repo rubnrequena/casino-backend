@@ -15,6 +15,24 @@ const GrupoPago = require("../dto/grupo_pago-model");
 const operadora_pagaModel = require("_modelos/operadora_paga-model");
 const Usuario = require("../dto/usuario-dto");
 
+
+/**
+ * @param {String} operadoraId
+ * @returns {Promise<Array>} 
+ */
+function historial_ganadores(operadoraId) {
+  return new Promise((resolve, reject) => {
+    sorteoModel.aggregate([
+      { $match: { operadora: ObjectId(operadoraId.toString()), ganador: { $ne: "" } } },
+      { $sort: { cierra: -1 } },
+      { $group: { _id: "$ganador", fecha: { $first: "$fecha" } } }
+    ], (error, numeros) => {
+      if (error) return reject(error.message)
+      resolve(numeros)
+    })
+  });
+}
+
 module.exports = {
   /** JSDoc
    * @param {String} nombre
@@ -422,5 +440,6 @@ module.exports = {
         });
       });
     },
+    historia: historial_ganadores
   },
 };
