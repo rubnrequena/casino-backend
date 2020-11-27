@@ -48,18 +48,18 @@ function nuevo(taquilla, ventas) {
       });
     topeService
       .validar(ventas, taquilla)
-      .then(async () => {
-        const ticket = await ticketRepo.nuevo(taquilla, ventas);
-        resolve(ticket);
-        //TODO: disminuir venta al anular ticket
+      .then(async ({ ventasAceptadas, ventasRechazadas }) => {
+        const ticket = await ticketRepo.nuevo(taquilla, ventasAceptadas);
+        resolve({
+          ticket,
+          jugadas: ventasAceptadas,
+          rechazadas: ventasRechazadas
+        });
         ventas.forEach((venta) => {
           taquilla.jerarquia.forEach((padre) => {
-            //padre-sorteo
             ventaRepo.cache.incrementar(padre, venta, taquilla.moneda);
           });
-          //taquilla-sorteo
           ventaRepo.cache.incrementar(taquilla._id, venta, taquilla.moneda);
-          //sorteo
           ventaRepo.cache.incrementar("venta", venta, taquilla.moneda);
         });
         //TODO notificar usuarios

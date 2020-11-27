@@ -45,7 +45,6 @@ module.exports = {
    */
   validar(ventas, taquilla) {
     return new Promise(async (resolve, reject) => {
-      let topeValido = false;
       let operadoras = ventas.reduce((rventas, venta) => {
         if (rventas.indexOf(venta.operadora) == -1)
           rventas.push(venta.operadora);
@@ -59,10 +58,12 @@ module.exports = {
           operadora
         );
       });
-      var montoJugado;
-      var montoActual;
+      let montoJugado;
+      let montoActual;
+      let ventasRechazadas = []
+      let ventasAceptadas = []
       for (let i = 0; i < ventas.length; i++) {
-        var venta = ventas[i];
+        let venta = ventas[i];
         const topes = topesOperadora[venta.operadora];
         for (let j = 0; j < topes.length; j++) {
           const tope = topes[j];
@@ -72,16 +73,15 @@ module.exports = {
             if (tope.numero == venta.numero || tope.numero == null) {
               if (montoJugado > tope.monto) {
                 ticketRepo.solicitados.incrementar(venta.sorteo, venta.numero)
-                return reject({ error: "Venta excede tope", venta });
-              } else topeValido = true;
+                venta.monto = Math.max(0, tope.monto - montoActual)
+                ventasRechazadas.push(venta)
+              }
             }
           }
         }
+        ventasAceptadas.push(venta)
       }
-      if (topeValido) resolve();
-      else {
-        reject("venta exede tope");
-      }
+      resolve({ ventasAceptadas, ventasRechazadas });
     });
   },
 };
