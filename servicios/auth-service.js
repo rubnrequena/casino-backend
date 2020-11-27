@@ -85,21 +85,8 @@ module.exports = {
    * @param {Object} participacion
    */
   registro(
-    padreId,
-    nombre,
-    usuario,
-    clave,
-    activo,
-    correo,
-    telefono,
-    comision,
-    participacion,
-    utilidad,
-    permisos,
-    rol,
-    moneda,
-    cedula,
-    grupoPago
+    padreId, nombre, usuario, clave, activo, correo, telefono,
+    comision, participacion, utilidad, permisos, rol, moneda, cedula, grupoPago
   ) {
     return new Promise(async (resolve, reject) => {
       let padre = await usuarioRepo.buscar.id(padreId);
@@ -122,21 +109,8 @@ module.exports = {
 
       usuarioRepo
         .registro(
-          padre,
-          nombre,
-          usuario,
-          clave,
-          rol,
-          activo,
-          correo,
-          telefono,
-          comision,
-          participacion,
-          utilidad,
-          permisos,
-          moneda,
-          cedula,
-          grupoPago
+          padre, nombre, usuario, clave, rol, activo, correo, telefono,
+          comision, participacion, utilidad, permisos, moneda, cedula, grupoPago
         )
         .then((usuario) => {
           if (usuario.rol == Usuario.ONLINE) {
@@ -309,7 +283,7 @@ module.exports = {
     nuevo(nombre, predeterminado, permisos, usuario) {
       return permisosRepo.nuevo(nombre, predeterminado, permisos, usuario);
     },
-    predefinir(usuario, permisoID) {},
+    predefinir(usuario, permisoID) { },
     buscar: {
       /**
        * @param {Usuario} usuario

@@ -253,21 +253,8 @@ module.exports = {
    * @returns {Promise<Usuario>}
    */
   async registro(
-    padre,
-    nombre,
-    usuario,
-    clave,
-    rol,
-    activo,
-    correo,
-    telefono,
-    comision,
-    participacion,
-    utilidad,
-    permisos,
-    moneda,
-    cedula,
-    grupoPago
+    padre, nombre, usuario, clave, rol, activo, correo, telefono, comision, participacion, utilidad,
+    permisos, moneda, cedula, grupoPago
   ) {
     let jerarquia = [...padre.jerarquia, padre._id];
     let nHash = padre.usuario;
@@ -285,22 +272,8 @@ module.exports = {
     codigo = [padre.codigo, codigo + 1].join("-");
     return new Promise((resolve, reject) => {
       new usuarioModel({
-        nombre,
-        usuario,
-        clave: md5(clave),
-        rol,
-        activo,
-        correo,
-        telefono,
-        jerarquia,
-        comision,
-        participacion,
-        utilidad,
-        permisos,
-        codigo,
-        moneda,
-        cedula,
-        grupoPago,
+        nombre, usuario, clave: md5(clave), rol, activo, correo, telefono, jerarquia, comision,
+        participacion, utilidad, permisos, codigo, moneda, cedula, grupoPago,
       }).save((err, usuario) => {
         if (err) return reject(err.message);
         resolve(usuario);
