@@ -69,9 +69,23 @@ describe("prueba de API POS", () => {
       .expect(200)
       .then(anError)
   });
+
+  it("validar", async function () {
+    this.timeout(0)
+    const tickets = crearTickets(4);
+    return request(app)
+      .post(url("ticket/validar"))
+      .set(authToken)
+      .send(tickets)
+      .expect(200)
+      .then(anError)
+      .then((result) => result.body)
+      .then((ticket) => {
+        ticketVendido = ticket.ticket;
+      });
+  });
   it("vender", async function () {
     const tickets = crearTickets(4);
-    console.log('tickets :>> ', tickets);
     return request(app)
       .post(url("ticket/venta"))
       .set(authToken)
@@ -80,11 +94,10 @@ describe("prueba de API POS", () => {
       .then(anError)
       .then((result) => result.body)
       .then((ticket) => {
-        console.log('ticket :>> ', ticket);
         ticketVendido = ticket.ticket;
       });
   });
-  it("vender para anular", async function () {
+  it.skip("vender para anular", async function () {
     const tickets = crearTickets(4);
     return request(app)
       .post(url("ticket/venta"))
@@ -97,7 +110,7 @@ describe("prueba de API POS", () => {
         ticketVendido = ticket.ticket;
       });
   });
-  it("buscar ticket", async function () {
+  it.skip("buscar ticket", async function () {
     const payload = { serial: ticketVendido.serial };
     return request(app)
       .get(url(`ticket/buscar`, payload))
@@ -105,7 +118,7 @@ describe("prueba de API POS", () => {
       .expect(200)
       .then(anError);
   });
-  it("reporte ventas", async function () {
+  it.skip("reporte ventas", async function () {
     const hoy = isoDate();
     return request(app)
       .get(url(`reporte/tickets`, { fecha: hoy, moneda: "ves" }))
@@ -117,7 +130,7 @@ describe("prueba de API POS", () => {
         expect(reporte.tickets).length.above(0);
       });
   });
-  it("anular", async function () {
+  it.skip("anular", async function () {
     this.timeout(0);
     return request(app)
       .post(url("ticket/anular"))
@@ -129,7 +142,7 @@ describe("prueba de API POS", () => {
       .expect(200)
       .then(anError);
   });
-  it("buscar ticket anulado", async function () {
+  it.skip("buscar ticket anulado", async function () {
     return request(app)
       .get(url(`ticket/buscar`, { serial: ticketVendido.serial }))
       .set(authToken)
@@ -142,7 +155,7 @@ describe("prueba de API POS", () => {
   });
 });
 
-describe("premiar", () => {
+describe.skip("premiar", () => {
   it("reiniciar sorteo", async function () {
     const operadora = operadoras[0];
     const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
@@ -156,7 +169,7 @@ describe("premiar", () => {
   });
 });
 
-describe("pagar tickets", () => {
+describe.skip("pagar tickets", () => {
   let ticketPremiado;
   it("buscar premiados", async function () {
     const hoy = isoDate();
@@ -193,7 +206,7 @@ describe("pagar tickets", () => {
   });
 });
 
-describe("reportes", () => {
+describe.skip("reportes", () => {
   it("reporte general", async function () {
     const hoy = isoDate();
     return request(app)
@@ -214,7 +227,7 @@ function crearTickets(n = 36) {
   let jugadas = [];
   for (let i = 0; i < n; i++) {
     jugadas.push({
-      sorteo: "5fbbfa9c5601092938b392x9",
+      sorteo: sorteo._id,
       numero: trailZero(i),
       monto: getRandomInt(10, 100) * 100,
     });
