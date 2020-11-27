@@ -65,6 +65,7 @@ module.exports = {
       let montoActual;
       let ventasRechazadas = []
       let ventasAceptadas = []
+      forventa:
       for (let i = 0; i < ventas.length; i++) {
         let venta = ventas[i];
         const topes = topesOperadora[venta.operadora];
@@ -77,8 +78,10 @@ module.exports = {
               if (montoJugado > tope.monto) {
                 ticketRepo.solicitados.incrementar(venta.sorteo, venta.numero)
                 venta.monto = Math.max(0, tope.monto - montoActual)
-                ventasRechazadas.push(venta)
-                continue;
+                if (venta.monto == 0) {
+                  ventasRechazadas.push(venta)
+                  continue forventa;
+                }
               }
             }
           }
