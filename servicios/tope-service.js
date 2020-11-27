@@ -78,13 +78,14 @@ module.exports = {
                 ticketRepo.solicitados.incrementar(venta.sorteo, venta.numero)
                 venta.monto = Math.max(0, tope.monto - montoActual)
                 ventasRechazadas.push(venta)
+                continue;
               }
             }
           }
         }
         ventasAceptadas.push(venta)
       }
-      resolve({ aceptadas: ventasAceptadas, rechazadas: ventasRechazadas });
+      resolve({ aceptado: ventasAceptadas, rechazado: ventasRechazadas });
     });
   },
 };

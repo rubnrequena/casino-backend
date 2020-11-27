@@ -161,7 +161,7 @@ function ticket_venta(req, res) {
   ticketService
     .nuevo(taquilla, ventas)
     .then((ticket) => {
-      ticket = { error: "OK", ...ticket };
+      ticket = { error: "OK", ...ticket, ticket: ticket.ticket.ticket };
       res.json(ticket);
     })
     .catch((error) => res.json(crearError(error)));

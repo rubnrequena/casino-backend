@@ -49,12 +49,12 @@ function nuevo(taquilla, ventas) {
       });
     topeService
       .validar(ventas, taquilla)
-      .then(async ({ aceptadas, rechazadas }) => {
-        const ticket = await ticketRepo.nuevo(taquilla, aceptadas);
+      .then(async ({ aceptado, rechazado }) => {
+        const ticket = await ticketRepo.nuevo(taquilla, aceptado);
         resolve({
           ticket,
-          jugadas: aceptadas,
-          rechazadas
+          aceptado,
+          rechazado
         });
         ventas.forEach((venta) => {
           taquilla.jerarquia.forEach((padre) => {
