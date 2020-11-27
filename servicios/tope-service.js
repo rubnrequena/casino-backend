@@ -66,11 +66,12 @@ module.exports = {
         const topes = topesOperadora[venta.operadora];
         for (let j = 0; j < topes.length; j++) {
           const tope = topes[j];
-          montoActual = await buscarMontoJugado(venta, tope);
+          montoActual = await buscarMontoJugado(venta, tope, taquilla.moneda);
           montoJugado = montoActual + venta.monto;
           if (String(tope.sorteo) == venta.sorteo || tope.sorteo == null) {
             if (tope.numero == venta.numero || tope.numero == null) {
               if (montoJugado > tope.monto) {
+                ticketRepo.solicitados.incrementar(venta.sorteo, venta.numero)
                 return reject({ error: "Venta excede tope", venta });
               } else topeValido = true;
             }
@@ -89,10 +90,8 @@ module.exports = {
  * @param {Venta} venta
  * @param {Tope} tope
  */
-async function buscarMontoJugado(venta, tope) {
-  const hashVenta = `${venta.sorteo}_${tope.usuario.toString()}_${
-    venta.moneda
-  }`;
+async function buscarMontoJugado(venta, tope, moneda) {
+  const hashVenta = `${venta.sorteo}_${tope.usuario.toString()}_${moneda}`;
   let monto = await redisRepo.hget(hashVenta, venta.numero);
   if (monto) return Number(monto);
   else {

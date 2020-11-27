@@ -20,6 +20,7 @@ const anuladoModel = require("_modelos/anulado-model");
 const redisRepo = require("./redis-repo");
 
 const saldoService = require("../servicios/saldo-service");
+const solicitadosModel = require("_modelos/solicitados-model");
 
 /**
  * @param {Usuario} usuario
@@ -30,7 +31,7 @@ function nuevo(usuario, ventas) {
   return new Promise(async (resolve, reject) => {
     const codigo = getRandomInt(1000, 9999);
     const serial = await ticketSerial();
-    const monto = ventas.reduce((total, venta) => total + venta.monto, 0);
+    const monto = ventas.reduce((total, venta) => total + Number(venta.monto), 0);
     const jerarquia = usuario.jerarquia.map(usuario => ObjectId(usuario.toString()))
     let online = false;
     if (usuario.rol == Usuario.ONLINE) {
@@ -571,7 +572,6 @@ async function buscarVentas_ticket(ticketId) {
     })
     .lean();
 }
-
 /**
  * @param {String} sorteoId ID del sorteo
  * @param {Number} operadoraPaga cuanto paga la operadora
@@ -597,12 +597,37 @@ function monitor_numeros(sorteoId, operadoraPaga, moneda) {
           },
         },
         {
+          $lookup: {
+            let: { numero: "$_id" },
+            from: "solicitados",
+            pipeline: [
+              {
+                $match:
+                {
+                  $expr:
+                  {
+                    $and:
+                      [
+                        { $eq: ["$sorteo", ObjectId(sorteoId)] },
+                        { $eq: ["$numero", "$$numero"] }
+                      ]
+                  }
+                }
+              },
+            ],
+            as: "solicitado"
+          }
+        },
+        { $addFields: { "solicitado": { $arrayElemAt: ["$solicitado", 0] } } },
+        {
           $project: {
             jugado: 1,
             jugadas: 1,
             premio: { $multiply: ["$jugado", operadoraPaga] },
+            solicitado: { $cond: ["$solicitado", "$solicitado.contador", 0] },
           },
         },
+        { $sort: { _id: 1 } }
       ],
       (error, result) => {
         if (error) return reject(error.message);
@@ -860,7 +885,6 @@ function ticket_admin_numero(sorteoId, numero) {
     );
   });
 }
-
 /**
  * @param {String} usuarioId
  * @param {String} sorteoId
@@ -892,7 +916,6 @@ function usuarioJugado_numero(usuarioId, sorteoId, numero) {
     );
   });
 }
-
 /**
  * @param {String} sorteoId
  * @param {String} ganador
@@ -909,11 +932,27 @@ function marcarPremiados(sorteoId, ganador) {
     );
   });
 }
+/**
+ * @param {String} sorteo 
+ * @param {String} numero 
+ */
+function solicitar_numero(sorteo, numero) {
+  return new Promise((resolve, reject) => {
+    solicitadosModel.updateOne({ sorteo, numero }, { $inc: { "contador": 1 } },
+      { upsert: true }, (error, result) => {
+        if (error) return reject(error.message)
+        resolve(result)
+      })
+  });
+}
 module.exports = {
   nuevo,
   anular,
   pagar,
   ventasPremiadas,
+  solicitados: {
+    incrementar: solicitar_numero
+  },
   buscar: {
     id: buscar_id,
     serial: buscar_serial,
