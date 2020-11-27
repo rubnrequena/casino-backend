@@ -1,6 +1,7 @@
 const topeRepo = require("../repositorio/tope-repo");
 const usuarioRepo = require("../repositorio/usuario-repo");
 const redisRepo = require("../repositorio/redis-repo");
+const cacheRepo = require("../repositorio/cache-repo");
 
 const Tope = require("../dto/tope-dto");
 const Usuario = require("../dto/usuario-dto");
@@ -45,14 +46,16 @@ module.exports = {
    */
   validar(ventas, taquilla) {
     return new Promise(async (resolve, reject) => {
-      let operadoras = ventas.reduce((rventas, venta) => {
-        if (rventas.indexOf(venta.operadora) == -1)
-          rventas.push(venta.operadora);
-        return rventas;
+      let operadoras = await ventas.reduce(async (operadoras, venta) => {
+        const sorteo = await cacheRepo.sorteo(venta.sorteo)
+        venta.operadora = sorteo.operadora;
+        let ops = await operadoras;
+        if (ops.indexOf(sorteo.operadora) == -1)
+          ops.push(sorteo.operadora);
+        return ops;
       }, []);
       let topesOperadora = {};
       await syncForEach(operadoras, async (operadora) => {
-        //const hash = md5(taquilla._id + operadora);
         topesOperadora[operadora] = await topeRepo.buscar.paraVender(
           taquilla,
           operadora
@@ -81,7 +84,7 @@ module.exports = {
         }
         ventasAceptadas.push(venta)
       }
-      resolve({ ventasAceptadas, ventasRechazadas });
+      resolve({ aceptadas: ventasAceptadas, rechazadas: ventasRechazadas });
     });
   },
 };

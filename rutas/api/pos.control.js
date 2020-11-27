@@ -16,6 +16,7 @@ const usuarioService = require("../../servicios/usuario-service");
 const sesionRepo = require("../../repositorio/sesion-repo");
 const sorteoService = require("../../servicios/sorteo-service");
 const { isoDate } = require("../../utils/date-util");
+const topeService = require("../../servicios/tope-service");
 //#endregion
 
 //#region AUTH
@@ -211,6 +212,18 @@ function ticket_anular(req, res) {
 function ticket_devolucion(req, res) {
   res.json({ error: "funcion en desarrollo" });
 }
+/** GET
+ * @param {request} req
+ * @param {response} res
+ */
+function ticket_validar(req, res) {
+  const ventas = req.body
+  const taquilla = req.taquilla
+  topeService.validar(ventas, taquilla).then((resultado) => {
+    res.json({ error: "OK", resultado })
+  })
+    .catch((error) => res.json(crearError(error)));
+}
 //#endregion
 
 module.exports = {
@@ -234,5 +247,6 @@ module.exports = {
     pagar: ticket_pagar,
     anular: ticket_anular,
     devolucion: ticket_devolucion,
+    validar: ticket_validar
   },
 };

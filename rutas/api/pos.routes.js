@@ -3,11 +3,12 @@ const {
   validarJerarquia,
   puedeVender,
 } = require("../../middlewares/usuario-middle");
+const topeService = require("../../servicios/tope-service");
 const {
   auth,
   sorteos,
   reportes,
-  tickets: reporteTickets,
+  tickets,
 } = require("./pos.control");
 
 const router = require("express").Router();
@@ -42,11 +43,12 @@ const anularTicket = validarPOST("serial,codigo:number");
 const buscarTicket = [validarGET("serial"), validarJerarquia];
 const pagarTicket = [validarPOST("serial,codigo:number,numero")];
 
-router.post("/ticket/venta", puedeVender, reporteTickets.venta);
-router.get("/ticket/buscar", buscarTicket, reporteTickets.buscar);
+router.post("/ticket/venta", puedeVender, tickets.venta);
+router.get("/ticket/buscar", buscarTicket, tickets.buscar);
 router.get("/ticket/buscar/ultimos", (req, res) => { });
-router.post("/ticket/anular", anularTicket, reporteTickets.anular);
-router.post("/ticket/pagar", pagarTicket, reporteTickets.pagar);
-router.post("/ticket/devolucion", reporteTickets.devolucion);
+router.post("/ticket/anular", anularTicket, tickets.anular);
+router.post("/ticket/pagar", pagarTicket, tickets.pagar);
+router.post("/ticket/devolucion", tickets.devolucion);
+router.post('/ticket/validar', puedeVender, tickets.validar);
 //#endregion
 module.exports = router;

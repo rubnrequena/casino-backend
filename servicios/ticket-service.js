@@ -18,6 +18,7 @@ const ticketModel = require("_modelos/ticket-model");
 const ventaRepo = require("../repositorio/venta-repo");
 const ventaModel = require("_modelos/venta-model");
 
+let cacheOperadora = {};
 /** JSDoc
  * @param {Usuario} taquilla
  * @param {Array<Venta>} ventas
@@ -48,12 +49,12 @@ function nuevo(taquilla, ventas) {
       });
     topeService
       .validar(ventas, taquilla)
-      .then(async ({ ventasAceptadas, ventasRechazadas }) => {
-        const ticket = await ticketRepo.nuevo(taquilla, ventasAceptadas);
+      .then(async ({ aceptadas, rechazadas }) => {
+        const ticket = await ticketRepo.nuevo(taquilla, aceptadas);
         resolve({
           ticket,
-          jugadas: ventasAceptadas,
-          rechazadas: ventasRechazadas
+          jugadas: aceptadas,
+          rechazadas
         });
         ventas.forEach((venta) => {
           taquilla.jerarquia.forEach((padre) => {
@@ -183,7 +184,6 @@ function anular(pos, serial, codigo, responsableId) {
   });
 }
 
-let cacheOperadora = {};
 module.exports = {
   nuevo,
   pagar,
