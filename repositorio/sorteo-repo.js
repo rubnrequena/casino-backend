@@ -205,8 +205,18 @@ module.exports = {
             {
               $lookup: {
                 from: "sorteos",
+                let: { "operadora": "$_id" },
                 pipeline: [
-                  { $match: { fecha: fecha } },
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ["$fecha", fecha] },
+                          { $eq: ["$operadora", "$$operadora"] }
+                        ]
+                      }
+                    }
+                  },
                   { $project: { operadora: 0, _v: 0, fecha: 0 } },
                 ],
                 as: "sorteos",
