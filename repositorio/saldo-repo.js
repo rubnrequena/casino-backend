@@ -263,7 +263,7 @@ function balance(match, filtro) {
         { $addFields: { pos: { $arrayElemAt: ["$usuarios", -1] } } },
         {
           $project: {
-            _id: 0,
+            _id: "$pos._id",
             usuario: 1,
             balance: 1,
             tiempo: 1,

@@ -328,10 +328,10 @@ async function initRedisCache() {
   const balances = await saldoRepo.buscar.balance_todos()
   balances.forEach((balance) => {
     redisRepo
-      .hset(RedisCache.BALANCE, balance._id, Number(balance.balance))
+      .hset(RedisCache.BALANCE, balance._id.toString(), Number(balance.balance))
       .catch(onError);
     redisRepo
-      .hset(RedisCache.BALANCE_MONEDA, balance._id, balance.moneda)
+      .hset(RedisCache.BALANCE_MONEDA, balance.toString(), balance.moneda)
       .catch(onError);
   });
   //#endregion
