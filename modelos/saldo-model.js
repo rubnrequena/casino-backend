@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId
 const esquema = new mongoose.Schema({
   usuario: {
-    type: ObjectId,
+    type: [ObjectId],
     required: true,
     index: true
   },

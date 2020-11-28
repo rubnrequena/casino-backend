@@ -325,7 +325,7 @@ async function initRedisCache() {
   //#endregion
 
   //#region balance
-  const balances = await saldoRepo.buscar.balance();
+  const balances = await saldoRepo.buscar.balance_todos()
   balances.forEach((balance) => {
     redisRepo
       .hset(RedisCache.BALANCE, balance._id, Number(balance.balance))

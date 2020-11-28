@@ -71,7 +71,7 @@ function acreditar(usuario, descripcion, monto) {
 function guardarSaldo(usuario, descripcion, monto, balance, prevHash) {
   return new Promise((resolve, reject) => {
     let registro = {
-      usuario: usuario._id,
+      usuario: [...usuario.jerarquia, usuario._id],
       descripcion,
       monto,
       balance,
@@ -235,6 +235,54 @@ function cancelar(transaccion) {
 }
 //#endregion
 
+function balance(match, filtro) {
+  return new Promise((resolve, reject) => {
+    saldoModel.aggregate(
+      [
+        { $match: match },
+        { $sort: { tiempo: 1 } },
+        {
+          $group: {
+            _id: "$usuario",
+            balance: { $last: "$balance" },
+            tiempo: { $last: "$tiempo" },
+            descripcion: { $last: "$descripcion" },
+          },
+        },
+        {
+          $lookup: {
+            from: "usuarios",
+            let: { padre: "$_id" },
+            pipeline: [
+              { $match: { $expr: { $in: ["$_id", "$$padre"] } } },
+              { $project: { nombre: 1, activo: 1, papelera: 1, moneda: 1 } }
+            ],
+            as: "usuarios",
+          },
+        },
+        { $addFields: { pos: { $arrayElemAt: ["$usuarios", -1] } } },
+        {
+          $project: {
+            _id: 0,
+            usuario: 1,
+            balance: 1,
+            tiempo: 1,
+            moneda: "$pos.moneda",
+            usuarios: 1,
+            activo: { $allElementsTrue: ["$usuarios.activo"] },
+            papelera: { $anyElementTrue: ["$usuarios.papelera"] },
+          },
+        },
+        { $match: filtro }
+      ],
+      (error, saldos) => {
+        if (error) return reject(error.message);
+        resolve(saldos);
+      }
+    );
+  });
+}
+
 module.exports = {
   debitar: debitar,
   acreditar: acreditar,
@@ -261,53 +309,23 @@ module.exports = {
     async usuario(usuarioId) {
       return await saldoModel.find({ usuario: usuarioId }).lean();
     },
-    async balance() {
-      return new Promise((resolve, reject) => {
-        saldoModel.aggregate(
-          [
-            { $sort: { tiempo: 1 } },
-            {
-              $group: {
-                _id: "$usuario",
-                balance: { $last: "$balance" },
-                tiempo: { $last: "$tiempo" },
-                descripcion: { $last: "$descripcion" },
-              },
-            },
-            {
-              $lookup: {
-                from: "usuarios",
-                localField: "_id",
-                foreignField: "_id",
-                as: "usuarios",
-              },
-            },
-            {
-              $replaceRoot: {
-                newRoot: {
-                  $mergeObjects: [{ $arrayElemAt: ["$usuarios", 0] }, "$$ROOT"],
-                },
-              },
-            },
-            {
-              $project: {
-                _id: 1,
-                nombre: 1,
-                jerarquia: 1,
-                usuario: 1,
-                balance: 1,
-                tiempo: 1,
-                descripcion: 1,
-                moneda: 1,
-              },
-            },
-          ],
-          (error, saldos) => {
-            if (error) return reject(error.message);
-            resolve(saldos);
-          }
-        );
-      });
+    /**
+     * @param {String} usuarioId 
+     * @param {String} moneda 
+     * @param {Boolean} activo 
+     * @param {Boolean} papelera 
+     * @returns {Promise<Saldo[]>}
+     */
+    balance(usuarioId, moneda, activo = true, papelera = false) {
+      return balance({ usuario: ObjectId(usuarioId) }, { activo, papelera, moneda })
+    },
+    /**
+     * @param {Boolean} activo 
+     * @param {Boolean} papelera 
+     * @returns {Promise<Saldo[]>}
+     */
+    balance_todos(activo = true, papelera = false) {
+      return balance({}, { activo, papelera })
     },
     /**
      * TODO: duplicado de saldoRepo.balance, verificar cual es mas optimo
@@ -489,3 +507,4 @@ module.exports = {
     },
   },
 };
+

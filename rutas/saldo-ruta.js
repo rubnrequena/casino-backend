@@ -44,8 +44,11 @@ router.post("/cancelar", validarJerarquia, (req, res) => {
     .then((transaccion_result) => res.json(transaccion_result))
     .catch((error) => res.json(crearError(error)));
 });
-router.get("/balance", esMaster, async (req, res) => {
-  res.json(await saldoRepo.buscar.balance());
+router.get("/balance", [validarGET("usuario:objectid,moneda"), validarJerarquia], (req, res) => {
+  const { moneda } = req.query
+  saldoRepo.buscar.balance(req.usuario._id, moneda)
+    .then((balance) => res.json(balance))
+    .catch((error) => res.json(crearError(error)));
 });
 router.get("/usuario", validarJerarquia, (req, res) => {
   saldoRepo

@@ -34,29 +34,21 @@ router.get("/monedas", (req, res) => {
   });
 });
 router.get("/sys_stats", (req, res) => {
-  if (req.user.rol == Usuario.MASTER) {
-    sistemaService
-      .stats()
-      .then((stat) => res.json(stat))
-      .catch((error) => res.json(crearError(error)));
-  } else {
-    usuarioRepo.buscar.contarHijos(req.user._id).then(async (result) => {
-      let total = 0,
-        activos = 0,
-        papelera = 0;
-      let grupos = result.reduce((acc, el) => {
-        el.usuarios.map((item) => {
-          total++;
-          activos += item.activo ? 1 : 0;
-          papelera += item.papelera ? 1 : 0;
-        });
-        acc[el._id] = el.n;
-        return acc;
-      }, {});
-      const balance = await saldoRepo.buscar.hijos(req.user._id);
-      res.json({ grupos, total, activos, papelera, balance });
-    });
-  }
+  usuarioRepo.buscar.contarHijos(req.user._id).then(async (result) => {
+    let total = 0,
+      activos = 0,
+      papelera = 0;
+    let grupos = result.reduce((acc, el) => {
+      el.usuarios.map((item) => {
+        total++;
+        activos += item.activo ? 1 : 0;
+        papelera += item.papelera ? 1 : 0;
+      });
+      acc[el._id] = el.n;
+      return acc;
+    }, {});
+    res.json({ grupos, total, activos, papelera });
+  });
 });
 router.get("/menus", (req, res) => {
   sistemaRepo

@@ -125,7 +125,6 @@ function hjson(llave, nombre, valor) {
   });
 }
 function hset(llave, nombre, valor) {
-  nombre = nombre.toString();
   return new Promise(async (resolve, reject) => {
     client.hset(llave, nombre, valor, (error, reply) => {
       if (error) return reject(error);
