@@ -40,6 +40,17 @@ function validar(taquilla, ventas) {
     }).catch(error => reject(error))
   });
 }
+function agruparVentas({ taquilla, ventas }) {
+  return new Promise((resolve, reject) => {
+    ventas = ventas.reduce((grupos, venta) => {
+      let lventa = grupos.find(v => v.numero == venta.numero)
+      if (lventa) lventa.monto += venta.monto
+      else grupos.push(venta)
+      return grupos
+    }, [])
+    resolve({ taquilla, ventas })
+  });
+}
 /** JSDoc
  * @param {Usuario} taquilla
  * @param {Array<Venta>} ventas
@@ -210,6 +221,7 @@ module.exports = {
   pagar,
   anular,
   validar,
+  agrupar: agruparVentas,
   monitor: {
     async admin(sorteoId, rol, moneda) {
       let sorteo = await sorteoRepo.buscar.id(sorteoId);

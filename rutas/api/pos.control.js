@@ -160,6 +160,7 @@ function ticket_venta(req, res) {
   if (ventas.length == 0) return res.json(crearError("ventas invalidas"));
   ticketService
     .validar(taquilla, ventas)
+    .then(ticketService.agrupar)
     .then(ticketService.nuevo)
     .then((resultado) => {
       resultado = { error: "OK", ...resultado, ticket: resultado.ticket.ticket };

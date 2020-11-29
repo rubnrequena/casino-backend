@@ -231,8 +231,8 @@ function crearTickets(n = 36) {
   for (let i = 0; i < n; i++) {
     jugadas.push({
       sorteo: sorteo._id,
-      numero: trailZero(i), //getRandomInt(0, 36),
-      monto: 1001, //getRandomInt(1, 10) * 1000,
+      numero: 11, //getRandomInt(0, 36),
+      monto: 1000,
     });
   }
   return jugadas;
