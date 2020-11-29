@@ -159,10 +159,11 @@ function ticket_venta(req, res) {
   const ventas = req.body;
   if (ventas.length == 0) return res.json(crearError("ventas invalidas"));
   ticketService
-    .nuevo(taquilla, ventas)
-    .then((ticket) => {
-      ticket = { error: "OK", ...ticket, ticket: ticket.ticket.ticket };
-      res.json(ticket);
+    .validar(taquilla, ventas)
+    .then(ticketService.nuevo)
+    .then((resultado) => {
+      resultado = { error: "OK", ...resultado, ticket: resultado.ticket.ticket };
+      res.json(resultado);
     })
     .catch((error) => res.json(crearError(error)));
 }

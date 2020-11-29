@@ -16,15 +16,36 @@ const operadoraRepo = require("../repositorio/operadora-repo");
 const topeService = require("./tope-service");
 const ticketModel = require("_modelos/ticket-model");
 const ventaRepo = require("../repositorio/venta-repo");
+const cacheRepo = require("../repositorio/cache-repo");
 const ventaModel = require("_modelos/venta-model");
 
 let cacheOperadora = {};
+
 /** JSDoc
  * @param {Usuario} taquilla
  * @param {Array<Venta>} ventas
  * @returns {Promise<Ticket>}
  */
-function nuevo(taquilla, ventas) {
+function validar(taquilla, ventas) {
+  return new Promise((resolve, reject) => {
+    cacheRepo.tickets.ultimo(taquilla._id).then(ticket => {
+      const jugadas = ventas.length;
+      const monto = ventas.reduce((total, venta) => {
+        total += venta.monto
+        return total;
+      }, 0)
+      if (monto == ticket.monto && jugadas == ticket.jugadas)
+        return reject({ codigo: Errores.ACCION_REPETIDA, error: 'RIESGO DE TICKET DUPLICADO' })
+      resolve({ taquilla, ventas })
+    }).catch(error => reject(error))
+  });
+}
+/** JSDoc
+ * @param {Usuario} taquilla
+ * @param {Array<Venta>} ventas
+ * @returns {Promise<Ticket>}
+ */
+function nuevo({ taquilla, ventas }) {
   return new Promise(async (resolve, reject) => {
     var sorteosCerrados = [];
     for (let i = 0; i < ventas.length; i++) {
@@ -188,6 +209,7 @@ module.exports = {
   nuevo,
   pagar,
   anular,
+  validar,
   monitor: {
     async admin(sorteoId, rol, moneda) {
       let sorteo = await sorteoRepo.buscar.id(sorteoId);

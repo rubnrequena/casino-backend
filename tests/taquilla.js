@@ -72,7 +72,7 @@ describe("prueba de API POS", () => {
 
   it("validar", async function () {
     this.timeout(0)
-    const tickets = crearTickets(4);
+    const tickets = crearTickets(5);
     return request(app)
       .post(url("ticket/validar"))
       .set(authToken)
@@ -81,11 +81,12 @@ describe("prueba de API POS", () => {
       .then(anError)
       .then((result) => result.body)
       .then((ticket) => {
-        console.log('validar ticket :>> ', JSON.stringify(ticket, null, 2));
+        //console.log('validar ticket :>> ', ticket.resultado);
         ticketVendido = ticket.ticket;
       });
   });
   it("vender", async function () {
+    this.timeout(0)
     const tickets = crearTickets(4);
     return request(app)
       .post(url("ticket/venta"))
@@ -95,7 +96,7 @@ describe("prueba de API POS", () => {
       .then(anError)
       .then((result) => result.body)
       .then((ticket) => {
-        console.log(ticket);
+        //console.log(ticket);
         ticketVendido = ticket.ticket;
       });
   });
@@ -230,8 +231,8 @@ function crearTickets(n = 36) {
   for (let i = 0; i < n; i++) {
     jugadas.push({
       sorteo: sorteo._id,
-      numero: trailZero(i),
-      monto: getRandomInt(10, 100) * 100,
+      numero: trailZero(i), //getRandomInt(0, 36),
+      monto: 1001, //getRandomInt(1, 10) * 1000,
     });
   }
   return jugadas;
