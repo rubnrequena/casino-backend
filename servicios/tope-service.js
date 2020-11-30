@@ -10,6 +10,10 @@ const { syncForEach } = require("../utils/array-util");
 const RedisCache = require("../dto/redis-cache.dto");
 const ticketRepo = require("../repositorio/ticket-repo");
 const md5 = require("md5");
+const sorteoRepo = require("../repositorio/sorteo-repo");
+const sorteoUtil = require("../utils/sorteo-util");
+
+let cacheOperadora = {}
 module.exports = {
   /**JSDoc
    * @param {String} usuarioId
@@ -46,6 +50,21 @@ module.exports = {
    */
   validar(ventas, taquilla) {
     return new Promise(async (resolve, reject) => {
+      for (let i = 0; i < ventas.length; i++) {
+        const venta = ventas[i];
+        let sorteo = cacheOperadora[venta.sorteo];
+        cache = true;
+        if (!sorteo) {
+          sorteo = await sorteoRepo.buscar.id(venta.sorteo);
+          if (!sorteo) return reject({ error: 'SORTEOS INVALIDOS' })
+          cacheOperadora[venta.sorteo] = sorteo;
+          cache = false;
+        }
+        venta.operadora = sorteo.operadora.toString();
+        const abierto = sorteoUtil.estaAbierto(sorteo);
+        if (!abierto) venta.monto = -1
+      }
+
       let operadoras = await ventas.reduce(async (operadoras, venta) => {
         const sorteo = await cacheRepo.sorteo(venta.sorteo)
         venta.operadora = sorteo.operadora;

@@ -1,5 +1,3 @@
-const sorteoUtil = require("../utils/sorteo-util");
-
 const Ticket = require("../dto/ticket-dto");
 const Usuario = require("../dto/usuario-dto");
 const Venta = require("../dto/venta-dto");
@@ -17,7 +15,6 @@ const cacheRepo = require("../repositorio/cache-repo");
 const ventaModel = require("_modelos/venta-model");
 
 const topeService = require("./tope-service");
-let cacheOperadora = {};
 
 /** JSDoc
  * @param {Usuario} taquilla
@@ -57,32 +54,17 @@ function agruparVentas({ taquilla, ventas }) {
  */
 function nuevo({ taquilla, ventas }) {
   return new Promise(async (resolve, reject) => {
-    var sorteosCerrados = [];
-    for (let i = 0; i < ventas.length; i++) {
-      const venta = ventas[i];
-      let sorteo = cacheOperadora[venta.sorteo];
-      cache = true;
-      if (!sorteo) {
-        sorteo = await sorteoRepo.buscar.id(venta.sorteo);
-        if (!sorteo) return reject({ error: 'SORTEOS INVALIDOS' })
-        cacheOperadora[venta.sorteo] = sorteo;
-        cache = false;
-      }
-      venta.operadora = sorteo.operadora.toString();
-      const abierto = sorteoUtil.estaAbierto(sorteo);
-      if (!abierto) venta.monto = -1
-    }
-    /* if (sorteosCerrados.length > 0)
-      return reject({
-        code: Errores.SORTEO_CERRADO,
-        error: `sorteos invalidos`,
-        sorteos: sorteosCerrados,
-      }); */
+
     topeService
       .validar(ventas, taquilla)
       .then(async ({ aceptado, rechazado }) => {
-        if (aceptado.length == 0)
-          return reject({ code: 0, error: 'SIN JUGADAS QUE PROCESAR' })
+        if (aceptado.length == 0) {
+          return resolve({
+            ticket: null,
+            aceptado,
+            rechazado
+          });
+        }
         const ticket = await ticketRepo.nuevo(taquilla, aceptado);
         resolve({
           ticket,
