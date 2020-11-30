@@ -23,6 +23,8 @@ let taquilla;
 /** @type {OperadoraSorteo[]} */
 let operadoras;
 
+let tickets;
+
 function url(url, query) {
   query = mapObject(query, (campo, valor) => `${campo}=${valor}`).join("&");
   const uri = `/api/pos/${url}?${encodeURI(query)}`;
@@ -72,7 +74,7 @@ describe("prueba de API POS", () => {
 
   it("validar", async function () {
     this.timeout(0)
-    const tickets = crearTickets(5);
+    tickets = crearTickets(5);
     return request(app)
       .post(url("ticket/validar"))
       .set(authToken)
@@ -81,13 +83,11 @@ describe("prueba de API POS", () => {
       .then(anError)
       .then((result) => result.body)
       .then((ticket) => {
-        //console.log('validar ticket :>> ', ticket.resultado);
         ticketVendido = ticket.ticket;
       });
   });
   it("vender", async function () {
     this.timeout(0)
-    const tickets = crearTickets(4);
     return request(app)
       .post(url("ticket/venta"))
       .set(authToken)
@@ -96,7 +96,7 @@ describe("prueba de API POS", () => {
       .then(anError)
       .then((result) => result.body)
       .then((ticket) => {
-        //console.log(ticket);
+        console.log('ticket:', ticket);
         ticketVendido = ticket.ticket;
       });
   });
@@ -226,12 +226,17 @@ describe.skip("reportes", () => {
 
 function crearTickets(n = 36) {
   const operadora = operadoras.find(o => o.sorteos.length > 0);
-  const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
+  const sorteo = operadora.sorteos[getRandomInt(0, operadora.sorteos.length - 1)];
   let jugadas = [];
   for (let i = 0; i < n; i++) {
     jugadas.push({
       sorteo: sorteo._id,
-      numero: 11, //getRandomInt(0, 36),
+      numero: getRandomInt(0, 36),
+      monto: 1000,
+    });
+    jugadas.push({
+      sorteo: '5fc4be00a6f0ba1f943e621f',
+      numero: getRandomInt(0, 36),
       monto: 1000,
     });
   }

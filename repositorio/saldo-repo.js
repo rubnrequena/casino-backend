@@ -32,7 +32,10 @@ function debitar(usuario, descripcion, monto) {
     if (balance < 0) return reject("saldo insuficiente");
     guardarSaldo(usuario, descripcion, monto * -1, balance, hash)
       .then(async (saldo) => {
-        await redisRepo.hset(RedisCache.BALANCE, usuario._id, balance);
+        await redisRepo.hset(RedisCache.BALANCE, usuario._id, balance).catch(error => {
+          console.error(error);
+          console.error("saldo-repo:36: error al guardar", usuario._id, balance)
+        });
         resolve(saldo);
       })
       .catch((err) => reject(err));

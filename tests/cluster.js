@@ -3,6 +3,8 @@ const { expect } = require("chai");
 const Sorteo = require("../dto/sorteo-dto");
 const { getRandomInt, trailZero } = require("../utils/number-util");
 const config = require("../config");
+const ticketModel = require("_modelos/ticket-model");
+const ventaModel = require("_modelos/venta-model");
 
 const url = (path) => {
   return `http://127.0.0.1:3000/${path}`;
@@ -22,11 +24,14 @@ let rechazados = 0;
 let ventasUsuario = {};
 
 let usuarios = [];
+let inicioVentas;
 
 let numeros = [];
 for (let i = 0; i <= 36; i++) {
   numeros.push(trailZero(i));
 }
+let totalJugar = 0;
+let totalJugado = 0;
 
 before(async function () {
   this.timeout(0);
@@ -41,8 +46,8 @@ before(async function () {
     },
     async (err) => {
       if (err) return err;
-      /* await ticketModel.deleteMany();
-      await ventaModel.deleteMany(); */
+      await ticketModel.deleteMany();
+      await ventaModel.deleteMany();
     }
   );
 });
@@ -94,49 +99,47 @@ describe("pruebas", function () {
         console.log(error.message);
       });
   });
-  it.skip("vender un solo ticket", function (done) {
-    const venta = {
-      numero: trailZero(getRandomInt(1, 36)),
-      sorteo,
-      monto: getRandomInt(10, 100) * 100,
-    };
-    Axios.post(url("ticket/venta"), [venta]).then((data) => {
-      expect(data.data).have.not.ownProperty("error");
+  it("vender un solo ticket", function (done) {
+    const ventas = [
+      {
+        numero: trailZero(getRandomInt(1, 36)),
+        sorteo: '5fbbe3925121814adccce2fa',
+        monto: 1000,
+      },
+      {
+        numero: trailZero(getRandomInt(1, 36)),
+        sorteo,
+        monto: 1000,
+      }
+    ];
+    Axios.post(url("api/pos/ticket/venta"), ventas).then((data) => {
+      expect(data.data.error).eq("OK")
+      console.log("un_tickey", data.data);
       done();
-    });
+    }).catch(error => {
+      done(error)
+    })
   });
-  it("vender lote", function (done) {
-    len = 100;
+  it.skip("vender lote", function (done) {
+    len = 1000;
     intervalo = len * 0.1;
     const hilos = 10;
-
     for (let x = 0; x < len; x++) {
+      const _tickets = []
       const nums = [];
-
-      tickets.push([
-        {
+      for (let index = 0; index < 4; index++) {
+        const monto = getRandomInt(10, 100) * 100
+        totalJugar += monto;
+        _tickets.push({
           numero: numeroAleatorio(nums),
-          sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
-          monto: getRandomInt(10, 100) * 100,
-        },
-        {
-          numero: numeroAleatorio(nums),
-          sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
-          monto: getRandomInt(10, 100) * 100,
-        },
-        {
-          numero: numeroAleatorio(nums),
-          sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
-          monto: getRandomInt(10, 100) * 100,
-        },
-        {
-          numero: numeroAleatorio(nums),
-          sorteo: sorteos[getRandomInt(0, sorteos.length - 1)]._id,
-          monto: getRandomInt(10, 100) * 100,
-        },
-      ]);
+          sorteo: sorteos[1]._id,
+          monto,
+        });
+      }
+      tickets.push(_tickets)
     }
     now = Date.now();
+    inicioVentas = Date.now();
     for (let i = 0; i < hilos; i++) vender(done, vender);
   });
 });
@@ -145,12 +148,14 @@ function vender(done, cb) {
   if (iventa >= tickets.length) return;
   const pos = usuarios[getRandomInt(0, 1)];
   Axios.defaults.headers.common["Authorization"] = pos.token;
-  Axios.post(url("ticket/venta"), tickets[iventa++]).then((data) => {
+  const ticket = tickets[iventa++]
+  Axios.post(url("api/pos/ticket/venta"), ticket).then((data) => {
     if (data.data.ticket) {
       vendidos++;
       ventasUsuario[pos.usuario] = ventasUsuario[pos.usuario] + 1;
     } else {
       rechazados++;
+      console.log(data.data.error);
     }
     if (n % intervalo == 0) {
       console.log(`#${n} ${Date.now() - now}`);
@@ -158,6 +163,7 @@ function vender(done, cb) {
     }
     if (++n == len) {
       console.log({ vendidos, rechazados, ventasUsuario });
+      console.log('total enviado: ', totalJugar);
       return done();
     }
     cb(done, cb);
