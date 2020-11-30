@@ -81,6 +81,8 @@ function nuevo({ taquilla, ventas }) {
     topeService
       .validar(ventas, taquilla)
       .then(async ({ aceptado, rechazado }) => {
+        if (aceptado.length == 0)
+          return reject({ code: 0, error: 'SIN JUGADAS QUE PROCESAR' })
         const ticket = await ticketRepo.nuevo(taquilla, aceptado);
         resolve({
           ticket,
