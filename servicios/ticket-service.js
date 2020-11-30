@@ -70,14 +70,14 @@ function nuevo({ taquilla, ventas }) {
       }
       venta.operadora = sorteo.operadora.toString();
       const abierto = sorteoUtil.estaAbierto(sorteo);
-      if (!abierto) sorteosCerrados.add(sorteo._id);
+      if (!abierto) venta.monto = -1
     }
-    if (sorteosCerrados.length > 0)
+    /* if (sorteosCerrados.length > 0)
       return reject({
         code: Errores.SORTEO_CERRADO,
         error: `sorteos invalidos`,
         sorteos: sorteosCerrados,
-      });
+      }); */
     topeService
       .validar(ventas, taquilla)
       .then(async ({ aceptado, rechazado }) => {

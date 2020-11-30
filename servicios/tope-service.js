@@ -68,6 +68,10 @@ module.exports = {
       forventa:
       for (let i = 0; i < ventas.length; i++) {
         let venta = ventas[i];
+        if (venta.monto < 1) {
+          ventasRechazadas.push(venta)
+          continue forventa;
+        }
         const topes = topesOperadora[venta.operadora];
         for (let j = 0; j < topes.length; j++) {
           const tope = topes[j];
