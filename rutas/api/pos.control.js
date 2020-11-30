@@ -154,7 +154,6 @@ function reporte_caja(req, res) { }
  */
 function ticket_venta(req, res) {
   const now = Date.now()
-  console.time('vendiendo ticket')
   /** @type {Usuario} */
   const taquilla = req.taquilla;
   /** @type {Array} */
@@ -167,7 +166,6 @@ function ticket_venta(req, res) {
     .then((resultado) => {
       resultado = { error: "OK", ...resultado, ticket: resultado.ticket.ticket };
       res.json(resultado);
-      console.timeEnd('vendiendo ticket')
       console.log('ticket vendido en', Date.now() - now, "ms");
     })
     .catch((error) => res.json(crearError(error)));
