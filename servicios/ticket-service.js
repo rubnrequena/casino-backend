@@ -56,7 +56,6 @@ function agruparVentas({ taquilla, ventas }) {
  * @returns {Promise<Ticket>}
  */
 function nuevo({ taquilla, ventas }) {
-  console.log('ventas :>> ', ventas);
   return new Promise(async (resolve, reject) => {
     var sorteosCerrados = [];
     for (let i = 0; i < ventas.length; i++) {

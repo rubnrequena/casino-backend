@@ -221,12 +221,10 @@ function ticket_devolucion(req, res) {
  * @param {response} res
  */
 function ticket_validar(req, res) {
-  console.time('validando ticket')
   const ventas = req.body
   const taquilla = req.taquilla
   topeService.validar(ventas, taquilla).then((resultado) => {
     res.json({ error: "OK", resultado })
-    console.timeEnd('validando ticket')
   })
     .catch((error) => res.json(crearError(error)));
 }
