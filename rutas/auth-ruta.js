@@ -23,6 +23,12 @@ router.post("/", (req, res) => {
   authService
     .login(usuario, clave)
     .then((usuario) => {
+      delete usuario.jerarquia;
+      delete usuario.clave;
+      delete usuario.utilidad;
+      delete usuario.activo;
+      delete usuario.grupoPago;
+      delete usuario.permisos;
       res.json(usuario);
       //sesion
       var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
