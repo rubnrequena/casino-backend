@@ -1,5 +1,4 @@
 const sorteoUtil = require("../utils/sorteo-util");
-const mongoose = require("mongoose");
 
 const Ticket = require("../dto/ticket-dto");
 const Usuario = require("../dto/usuario-dto");
@@ -10,15 +9,14 @@ const anuladoModel = require("../modelos/anulado-model");
 
 const sorteoRepo = require("../repositorio/sorteo-repo");
 const ticketRepo = require("../repositorio/ticket-repo");
-const redisRepo = require("../repositorio/redis-repo");
 const operadoraRepo = require("../repositorio/operadora-repo");
 
-const topeService = require("./tope-service");
 const ticketModel = require("_modelos/ticket-model");
 const ventaRepo = require("../repositorio/venta-repo");
 const cacheRepo = require("../repositorio/cache-repo");
 const ventaModel = require("_modelos/venta-model");
 
+const topeService = require("./tope-service");
 let cacheOperadora = {};
 
 /** JSDoc
@@ -30,11 +28,12 @@ function validar(taquilla, ventas) {
   return new Promise((resolve, reject) => {
     cacheRepo.tickets.ultimo(taquilla._id).then(ticket => {
       const jugadas = ventas.length;
+      const creado = new Date().getTime() - new Date(ticket.creado).getTime()
       const monto = ventas.reduce((total, venta) => {
         total += venta.monto
         return total;
       }, 0)
-      if (monto == ticket.monto && jugadas == ticket.jugadas)
+      if (monto == ticket.monto && jugadas == ticket.jugadas && creado < 30000)
         return reject({ codigo: Errores.ACCION_REPETIDA, error: 'RIESGO DE TICKET DUPLICADO' })
       resolve({ taquilla, ventas })
     }).catch(error => reject(error))
@@ -57,6 +56,7 @@ function agruparVentas({ taquilla, ventas }) {
  * @returns {Promise<Ticket>}
  */
 function nuevo({ taquilla, ventas }) {
+  console.log('ventas :>> ', ventas);
   return new Promise(async (resolve, reject) => {
     var sorteosCerrados = [];
     for (let i = 0; i < ventas.length; i++) {

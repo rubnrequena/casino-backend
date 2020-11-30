@@ -67,7 +67,8 @@ function nuevo(usuario, ventas) {
     await redisRepo.hjson("cache-ultimoticket", usuario._id, {
       serial: ticket._id,
       monto: ticket.monto,
-      jugadas: ventas.length
+      jugadas: ventas.length,
+      creado: ticket.creado
     })
     resolve({
       ticket: {

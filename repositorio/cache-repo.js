@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Types
 
-const redis = require('./redis-repo')
+const ventaModel = require('_modelos/venta-model');
+
 const Sorteo = require("../dto/sorteo-dto");
-const sorteoModel = require('_modelos/sorteo-model');
+
+const redis = require('./redis-repo')
 const sorteoRepo = require('./sorteo-repo');
-const ticketModel = require('_modelos/ticket-model');
+
 
 /**
  * @param {String} sorteoId
@@ -37,13 +39,14 @@ function ultimo_ticket(taquillaId) {
   return new Promise((resolve, reject) => {
     redis.hjson("cache-ultimoticket", taquillaId).then(async ticket => {
       if (ticket) return resolve(ticket)
-      ticketModel.aggregate([
+      ventaModel.aggregate([
         { $match: { usuario: ObjectId(taquillaId) } },
         {
           $group: {
             _id: "$ticketId",
             monto: { $sum: "$monto" },
-            jugadas: { $sum: 1 }
+            jugadas: { $sum: 1 },
+            creado: { $first: "$creado" }
           }
         },
         { $sort: { _id: -1 } },
