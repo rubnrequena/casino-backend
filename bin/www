@@ -23,7 +23,8 @@ console.log("Running At: ", port);
 const { readFileSync } = require("fs");
 const options = {
   key: readFileSync("./ssl/private.key"),
-  cert: readFileSync("./ssl/fullchain.crt"),
+  ca: readFileSync("./ssl/ca_bundle.crt"),
+  cert: readFileSync("./ssl/certificate.crt"),
 };
 
 /**
