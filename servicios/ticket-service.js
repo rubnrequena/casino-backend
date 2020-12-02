@@ -151,7 +151,7 @@ function anular(pos, serial, codigo, responsableId) {
         return reject("CODIGO DE TICKET INVALIDO");
     const estaAnulado = await ticketRepo.buscar.anulado(ticket._id);
     if (estaAnulado)
-      return reject(`TICKET ANULADO PREVIAMENTE EL ${estaAnulado.anulado}`);
+      return reject(`TICKET ANULADO PREVIAMENTE EL ${new Date(estaAnulado.anulado).toISOString()}`);
     //#endregion
     const ventas = await ticketRepo.buscar.ventas(ticket._id);
     for (let i = 0; i < ventas.length; i++) {
