@@ -1,7 +1,12 @@
 const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId
 const esquema = new mongoose.Schema({
   _id: {
-    type: mongoose.Types.ObjectId,
+    type: ObjectId,
+    required: true,
+  },
+  ticket: {
+    type: ObjectId,
     required: true,
   },
   numero: {
@@ -14,7 +19,7 @@ const esquema = new mongoose.Schema({
     default: new Date(),
   },
   responsable: {
-    type: mongoose.Types.ObjectId,
+    type: ObjectId,
     required: true,
   },
 });

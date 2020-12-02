@@ -125,7 +125,8 @@ function anular(ticket) {
 function pagar(venta, responsableId) {
   return new Promise((resolve, reject) => {
     const pagado = {
-      _id: venta.ticketId,
+      _id: venta._id,
+      ticket: venta.ticketId,
       numero: venta.numero,
       pagado: new Date(),
       responsable: responsableId,
@@ -288,7 +289,7 @@ function buscar_ticket_serial(serial, usuarios) {
     ], (error, tickets) => {
       if (error) return reject(error.message);
       if (tickets.length > 0) resolve(tickets[0]);
-      else reject("ticket no existe");
+      else resolve(null);
     })
   });
 }
@@ -559,10 +560,11 @@ async function buscar_anulado(ticketId) {
 }
 /**
  * @param {String} ticketId
+ * @param {String} numero
  * @returns {Promise<Venta>}
  */
-async function buscar_pagado(ticketId) {
-  return await pagadoModel.findById(ticketId).lean();
+async function buscar_pagado(ticketId, numero) {
+  return await pagadoModel.findOne({ ticket: ticketId, numero }).lean();
 }
 //#endregion
 

@@ -114,7 +114,14 @@ function pagar(pos, serial, codigo, numero, responsable) {
     const ticket = await buscar_ticket_serial(pos, serial);
     if (!ticket)
       return reject({ code: Errores.NO_EXISTE, error: "TICKET NO EXISTE" });
-    const estaPagado = await ticketRepo.buscar.pagado(ticket._id);
+
+    const venta = await ventaRepo.buscar.premiado(ticket._id, numero);
+    if (!venta) {
+      return reject({
+        error: 'NUMERO NO ES GANADOR'
+      });
+    }
+    const estaPagado = await ticketRepo.buscar.pagado(ticket._id, numero);
     if (estaPagado)
       return reject({
         code: Errores.TICKET_PAGADO,
@@ -126,7 +133,6 @@ function pagar(pos, serial, codigo, numero, responsable) {
         code: Errores.TICKET_CODIGO_INVALIDO,
         error: "CODIGO DE TICKET INVALIDO",
       });
-    const venta = await ventaRepo.buscar.premiado(ticket._id, numero);
     ticketRepo
       .pagar(venta, responsable._id)
       .then((result) => resolve(result))
