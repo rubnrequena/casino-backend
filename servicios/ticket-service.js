@@ -147,7 +147,6 @@ function anular(pos, serial, codigo, responsableId) {
     const estaAnulado = await ticketRepo.buscar.anulado(ticket._id);
     if (estaAnulado)
       return reject({
-        code: Errores.TICKET_ANULADO,
         error: "TICKET ANULADO PREVIAMENTE",
       });
 

@@ -96,11 +96,10 @@ describe("prueba de API POS", () => {
       .then(anError)
       .then((result) => result.body)
       .then((ticket) => {
-        console.log('ticket:', ticket);
         ticketVendido = ticket.ticket;
       });
   });
-  it.skip("vender para anular", async function () {
+  it("vender para anular", async function () {
     const tickets = crearTickets(4);
     return request(app)
       .post(url("ticket/venta"))
@@ -113,7 +112,7 @@ describe("prueba de API POS", () => {
         ticketVendido = ticket.ticket;
       });
   });
-  it.skip("buscar ticket", async function () {
+  it("buscar ticket", async function () {
     const payload = { serial: ticketVendido.serial };
     return request(app)
       .get(url(`ticket/buscar`, payload))
@@ -121,7 +120,7 @@ describe("prueba de API POS", () => {
       .expect(200)
       .then(anError);
   });
-  it.skip("reporte ventas", async function () {
+  it("reporte ventas", async function () {
     const hoy = isoDate();
     return request(app)
       .get(url(`reporte/tickets`, { fecha: hoy, moneda: "ves" }))
@@ -133,7 +132,7 @@ describe("prueba de API POS", () => {
         expect(reporte.tickets).length.above(0);
       });
   });
-  it.skip("anular", async function () {
+  it("anular", async function () {
     this.timeout(0);
     return request(app)
       .post(url("ticket/anular"))
@@ -143,9 +142,12 @@ describe("prueba de API POS", () => {
         codigo: ticketVendido.codigo,
       })
       .expect(200)
-      .then(anError);
+      .then(anError)
+      .then(ticket => {
+        console.log("anulado", ticket.body);
+      })
   });
-  it.skip("buscar ticket anulado", async function () {
+  it("buscar ticket anulado", async function () {
     return request(app)
       .get(url(`ticket/buscar`, { serial: ticketVendido.serial }))
       .set(authToken)
@@ -157,17 +159,15 @@ describe("prueba de API POS", () => {
       });
   });
 });
-
-describe.skip("premiar", () => {
+let sorteo;
+describe.skip("premiar", function () {
+  this.timeout(0)
   it("reiniciar sorteo", async function () {
-    const operadora = operadoras[0];
-    const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
+    const operadora = operadoras.find(o => o.sorteos.length > 0);
+    sorteo = operadora.sorteos[operadora.sorteos.length - 1];
     return await sorteoService.reiniciar(sorteo._id);
   });
   it("premiar sorteo", async function () {
-    this.timeout(0);
-    const operadora = operadoras[0];
-    const sorteo = operadora.sorteos[operadora.sorteos.length - 1];
     return await sorteoService.premiar(sorteo._id, getRandomInt(0, 36));
   });
 });
