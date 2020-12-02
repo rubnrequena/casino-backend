@@ -130,7 +130,7 @@ function reporte_general(req, res) {
 function reporte_tickets(req, res) {
   const { fecha } = req.query;
   ticketRepo.buscar
-    .pos(req.user._id, fecha)
+    .pos(req.user._id, fecha, req.user.grupoPago)
     .then((tickets) =>
       res.json({
         error: "OK",

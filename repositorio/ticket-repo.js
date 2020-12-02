@@ -350,9 +350,11 @@ async function buscar_usuario(usuarioId) {
  *
  * @param {String} usuarioId
  * @param {String} fecha
+ * @param {String} grupoPago
  * @returns {Promise<Ticket[]>}
  */
-async function buscar_pos(usuarioId, fecha) {
+async function buscar_pos(usuarioId, fecha, grupoPago) {
+  console.time('reporte')
   return new Promise((resolve, reject) => {
     const fecha_array = fecha.split("-");
     const desde = new Date(fecha);
@@ -393,12 +395,32 @@ async function buscar_pos(usuarioId, fecha) {
           },
         },
         {
+          $lookup: {
+            let: { operadora: "$premiados.operadora" },
+            from: "operadora_pagos",
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$grupo", ObjectId(grupoPago)] },
+                      { $in: ["$operadora", "$$operadora"] }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "pagos",
+          },
+        },
+        {
           $project: {
-            codigo: 1,
             serial: 1,
             creado: 1,
             anulado: 1,
             monto: 1,
+            "pagos.monto": 1,
+            "pagos.operadora": 1,
             "premiados.pagado": 1,
             "premiados.numero": 1,
             "premiados.monto": 1,
@@ -408,7 +430,22 @@ async function buscar_pos(usuarioId, fecha) {
         },
       ],
       (error, tickets) => {
+        console.timeEnd('reporte')
         if (error) return reject(error.message);
+        tickets.forEach(ticket => {
+          const pagos = ticket.pagos;
+          ticket.pagado = 0;
+          ticket.premio = ticket.premiados.reduce((total, premiado) => {
+            const pago = pagos.find(pago => pago.operadora.equals(premiado.operadora))
+            premiado.premio = premiado.monto * pago.monto;
+            if (premiado.pagado) ticket.pagado += premiado.premio
+            total += premiado.premio;
+            return total
+          }, 0)
+          delete ticket.pagos;
+          delete ticket.premiados;
+        })
+
         resolve(tickets);
       }
     );
