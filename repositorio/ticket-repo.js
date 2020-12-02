@@ -353,7 +353,14 @@ async function buscar_usuario(usuarioId) {
  * @param {String} grupoPago
  * @returns {Promise<Ticket[]>}
  */
-async function buscar_pos(usuarioId, fecha, grupoPago) {
+const estados = {
+  anulados: { anulado: true },
+  premiados: { "premiados.0": { $exists: true } },
+  pagados: { "premiados.pagado": true },
+  vendidos: {}
+}
+async function buscar_pos(usuarioId, fecha, grupoPago, estado = "vendidos", moneda = "ves") {
+  estado = estados[estado] || estados.vendidos
   console.time('reporte')
   return new Promise((resolve, reject) => {
     const fecha_array = fecha.split("-");
@@ -373,6 +380,7 @@ async function buscar_pos(usuarioId, fecha, grupoPago) {
               $gte: desde,
               $lte: hasta,
             },
+            moneda,
           },
         },
         {
@@ -428,6 +436,7 @@ async function buscar_pos(usuarioId, fecha, grupoPago) {
             "premiados.operadora": 1,
           },
         },
+        { $match: estado }
       ],
       (error, tickets) => {
         console.timeEnd('reporte')
