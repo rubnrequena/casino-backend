@@ -128,9 +128,9 @@ function reporte_general(req, res) {
  * @param {response} res
  */
 function reporte_tickets(req, res) {
-  const { fecha } = req.query;
+  const { fecha, estado, moneda } = req.query;
   ticketRepo.buscar
-    .pos(req.user._id, fecha, req.user.grupoPago)
+    .pos(req.user._id, fecha, req.user.grupoPago, estado, moneda)
     .then((tickets) =>
       res.json({
         error: "OK",
