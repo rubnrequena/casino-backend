@@ -15,6 +15,7 @@ const cacheRepo = require("../repositorio/cache-repo");
 const ventaModel = require("_modelos/venta-model");
 
 const topeService = require("./tope-service");
+const usuarioRepo = require("../repositorio/usuario-repo");
 
 /** JSDoc
  * @param {Usuario} taquilla
@@ -89,9 +90,19 @@ function nuevo({ taquilla, ventas }) {
  * @param {String} serial
  * @returns {Promise<Ticket>}
  */
-function buscar_serial(usuario, serial) {
+async function buscar_serial(usuario, serial) {
   const jerarquia = [...usuario.jerarquia, usuario._id]
-  return ticketRepo.buscar.serial(serial, jerarquia)
+  const _usuario = await usuarioRepo.buscar.id(usuario._id)
+  return ticketRepo.buscar.serial(serial, jerarquia, _usuario.grupoPago.toString()).then(ticket => {
+    ticket.ventas.forEach(venta => {
+      if (venta.premio) {
+        const sorteo = ticket.sorteos.find(sorteo => sorteo._id.equals(venta.sorteo))
+        const pago = ticket.pagos.find(pago => pago.operadora.equals(sorteo.operadora))
+        venta.premio = venta.monto * pago.monto;
+      } else venta.premio = 0
+    })
+    return ticket;
+  })
 }
 /**
  * @param {Usuario} usuario

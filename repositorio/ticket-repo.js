@@ -200,9 +200,10 @@ async function buscar_id(id) {
 /**
  * @param {String} serial
  * @param {String[]} usuarios
+ * @param {String} grupoPago
  * @return {Promise<Ticket>}
  */
-async function buscar_serial(serial, usuarios) {
+async function buscar_serial(serial, usuarios, grupoPago) {
   const jerarquia = usuarios.map(usuario => ObjectId(usuario.toString()))
   return new Promise((resolve, reject) => {
     ticketModel.aggregate(
@@ -238,13 +239,37 @@ async function buscar_serial(serial, usuarios) {
           },
         },
         {
+          $lookup: {
+            let: { operadora: "$operadoras._id" },
+            from: "operadora_pagos",
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$grupo", ObjectId(grupoPago)] },
+                      { $in: ["$operadora", "$$operadora"] }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "pagos",
+          },
+        },
+        {
           $project: {
+            "_id": 0,
+            "jerarquia": 0,
+            "ventas._id": 0,
             "ventas.operadora": 0,
             "ventas.jerarquia": 0,
             "ventas.ticketId": 0,
             "ventas.usuario": 0,
             "ventas.online": 0,
             "ventas.creado": 0,
+            "ventas.moneda": 0,
+            "ventas.anulado": 0,
             "ventas.__v": 0,
             "sorteos.abierta": 0,
             "sorteos.fecha": 0,
@@ -252,8 +277,14 @@ async function buscar_serial(serial, usuarios) {
             "sorteos.__v": 0,
             "operadoras.sorteos": 0,
             "operadoras.tipo": 0,
+            "operadoras.comision": 0,
+            "operadoras.participacion": 0,
+            "operadoras.paga": 0,
+            "operadoras.numeros": 0,
             "operadoras.__v": 0,
-            jerarquia: 0,
+            "pagos._id": 0,
+            "pagos.grupo": 0,
+            "pagos.__v": 0,
           },
         },
       ],
