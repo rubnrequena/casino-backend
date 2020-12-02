@@ -116,10 +116,7 @@ function pagar(pos, serial, codigo, numero, responsable) {
       return reject({ code: Errores.NO_EXISTE, error: "TICKET NO EXISTE" });
 
     if (ticket.codigo != codigo)
-      return reject({
-        code: Errores.TICKET_CODIGO_INVALIDO,
-        error: "CODIGO DE TICKET INVALIDO",
-      });
+      return reject("CODIGO DE TICKET INVALIDO");
 
     const venta = await ventaRepo.buscar.premiado(ticket._id, numero);
     if (!venta) {
@@ -129,10 +126,7 @@ function pagar(pos, serial, codigo, numero, responsable) {
     }
     const estaPagado = await ticketRepo.buscar.pagado(ticket._id, numero);
     if (estaPagado)
-      return reject({
-        code: Errores.TICKET_PAGADO,
-        error: "TICKET PAGADO PREVIAMENTE",
-      });
+      return reject("JUGADA PAGADA PREVIAMENTE");
 
     ticketRepo
       .pagar(venta, responsable._id)
@@ -148,22 +142,16 @@ function pagar(pos, serial, codigo, numero, responsable) {
  */
 function anular(pos, serial, codigo, responsableId) {
   return new Promise(async (resolve, reject) => {
-    const ticket = await buscar_ticket_serial(pos, serial);
     //#region validacion
-    if (!ticket) return reject({ code: Errores.NO_EXISTE });
-    const estaAnulado = await ticketRepo.buscar.anulado(ticket._id);
-    if (estaAnulado)
-      return reject({
-        error: "TICKET ANULADO PREVIAMENTE 1",
-      });
-
+    const ticket = await buscar_ticket_serial(pos, serial);
+    if (!ticket) return reject('TICKET NO EXISTE');
     const esPOS = pos.rol.match(/taquilla|online/);
     if (esPOS)
       if (ticket.codigo != codigo)
-        return reject({
-          code: Errores.TICKET_CODIGO_INVALIDO,
-          error: "CODIGO DE TICKET INVALIDO",
-        });
+        return reject("CODIGO DE TICKET INVALIDO");
+    const estaAnulado = await ticketRepo.buscar.anulado(ticket._id);
+    if (estaAnulado)
+      return reject(`TICKET ANULADO PREVIAMENTE EL ${estaAnulado.anulado}`);
     //#endregion
     const ventas = await ticketRepo.buscar.ventas(ticket._id);
     for (let i = 0; i < ventas.length; i++) {
@@ -174,10 +162,10 @@ function anular(pos, serial, codigo, responsableId) {
       const sorteoTiempoCerrado = now > sorteo.cierra.getTime();
       const tiempoVentaTranscurrido = now - venta.creado.getTime();
       if (sorteoCerrado || sorteoTiempoCerrado) {
-        return reject({ codigo: Errores.SORTEO_CERRADO, error: "SORTEO CERRADO" })
+        return reject(`SORTEO CERRADO: ${sorteo.descripcion}`)
       } else {
         if (esPOS && tiempoVentaTranscurrido > 300000)
-          return reject({ codigo: Errores.TICKET_ANULAR_TIEMPO_AGOTADO, error: "TIEMPO DE ANULACION EXPIRADO" });
+          return reject("TIEMPO DE ANULACION EXPIRADO");
       }
     }
     const anulado = new anuladoModel({
@@ -188,10 +176,7 @@ function anular(pos, serial, codigo, responsableId) {
     anulado.save(async (error) => {
       if (error) {
         if (error.code == 11000)
-          return reject({
-            code: Errores.TICKET_ANULADO,
-            error: "TICKET ANULADO PREVIAMENTE 2",
-          });
+          return reject('TICKET ANULADO PREVIAMENTE');
         else reject(error);
       }
       const anular = { anulado: true };

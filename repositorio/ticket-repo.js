@@ -21,6 +21,7 @@ const redisRepo = require("./redis-repo");
 
 const saldoService = require("../servicios/saldo-service");
 const solicitadosModel = require("_modelos/solicitados-model");
+const Anulado = require("../dto/anulado.dto");
 
 /**
  * @param {Usuario} usuario
@@ -553,7 +554,7 @@ async function ventas(ticketId) {
 /**
  *
  * @param {String} ticketId
- * @returns {Promise<Ticket>}
+ * @returns {Promise<Anulado>}
  */
 async function buscar_anulado(ticketId) {
   return await anuladoModel.findById(ticketId).lean();

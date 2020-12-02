@@ -22,8 +22,10 @@ let authToken;
 let taquilla;
 /** @type {OperadoraSorteo[]} */
 let operadoras;
+let sorteo;
 
 let tickets;
+let numerosVendidos = []
 
 function url(url, query) {
   query = mapObject(query, (campo, valor) => `${campo}=${valor}`).join("&");
@@ -57,9 +59,9 @@ describe("prueba de API POS", () => {
       .then((result) => {
         operadoras = result.body.operadoras;
         expect(operadoras).length.above(0);
-        /* operadoras.forEach((operadora) => {
-          expect(operadora.sorteos).length.above(0);
-        }); */
+        const operadora = operadoras.find(o => o.sorteos.length > 0);
+        sorteo = operadora.sorteos[operadora.sorteos.length - 1];
+        console.log('sorteo seleccionado: ', sorteo.descripcion);
       });
   });
   it('sorteos', async function () {
@@ -99,6 +101,9 @@ describe("prueba de API POS", () => {
         ticketVendido = ticket.ticket;
       });
   });
+
+});
+describe.skip('anular', () => {
   it("vender para anular", async function () {
     const tickets = crearTickets(4);
     return request(app)
@@ -158,21 +163,25 @@ describe("prueba de API POS", () => {
         expect(ticket.anulado).equal(true);
       });
   });
+
 });
-let sorteo;
-describe.skip("premiar", function () {
+
+describe("premiar", function () {
   this.timeout(0)
   it("reiniciar sorteo", async function () {
-    const operadora = operadoras.find(o => o.sorteos.length > 0);
-    sorteo = operadora.sorteos[operadora.sorteos.length - 1];
     return await sorteoService.reiniciar(sorteo._id);
   });
   it("premiar sorteo", async function () {
-    return await sorteoService.premiar(sorteo._id, getRandomInt(0, 36));
+    const ganador = numerosVendidos[0, numerosVendidos.length - 1]
+    console.log('ganador :>>', ganador);
+    return await sorteoService.premiar(sorteo._id, ganador).then(result => {
+      console.log('sorteo premiado', result);
+    })
   });
 });
 
-describe.skip("pagar tickets", () => {
+describe("pagar tickets", function () {
+  this.timeout(0)
   let ticketPremiado;
   it("buscar premiados", async function () {
     const hoy = isoDate();
@@ -184,14 +193,14 @@ describe.skip("pagar tickets", () => {
       .then((result) => result.body)
       .then((reporte) => {
         expect(reporte.tickets).length.above(0);
-        ticketPremiado = reporte.tickets.find(
+        ticketPremiado = reporte.tickets.filter(
           (ticket) => ticket.premiados.length > 0
-        );
-        console.log(ticketPremiado);
+        ).pop()
+        console.log("ticket premiado:", ticketPremiado._id);
       });
   });
   it("pagar ticket", async function () {
-    const numeroPremiado = ticketPremiado.premiados[0];
+    const numeroPremiado = ticketPremiado.premiados[ticketPremiado.premiados.length - 1];
     return request(app)
       .post(url("ticket/pagar"))
       .set(authToken)
@@ -225,20 +234,18 @@ describe.skip("reportes", () => {
 });
 
 function crearTickets(n = 36) {
-  const operadora = operadoras.find(o => o.sorteos.length > 0);
-  const sorteo = operadora.sorteos[getRandomInt(0, operadora.sorteos.length - 1)];
+  /* const operadora = operadoras.find(o => o.sorteos.length > 0);
+  const sorteo = operadora.sorteos[getRandomInt(0, operadora.sorteos.length - 1)]; */
   let jugadas = [];
   for (let i = 0; i < n; i++) {
+    const numero = getRandomInt(0, 36);
+    numerosVendidos.push(numero)
     jugadas.push({
       sorteo: sorteo._id,
-      numero: getRandomInt(0, 36),
-      monto: 1000,
-    });
-    jugadas.push({
-      sorteo: '5fc4be00a6f0ba1f943e621f',
-      numero: getRandomInt(0, 36),
-      monto: 1000,
+      monto: getRandomInt(10, 100) * 1000,
+      numero,
     });
   }
+  console.log('jugando: >>', jugadas);
   return jugadas;
 }
