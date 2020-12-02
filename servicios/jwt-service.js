@@ -17,6 +17,7 @@ module.exports = {
       jerarquia: usuario.jerarquia,
       moneda: usuario.moneda,
       permisos: permisoId,
+      grupoPago: usuario.grupoPago
       //TODO enviar sesion al cliente
     };
     var token = jwt.sign(payload, config.jwtSecret, {
