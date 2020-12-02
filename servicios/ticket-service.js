@@ -147,7 +147,7 @@ function anular(pos, serial, codigo, responsableId) {
     const estaAnulado = await ticketRepo.buscar.anulado(ticket._id);
     if (estaAnulado)
       return reject({
-        error: "TICKET ANULADO PREVIAMENTE",
+        error: "TICKET ANULADO PREVIAMENTE 1",
       });
 
     const esPOS = pos.rol.match(/taquilla|online/);
@@ -183,7 +183,7 @@ function anular(pos, serial, codigo, responsableId) {
         if (error.code == 11000)
           return reject({
             code: Errores.TICKET_ANULADO,
-            error: "TICKET ANULADO PREVIAMENTE",
+            error: "TICKET ANULADO PREVIAMENTE 2",
           });
         else reject(error);
       }
