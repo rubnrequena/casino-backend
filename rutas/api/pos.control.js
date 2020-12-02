@@ -182,6 +182,8 @@ function ticket_buscar(req, res) {
       delete ticket.jerarquia;
       delete ticket.codigo;
       delete ticket.online;
+      delete ticket.operadoras;
+      delete ticket.pagos;
 
       res.json({ error: "OK", ...ticket });
     })
