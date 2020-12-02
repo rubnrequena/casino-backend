@@ -115,6 +115,12 @@ function pagar(pos, serial, codigo, numero, responsable) {
     if (!ticket)
       return reject({ code: Errores.NO_EXISTE, error: "TICKET NO EXISTE" });
 
+    if (ticket.codigo != codigo)
+      return reject({
+        code: Errores.TICKET_CODIGO_INVALIDO,
+        error: "CODIGO DE TICKET INVALIDO",
+      });
+
     const venta = await ventaRepo.buscar.premiado(ticket._id, numero);
     if (!venta) {
       return reject({
@@ -128,11 +134,6 @@ function pagar(pos, serial, codigo, numero, responsable) {
         error: "TICKET PAGADO PREVIAMENTE",
       });
 
-    if (ticket.codigo != codigo)
-      return reject({
-        code: Errores.TICKET_CODIGO_INVALIDO,
-        error: "CODIGO DE TICKET INVALIDO",
-      });
     ticketRepo
       .pagar(venta, responsable._id)
       .then((result) => resolve(result))
