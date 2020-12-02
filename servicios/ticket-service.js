@@ -114,7 +114,7 @@ function pagar(pos, serial, codigo, numero, responsable) {
     const ticket = await buscar_ticket_serial(pos, serial);
     if (!ticket)
       return reject({ code: Errores.NO_EXISTE, error: "TICKET NO EXISTE" });
-    const estaPagado = ticketRepo.buscar.pagado(ticket._id);
+    const estaPagado = await ticketRepo.buscar.pagado(ticket._id);
     if (estaPagado)
       return reject({
         code: Errores.TICKET_PAGADO,
