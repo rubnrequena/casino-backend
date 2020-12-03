@@ -38,9 +38,11 @@ function validar(taquilla, ventas) {
   });
 }
 function agruparVentas({ taquilla, ventas }) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     ventas = ventas.reduce((grupos, venta) => {
-      let lventa = grupos.find(v => v.numero == venta.numero)
+      let lventa = grupos.find(v => {
+        return v.numero == venta.numero && v.sorteo == venta.sorteo
+      })
       if (lventa) lventa.monto += venta.monto
       else grupos.push(venta)
       return grupos
