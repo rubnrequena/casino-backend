@@ -22,7 +22,7 @@ module.exports = {
             errors.push(
               `se esperaba '${campo.llave}' fuera de tipo '${campo.valor}'`
             );
-        } else errors.push(`campo "${campo.llave}" no encontrado`);
+        } else errors.push(`campo '${campo.llave}' no encontrado`);
       }
       if (errors.length == 0) next();
       else res.json(crearError(errors));
