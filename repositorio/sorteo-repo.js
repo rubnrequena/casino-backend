@@ -130,7 +130,7 @@ module.exports = {
      * @param {String} operadora
      */
     async registrado(fecha, operadora) {
-      return await sorteoModel.findOne({ fecha, operadora });
+      return await sorteoModel.findOne({ fecha, operadora }).lean()
     },
     /**JSDoc
      * @param {Date} fecha

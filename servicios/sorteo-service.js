@@ -29,7 +29,8 @@ module.exports = {
   registrar(desde, hasta, operadora) {
     return new Promise(async (resolve, reject) => {
       let finicio = new Date(desde);
-      let ffinal = new Date(finicio.getFullYear(), finicio.getMonth(), finicio.getDate() + 1);
+      let dfinal = new Date(hasta);
+      let ffinal = new Date(dfinal.getFullYear(), dfinal.getMonth(), dfinal.getDate() + 1);
       let rangoFechas = [];
       let fecha;
       while (finicio <= ffinal) {
