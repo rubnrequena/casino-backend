@@ -55,9 +55,9 @@ function login(req, res) {
  * @param {response} res
  */
 function cambiar_clave(req, res) {
-  const { clave } = req.body;
+  const { actual, nueva } = req.body;
   usuarioService
-    .cambioClave(req.user, clave)
+    .cambioClave(req.user, actual, nueva)
     .then((result) => res.json({ error: "OK", ...result }))
     .catch((error) => res.json(crearError(error)));
 }

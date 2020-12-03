@@ -27,9 +27,15 @@ module.exports = {
    * @param {String} claveActual
    * @param {String} claveNueva
    */
-  cambioClave(usuario, clave) {
-    //TODO Notificar cambio de contraseña
-    return usuarioRepo.cambioClave(usuario._id, clave);
+  cambioClave(usuario, claveActual, claveNueva) {
+    return new Promise(async (resolve, reject) => {
+      const _usuario = await usuarioRepo.buscar.id(usuario._id)
+      if (!_usuario) return reject('USUARIO NO EXISTE')
+      if (_usuario.clave != md5(claveActual)) return reject('CONTRASEÑA ACTUAL INVALIDA')
+      usuarioRepo.cambioClave(usuario._id, claveNueva).then(result => {
+        resolve(result)
+      }).catch(error => reject(error))
+    });
   },
   permisos: {
     buscar: {
