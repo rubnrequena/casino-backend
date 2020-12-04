@@ -135,7 +135,7 @@ router.post("/tope/editar", (req, res) => {
 });
 
 const topeBuscar = [
-  validarGET("usuario:objectid,operadora:objectid"),
+  validarGET("usuario:objectid"),
   usuarioMiddle.validarJerarquia,
 ];
 router.get("/tope/buscar", topeBuscar, (req, res) => {
