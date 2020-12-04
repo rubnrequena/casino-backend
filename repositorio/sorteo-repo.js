@@ -223,7 +223,7 @@ module.exports = {
               },
             },
             { $addFields: { operadora: { $arrayElemAt: ["$operadora", 0] } } },
-            { $project: { operadora: "$operadora.nombre", tipo: "$operadora.tipo", sorteos: 1 } },
+            { $project: { numeros: "$operadora.numeros", operadora: "$operadora.nombre", tipo: "$operadora.tipo", sorteos: 1 } },
           ],
           (error, operadoras) => {
             if (error) return reject(error.message);
