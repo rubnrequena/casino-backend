@@ -17,6 +17,7 @@ const sesionRepo = require("../../repositorio/sesion-repo");
 const sorteoService = require("../../servicios/sorteo-service");
 const { isoDate } = require("../../utils/date-util");
 const topeService = require("../../servicios/tope-service");
+const reporteService = require("../../servicios/reporte-service");
 //#endregion
 
 //#region AUTH
@@ -144,7 +145,25 @@ function reporte_tickets(req, res) {
  * @param {request} req
  * @param {response} res
  */
-function reporte_caja(req, res) { }
+function reporte_caja(req, res) {
+  const { fecha } = req.query
+  reporteService.caja.buscar(req.user, fecha).then((reportes) => {
+    res.json({ error: "OK", reportes: reportes })
+  })
+    .catch((error) => res.json(crearError(error)));
+}
+
+/**
+ * @param {request} req
+ * @param {response} res
+ */
+function reporte_generarcaja(req, res) {
+  const fecha = "2020-12-03"
+  reporteService.caja.generar(req.user, fecha).then((result) => {
+    res.json({ error: "OK", reporte: result })
+  })
+    .catch((error) => res.json(crearError(error)));
+}
 //#endregion
 
 //#region TICKETS
@@ -248,6 +267,7 @@ module.exports = {
     general: reporte_general,
     tickets: reporte_tickets,
     caja: reporte_caja,
+    generarcaja: reporte_generarcaja
   },
   tickets: {
     venta: ticket_venta,

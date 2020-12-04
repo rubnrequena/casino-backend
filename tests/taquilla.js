@@ -38,10 +38,7 @@ describe("prueba de API POS", () => {
   it("login", async () => {
     return request(app)
       .post(url("auth"))
-      .send({
-        usuario: "pos1",
-        clave: "1234",
-      })
+      .send({ usuario: "pos1", clave: "1234" })
       .expect(200)
       .expect(anError)
       .then((result) => {
@@ -49,7 +46,39 @@ describe("prueba de API POS", () => {
         authToken = token(taquilla.token);
       });
   });
-  it("sorteos disponibles", function () {
+  it('cambiar clave', async function () {
+    const payload = { actual: "1234", nueva: "4321" }
+    return request(app).post(url('auth/cambiarclave')).set(authToken)
+      .send(payload)
+      .expect(200)
+      .then(anError)
+  });
+  it('reestablecer contraseña', async function () {
+    const payload = { actual: "4321", nueva: "1234" }
+    return request(app).post(url('auth/cambiarclave')).set(authToken)
+      .send(payload)
+      .expect(200)
+      .then(anError)
+  });
+  it('generar caja', async function () {
+    this.timeout(0)
+    return request(app).get(url('reporte/caja/generar')).set(authToken)
+      .expect(200)
+      .then(anError)
+      .then(result => result.body).then(body => {
+        console.log(JSON.stringify(body));
+      })
+  });
+  it('reporte de caja', async function () {
+    const fecha = isoDate()
+    return request(app).get(url('reporte/caja', { fecha: "2020-12-03" })).set(authToken)
+      .expect(200)
+      .then(anError)
+      .then(result => result.body).then(body => {
+        expect(body.reportes).to.have.length.above(0);
+      })
+  });
+  it.skip("sorteos disponibles", function () {
     const hoy = isoDate();
     return request(app)
       .get(url("sorteo/disponibles", { fecha: hoy }))
@@ -64,7 +93,7 @@ describe("prueba de API POS", () => {
         console.log('sorteo seleccionado: ', sorteo.descripcion);
       });
   });
-  it('sorteos', async function () {
+  it.skip('sorteos', async function () {
     const payload = {
       fecha: isoDate(),
       operadora: operadoras[0]._id
@@ -74,7 +103,7 @@ describe("prueba de API POS", () => {
       .then(anError)
   });
 
-  it("validar", async function () {
+  it.skip("validar", async function () {
     this.timeout(0)
     tickets = crearTickets(5);
     return request(app)
@@ -88,7 +117,7 @@ describe("prueba de API POS", () => {
         ticketVendido = ticket.ticket;
       });
   });
-  it("vender", async function () {
+  it.skip("vender", async function () {
     this.timeout(0)
     return request(app)
       .post(url("ticket/venta"))
@@ -101,7 +130,17 @@ describe("prueba de API POS", () => {
         ticketVendido = ticket.ticket;
       });
   });
-
+  it.skip("buscar ticket", async function () {
+    const payload = { serial: 'A12037' };
+    return request(app)
+      .get(url(`ticket/buscar`, payload))
+      .set(authToken)
+      .expect(200)
+      .then(anError).then(result => result.body)
+      .then(ticket => {
+        console.log("ticket: >> ", ticket);
+      })
+  });
 });
 describe.skip('anular', () => {
   it("vender para anular", async function () {
@@ -148,9 +187,6 @@ describe.skip('anular', () => {
       })
       .expect(200)
       .then(anError)
-      .then(ticket => {
-        console.log("anulado", ticket.body);
-      })
   });
   it("buscar ticket anulado", async function () {
     return request(app)
@@ -163,24 +199,20 @@ describe.skip('anular', () => {
         expect(ticket.anulado).equal(true);
       });
   });
-
 });
 
-describe("premiar", function () {
+describe.skip("premiar", function () {
   this.timeout(0)
   it("reiniciar sorteo", async function () {
     return await sorteoService.reiniciar(sorteo._id);
   });
   it("premiar sorteo", async function () {
     const ganador = numerosVendidos[0, numerosVendidos.length - 1]
-    console.log('ganador :>>', ganador);
-    return await sorteoService.premiar(sorteo._id, ganador).then(result => {
-      console.log('sorteo premiado', result);
-    })
+    return await sorteoService.premiar(sorteo._id, ganador)
   });
 });
 
-describe("pagar tickets", function () {
+describe.skip("pagar tickets", function () {
   this.timeout(0)
   let ticketPremiado;
   it("buscar premiados", async function () {
@@ -196,7 +228,6 @@ describe("pagar tickets", function () {
         ticketPremiado = reporte.tickets.filter(
           (ticket) => ticket.premiados.length > 0
         ).pop()
-        console.log("ticket premiado:", ticketPremiado._id);
       });
   });
   it("pagar ticket", async function () {
@@ -219,6 +250,14 @@ describe("pagar tickets", function () {
 });
 
 describe.skip("reportes", () => {
+  it('', async function () {
+    return request(app).get(url('reporte/tickets', { fecha: "2020-12-02", estado: "vendidos", moneda: 'ves' })).set(authToken)
+      .expect(200)
+      .then(anError)
+      .then(result => result.body).then(reporte => {
+        console.log("tickets >> ", reporte.tickets.length);
+      })
+  });
   it("reporte general", async function () {
     const hoy = isoDate();
     return request(app)
@@ -246,6 +285,5 @@ function crearTickets(n = 36) {
       numero,
     });
   }
-  console.log('jugando: >>', jugadas);
   return jugadas;
 }

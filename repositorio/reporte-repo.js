@@ -1,12 +1,16 @@
-const { mongo } = require("mongoose");
-const reporteModel = require("_modelos/reporte-model");
-const Reporte = require("../dto/reporte-dto");
 const mongoose = require("mongoose");
-const Operadora = require("../dto/operadora-dto");
-const Usuario = require("../dto/usuario-dto");
 const ObjectId = mongoose.Types.ObjectId;
 
-function nuevo() {}
+const Reporte = require("../dto/reporte-dto");
+const Operadora = require("../dto/operadora-dto");
+const Usuario = require("../dto/usuario-dto");
+const Caja = require("../dto/caja.dto");
+
+const reporteModel = require("_modelos/reporte-model");
+const ventaModel = require("_modelos/venta-model");
+const cajaModel = require("_modelos/caja-model");
+
+function nuevo() { }
 
 function reiniciar(sorteoId) {
   return new Promise((resolve, reject) => {
@@ -637,6 +641,174 @@ function negativos_usuario(
     );
   });
 }
+
+/**
+ * 
+ * @param {String} usuarioId 
+ * @param {String} fecha 
+ * @param {Buffer} grupoPago 
+ * @returns {Promise<Caja[]>}
+ */
+function caja_generar(usuarioId, fecha, grupoPago) {
+  return new Promise((resolve, reject) => {
+    usuarioId = usuarioId.toString()
+    grupoPago = grupoPago.toString()
+    const inicio = new Date(fecha)
+    const final = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate(), 23)
+    ventaModel.aggregate([
+      {
+        $match: {
+          usuario: ObjectId(usuarioId),
+          creado: {
+            $gte: inicio,
+            $lt: final
+          }
+        }
+      },
+      {
+        $lookup: {
+          let: { operadora: "$operadora" },
+          from: "operadora_pagos",
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$grupo", ObjectId(grupoPago)] },
+                    { $eq: ["$operadora", "$$operadora"] }
+                  ]
+                }
+              }
+            }
+          ],
+          as: "pagos",
+        }
+      },
+      { $addFields: { pagos: { $arrayElemAt: ["$pagos", 0] } } },
+      {
+        $addFields: {
+          premio: { $cond: ["$premio", { $multiply: ["$monto", "$pagos.monto"] }, 0] },
+          pagado: { $cond: ["$pagado", { $multiply: ["$monto", "$pagos.monto"] }, 0] }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            sorteo: "$sorteo",
+            ticket: "$ticketId"
+          },
+          operadora: { $first: "$operadora" },
+          usuario: { $first: "$usuario" },
+          monto: { $sum: "$monto" },
+          premio: { $sum: "$premio" },
+          pagado: { $sum: "$pagado" },
+        }
+      },
+      {
+        $group: {
+          _id: "$_id.sorteo",
+          operadora: { $first: "$operadora" },
+          usuario: { $first: "$usuario" },
+          monto: { $sum: "$monto" },
+          premio: { $sum: "$premio" },
+          pagado: { $sum: "$pagado" },
+          tickets: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "usuarios",
+          let: { usuario: "$usuario" },
+          pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$usuario"] } } }, { $project: { comision: 1 } }],
+          as: "_usuario"
+        }
+      },
+      { $addFields: { _usuario: { $arrayElemAt: ["$_usuario", 0] } } },
+      {
+        $lookup: {
+          from: "comisiones",
+          let: { usuario: "$usuario", operadora: "$operadora" },
+          pipeline: [{
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$usuario", "$$usuario"] },
+                  { $eq: ["$operadora", "$$operadora"] }
+                ]
+              }
+            }
+          },
+          { $project: { comision: 1 } }],
+          as: "comisiones"
+        }
+      },
+      { $addFields: { comisiones: { $arrayElemAt: ["$comisiones", 0] } } },
+      {
+        $addFields: {
+          comision: {
+            $multiply: [
+              { $multiply: ["$monto", { $cond: ["$comisiones.comision", "$comisiones.comision", "$usuario.comision"] }] },
+              0.01
+            ]
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: "sorteos",
+          foreignField: "_id",
+          localField: "_id",
+          as: "_sorteo"
+        }
+      },
+      { $addFields: { _sorteo: { $arrayElemAt: ["$_sorteo", 0] } } },
+      {
+        $project: {
+          _id: 0,
+          sorteo: "$_id",
+          sorteoNombre: "$_sorteo.descripcion",
+          operadora: 1,
+          monto: 1,
+          pagado: 1,
+          premio: 1,
+          tickets: 1,
+          comision: 1,
+        }
+      },
+      { $sort: { "sorteo": 1 } }
+    ], (error, result) => {
+      if (error) return reject(error.message)
+      resolve(result)
+    })
+  });
+}
+function caja_nuevo(usuario, reporte) {
+  return new Promise((resolve, reject) => {
+    const fecha = new Date();
+    new cajaModel({ usuario, fecha, reporte }).save((error, result) => {
+      if (error) return reject(error.message)
+      resolve(result)
+    })
+  });
+}
+/**
+ * 
+ * @param {String} usuarioId 
+ * @param {String} fecha 
+ * @returns {Promise<Caja[]>}
+ */
+function caja_buscar(usuarioId, fecha) {
+  return new Promise((resolve, reject) => {
+    cajaModel.aggregate([
+      { $match: { usuario: ObjectId(usuarioId) } },
+      { $addFields: { fecha: { $dateToString: { format: "%Y-%m-%d", date: "$fecha" } } } },
+      { $match: { fecha } },
+    ], (error, reportes) => {
+      if (error) return reject(error.message)
+      resolve(reportes)
+    })
+  });
+}
 module.exports = {
   nuevo,
   reiniciar,
@@ -650,4 +822,9 @@ module.exports = {
       usuarios: negativos_usuario,
     },
   },
+  caja: {
+    generar: caja_generar,
+    nuevo: caja_nuevo,
+    buscar: caja_buscar,
+  }
 };

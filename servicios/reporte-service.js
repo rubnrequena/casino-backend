@@ -4,6 +4,26 @@ const operadoraRepo = require("../repositorio/operadora-repo");
 const reporteRepo = require("../repositorio/reporte-repo");
 const usuarioRepo = require("../repositorio/usuario-repo");
 
+/**
+ * 
+ * @param {Usuario} usuario 
+ * @param {String} fecha 
+ */
+function caja_generar(usuario, fecha) {
+  return reporteRepo.caja.generar(usuario._id, fecha, usuario.grupoPago).then(reportes => {
+    return reporteRepo.caja.nuevo(usuario._id, reportes).then((reporte) => {
+      return reporte;
+    }).catch(error => error)
+  }).catch(error => error)
+}
+/**
+ * @param {Usuario} usuario 
+ * @param {String} fecha 
+ */
+function caja_buscar(usuario, fecha) {
+  return reporteRepo.caja.buscar(usuario._id, fecha)
+}
+
 module.exports = {
   buscar: {
     /**
@@ -103,4 +123,8 @@ module.exports = {
       },
     },
   },
+  caja: {
+    generar: caja_generar,
+    buscar: caja_buscar
+  }
 };

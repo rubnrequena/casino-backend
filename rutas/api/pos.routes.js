@@ -29,13 +29,14 @@ router.get("/sorteo/buscar", buscarFecha, sorteos.buscar);
 //#endregion
 
 //#region REPORTES
-const reporte_general = [validarGET("desde,hasta,moneda"), validarJerarquia];
-const reporte_tickets = [validarGET("fecha,moneda"), validarJerarquia];
+const reporte_general = [validarGET("desde,hasta"), validarJerarquia];
+const reporte_tickets = [validarGET("fecha"), validarJerarquia];
+const reporte_caja = validarGET("fecha");
 
 router.get("/reporte/general", reporte_general, reportes.general);
 router.get("/reporte/tickets", reporte_tickets, reportes.tickets);
-router.get("/reporte/caja", validarJerarquia, reportes.caja);
-router.get("/reporte/caja/generar", (req, res) => { });
+router.get("/reporte/caja", reporte_caja, reportes.caja);
+router.get("/reporte/caja/generar", reportes.generarcaja);
 //#endregion
 
 //#region TICKET
