@@ -269,7 +269,7 @@ function buscar_operadoras(usuarioId, rol, operadoras, desde, hasta, moneda) {
     const participacion = participacionMap[rol];
     desde = new Date(desde + "T04:00:00Z");
     hasta = new Date(hasta + "T04:00:00Z")
-    hasta.setDate(hasta.getDate() + 1)S
+    hasta.setDate(hasta.getDate() + 1)
     let match = {
       jerarquia: ObjectId(usuarioId),
       fecha: { $gte: desde, $lte: hasta },
