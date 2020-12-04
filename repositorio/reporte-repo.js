@@ -659,10 +659,11 @@ function caja_generar(usuarioId, fecha, grupoPago) {
       {
         $match: {
           usuario: ObjectId(usuarioId),
+          anulado: false,
           creado: {
             $gte: inicio,
             $lt: final
-          }
+          },
         }
       },
       {
