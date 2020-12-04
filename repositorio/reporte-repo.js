@@ -70,10 +70,9 @@ function buscar_usuario(usuarioId, rol, operadoras, desde, hasta, moneda) {
   const comision = comisionMap[rol];
   const participacion = participacionMap[rol];
   const rolNivel = rolMap[rol];
-  desde = new Date(desde);
-  desde.setHours(0, 0, 0);
-  hasta = new Date(hasta);
-  hasta = new Date(hasta.getFullYear(), hasta.getMonth(), hasta.getDate(), 23, 59)
+  desde = new Date(desde + "T04:00:00Z");
+  hasta = new Date(hasta + "T04:00:00Z")
+  hasta.setDate(hasta.getDate() + 1)
   return new Promise((resolve, reject) => {
     let match = {
       jerarquia: ObjectId(usuarioId),
@@ -171,10 +170,9 @@ function buscar_usuario(usuarioId, rol, operadoras, desde, hasta, moneda) {
 function buscar_taquilla(usuarioId, rol, desde, hasta, moneda) {
   const comision = comisionMap[rol];
   const participacion = participacionMap[rol];
-  desde = new Date(desde);
-  desde.setHours(0, 0, 0);
-  hasta = new Date(hasta);
-  hasta.setHours(23, 59, 59);
+  desde = new Date(desde + "T04:00:00Z");
+  hasta = new Date(hasta + "T04:00:00Z")
+  hasta.setDate(hasta.getDate() + 1)
   return new Promise((resolve, reject) => {
     let match = {
       usuario: ObjectId(usuarioId),
@@ -269,10 +267,9 @@ function buscar_operadoras(usuarioId, rol, operadoras, desde, hasta, moneda) {
   return new Promise((resolve, reject) => {
     const comision = comisionMap[rol];
     const participacion = participacionMap[rol];
-    desde = new Date(desde);
-    desde.setHours(0, 0, 0);
-    hasta = new Date(hasta);
-    hasta.setHours(23, 59, 59);
+    desde = new Date(desde + "T04:00:00Z");
+    hasta = new Date(hasta + "T04:00:00Z")
+    hasta.setDate(hasta.getDate() + 1)S
     let match = {
       jerarquia: ObjectId(usuarioId),
       fecha: { $gte: desde, $lte: hasta },
@@ -361,10 +358,9 @@ function buscar_loteria(rol, desde, hasta, moneda) {
   return new Promise((resolve, reject) => {
     const comision = comisionMap[rol];
     const participacion = participacionMap[rol];
-    desde = new Date(desde);
-    desde.setHours(0, 0, 0);
-    hasta = new Date(hasta);
-    hasta.setHours(23, 59, 59);
+    desde = new Date(desde + "T04:00:00Z");
+    hasta = new Date(hasta + "T04:00:00Z")
+    hasta.setDate(hasta.getDate() + 1)
 
     reporteModel.aggregate(
       [
@@ -454,10 +450,9 @@ function buscar_sorteo(usuarioId, rol, operadora, desde, hasta, moneda) {
   return new Promise((resolve, reject) => {
     const comision = comisionMap[rol];
     const participacion = participacionMap[rol];
-    desde = new Date(desde);
-    desde.setHours(0, 0, 0);
-    hasta = new Date(hasta);
-    hasta.setHours(23, 59, 59);
+    desde = new Date(desde + "T04:00:00Z");
+    hasta = new Date(hasta + "T04:00:00Z")
+    hasta.setDate(hasta.getDate() + 1)
     reporteModel.aggregate(
       [
         {
@@ -551,9 +546,9 @@ function negativos_usuario(
   const comision = comisionMap[rol];
   const participacion = participacionMap[rol];
   const rolNivel = rolMap[rol];
-  desde = new Date(desde);
-  hasta = new Date(hasta);
-  hasta.setHours(23, 59, 59);
+  desde = new Date(desde + "T04:00:00Z");
+  hasta = new Date(hasta + "T04:00:00Z")
+  hasta.setDate(hasta.getDate() + 1)
   return new Promise((resolve, reject) => {
     reporteModel.aggregate(
       [
