@@ -107,8 +107,9 @@ module.exports = {
        * @param {Usuario} usuario
        * @param {String} desde
        * @param {String} hasta
+       * @param {String} moneda
        */
-      async usuario(usuario, desde, hasta) {
+      async usuario(usuario, desde, hasta, moneda) {
         let operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario);
         operadoras = operadoras.map((operadora) => operadora.operadora);
         if (usuario.rol == Usuario.AUDITOR)
@@ -118,7 +119,8 @@ module.exports = {
           usuario.rol,
           operadoras,
           desde,
-          hasta
+          hasta,
+          moneda
         );
       },
     },

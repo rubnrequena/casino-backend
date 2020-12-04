@@ -541,7 +541,7 @@ function negativos_usuario(
   operadoras,
   desde,
   hasta,
-  moneda = "ves"
+  moneda
 ) {
   const comision = comisionMap[rol];
   const participacion = participacionMap[rol];

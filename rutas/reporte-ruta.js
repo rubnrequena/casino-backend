@@ -56,9 +56,9 @@ router.get("/loterias", esMaster, (req, res) => {
 });
 router.get("/usuario/negativos", validarJerarquia, (req, res) => {
   //TODO: verificar moneda valida
-  let { desde, hasta } = req.query;
+  let { desde, hasta, moneda } = req.query;
   reporteService.buscar.negativos
-    .usuario(req.usuario, desde, hasta)
+    .usuario(req.usuario, desde, hasta, moneda)
     .then((reportes) => res.json(reportes))
     .catch((error) => res.json(crearError(error)));
 });
