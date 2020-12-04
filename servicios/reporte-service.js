@@ -53,7 +53,7 @@ module.exports = {
      * @param {String} hasta
      */
     async operadoras(usuario, desde, hasta, moneda) {
-      let operadoras;
+      let operadoras = null;
       if (usuario.rol == Usuario.AUDITOR) {
         usuario = await usuarioRepo.buscar.usuario("master");
         operadoras = await operadoraRepo.buscar.enlacesUsuario(usuario);
@@ -113,7 +113,7 @@ module.exports = {
         operadoras = operadoras.map((operadora) => operadora.operadora);
         if (usuario.rol == Usuario.AUDITOR)
           usuario = await usuarioRepo.buscar.usuario("master");
-        return reporteRepo.buscar.negativos.usuario(
+        return reporteRepo.buscar.negativos.usuarios(
           usuario._id,
           usuario.rol,
           operadoras,

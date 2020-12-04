@@ -265,7 +265,7 @@ function buscar_taquilla(usuarioId, rol, desde, hasta, moneda) {
  * @param {String} hasta
  * @returns {Reporte[]}
  */
-function buscar_operadoras(usuarioId, rol, desde, hasta, moneda) {
+function buscar_operadoras(usuarioId, rol, operadoras, desde, hasta, moneda) {
   return new Promise((resolve, reject) => {
     const comision = comisionMap[rol];
     const participacion = participacionMap[rol];
