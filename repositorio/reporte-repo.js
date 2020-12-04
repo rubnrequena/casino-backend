@@ -73,7 +73,7 @@ function buscar_usuario(usuarioId, rol, operadoras, desde, hasta, moneda) {
   desde = new Date(desde);
   desde.setHours(0, 0, 0);
   hasta = new Date(hasta);
-  hasta.setHours(23, 59, 59);
+  hasta = new Date(hasta.getFullYear(), hasta.getMonth(), hasta.getDate(), 23, 59)
   return new Promise((resolve, reject) => {
     let match = {
       jerarquia: ObjectId(usuarioId),
