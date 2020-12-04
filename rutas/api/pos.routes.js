@@ -3,7 +3,6 @@ const {
   validarJerarquia,
   puedeVender,
 } = require("../../middlewares/usuario-middle");
-const topeService = require("../../servicios/tope-service");
 const {
   auth,
   sorteos,
@@ -26,6 +25,7 @@ const buscarFecha = validarGET("fecha,operadora:objectid");
 
 router.get("/sorteo/disponibles", sorteos.disponibles);
 router.get("/sorteo/buscar", buscarFecha, sorteos.buscar);
+router.get('/sorteo/numeros', sorteos.numeros);
 //#endregion
 
 //#region REPORTES

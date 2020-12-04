@@ -18,6 +18,7 @@ const sorteoService = require("../../servicios/sorteo-service");
 const { isoDate } = require("../../utils/date-util");
 const topeService = require("../../servicios/tope-service");
 const reporteService = require("../../servicios/reporte-service");
+const operadoraRepo = require("../../repositorio/operadora-repo");
 //#endregion
 
 //#region AUTH
@@ -72,7 +73,7 @@ function recuperar_clave(req, res) {
 //#endregion
 
 //#region SORTEOS
-/** GET api/sorteos/disponibles
+/** GET api/sorteo/disponibles
  * @param {request} req
  * @param {response} res
  */
@@ -91,7 +92,7 @@ function sorteo_disponibles(req, res) {
     })
     .catch((error) => res.json(crearError(error)));
 }
-/** GET api/sorteos/buscar
+/** GET api/sorteo/buscar
  * @param {request} req
  * @param {response} res
  */
@@ -100,6 +101,14 @@ function sorteo_buscar(req, res) {
   sorteoService.buscar
     .fecha(fecha, operadora)
     .then((sorteos) => res.json({ error: "OK", sorteos }))
+    .catch((error) => res.json(crearError(error)));
+}
+/** GET api/sorteo/numeros
+ * @param {request} req
+ * @param {response} res
+ */
+function sorteo_numeros(req, res) {
+  operadoraRepo.numeros.buscar.todos().then((numeros) => res.json({ error: "OK", numeros }))
     .catch((error) => res.json(crearError(error)));
 }
 //#endregion
@@ -262,6 +271,7 @@ module.exports = {
   sorteos: {
     disponibles: sorteo_disponibles,
     buscar: sorteo_buscar,
+    numeros: sorteo_numeros
   },
   reportes: {
     general: reporte_general,

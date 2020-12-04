@@ -643,7 +643,6 @@ function negativos_usuario(
 }
 
 /**
- * 
  * @param {String} usuarioId 
  * @param {String} fecha 
  * @param {Buffer} grupoPago 
