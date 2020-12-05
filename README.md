@@ -1,3 +1,8 @@
+REQUISITOS DE SISTEMA
+NodeJS  v12
+Redis   v5.0.9
+MongoDB v4.2
+
 OPERADORA
 ✅ Crear, modificar, eliminar
 ✅ Registrar, abrir/cerrar, premiar sorteos
