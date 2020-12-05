@@ -7,7 +7,7 @@ const ticketModel = require("_modelos/ticket-model");
 const ventaModel = require("_modelos/venta-model");
 
 const url = (path) => {
-  return `http://127.0.0.1:3000/${path}`;
+  return `https://api.caribeapuesta.com/${path}`;
 };
 let sorteo;
 let ventas = [];
@@ -99,7 +99,7 @@ describe("pruebas", function () {
         console.log(error.message);
       });
   });
-  it("vender un solo ticket", function (done) {
+  it.skip("vender un solo ticket", function (done) {
     const ventas = [
       {
         numero: trailZero(getRandomInt(1, 36)),
@@ -114,25 +114,25 @@ describe("pruebas", function () {
     ];
     Axios.post(url("api/pos/ticket/venta"), ventas).then((data) => {
       expect(data.data.error).eq("OK")
-      console.log("un_tickey", data.data);
       done();
     }).catch(error => {
       done(error)
     })
   });
-  it.skip("vender lote", function (done) {
+  it("vender lote", function (done) {
     len = 1000;
     intervalo = len * 0.1;
-    const hilos = 10;
+    const hilos = 100;
     for (let x = 0; x < len; x++) {
       const _tickets = []
       const nums = [];
       for (let index = 0; index < 4; index++) {
         const monto = getRandomInt(10, 100) * 100
+        const sorteo = sorteos[getRandomInt(0, sorteos.length - 1)]
         totalJugar += monto;
         _tickets.push({
           numero: numeroAleatorio(nums),
-          sorteo: sorteos[1]._id,
+          sorteo: sorteo._id,
           monto,
         });
       }

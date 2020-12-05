@@ -46,39 +46,7 @@ describe("prueba de API POS", () => {
         authToken = token(taquilla.token);
       });
   });
-  it('cambiar clave', async function () {
-    const payload = { actual: "1234", nueva: "4321" }
-    return request(app).post(url('auth/cambiarclave')).set(authToken)
-      .send(payload)
-      .expect(200)
-      .then(anError)
-  });
-  it('reestablecer contraseña', async function () {
-    const payload = { actual: "4321", nueva: "1234" }
-    return request(app).post(url('auth/cambiarclave')).set(authToken)
-      .send(payload)
-      .expect(200)
-      .then(anError)
-  });
-  it('generar caja', async function () {
-    this.timeout(0)
-    return request(app).get(url('reporte/caja/generar')).set(authToken)
-      .expect(200)
-      .then(anError)
-      .then(result => result.body).then(body => {
-        console.log(JSON.stringify(body));
-      })
-  });
-  it('reporte de caja', async function () {
-    const fecha = isoDate()
-    return request(app).get(url('reporte/caja', { fecha: "2020-12-03" })).set(authToken)
-      .expect(200)
-      .then(anError)
-      .then(result => result.body).then(body => {
-        expect(body.reportes).to.have.length.above(0);
-      })
-  });
-  it.skip("sorteos disponibles", function () {
+  it("sorteos disponibles", function () {
     const hoy = isoDate();
     return request(app)
       .get(url("sorteo/disponibles", { fecha: hoy }))
@@ -93,7 +61,7 @@ describe("prueba de API POS", () => {
         console.log('sorteo seleccionado: ', sorteo.descripcion);
       });
   });
-  it.skip('sorteos', async function () {
+  it('sorteos', async function () {
     const payload = {
       fecha: isoDate(),
       operadora: operadoras[0]._id
@@ -102,8 +70,17 @@ describe("prueba de API POS", () => {
       .expect(200)
       .then(anError)
   });
-
-  it.skip("validar", async function () {
+  it('numeros', async function () {
+    return request(app).get(url('sorteo/numeros')).set(authToken)
+      .expect(200)
+      .then(anError)
+      .then(result => result.body).then(numeros => {
+        expect(numeros.numeros).to.have.length.above(0);
+      })
+  });
+});
+describe.skip('vender', () => {
+  it("validar", async function () {
     this.timeout(0)
     tickets = crearTickets(5);
     return request(app)
@@ -117,7 +94,7 @@ describe("prueba de API POS", () => {
         ticketVendido = ticket.ticket;
       });
   });
-  it.skip("vender", async function () {
+  it("vender", async function () {
     this.timeout(0)
     return request(app)
       .post(url("ticket/venta"))
@@ -130,7 +107,7 @@ describe("prueba de API POS", () => {
         ticketVendido = ticket.ticket;
       });
   });
-  it.skip("buscar ticket", async function () {
+  it("buscar ticket", async function () {
     const payload = { serial: 'A12037' };
     return request(app)
       .get(url(`ticket/buscar`, payload))
@@ -141,7 +118,25 @@ describe("prueba de API POS", () => {
         console.log("ticket: >> ", ticket);
       })
   });
+
 });
+describe.skip('cambiar clave', () => {
+  it('cambiar clave', async function () {
+    const payload = { actual: "1234", nueva: "4321" }
+    return request(app).post(url('auth/cambiarclave')).set(authToken)
+      .send(payload)
+      .expect(200)
+      .then(anError)
+  });
+  it('reestablecer contraseña', async function () {
+    const payload = { actual: "4321", nueva: "1234" }
+    return request(app).post(url('auth/cambiarclave')).set(authToken)
+      .send(payload)
+      .expect(200)
+      .then(anError)
+  });
+});
+
 describe.skip('anular', () => {
   it("vender para anular", async function () {
     const tickets = crearTickets(4);
@@ -269,6 +264,24 @@ describe.skip("reportes", () => {
       .then((reportes) => {
         expect(reportes.reportes).length.above(0);
       });
+  });
+  it('generar caja', async function () {
+    this.timeout(0)
+    return request(app).get(url('reporte/caja/generar')).set(authToken)
+      .expect(200)
+      .then(anError)
+      .then(result => result.body).then(body => {
+        console.log(JSON.stringify(body));
+      })
+  });
+  it('reporte de caja', async function () {
+    const fecha = isoDate()
+    return request(app).get(url('reporte/caja', { fecha: "2020-12-03" })).set(authToken)
+      .expect(200)
+      .then(anError)
+      .then(result => result.body).then(body => {
+        expect(body.reportes).to.have.length.above(0);
+      })
   });
 });
 
