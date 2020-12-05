@@ -1,13 +1,13 @@
-REQUISITOS DE SISTEMA
-NodeJS  v12
-Redis   v5.0.9
-MongoDB v4.2
+REQUISITOS DE SISTEMA  
+NodeJS  v12  
+Redis   v5.0.9  
+MongoDB v4.2  
 
 OPERADORA
-✅ Crear, modificar, eliminar
-✅ Registrar, abrir/cerrar, premiar sorteos
-✅ Asignar enlaces usuario/operadora
-✅ Registrar, asignar Grupos de Pago
+✅ Crear, modificar, eliminar  
+✅ Registrar, abrir/cerrar, premiar sorteos  
+✅ Asignar enlaces usuario/operadora  
+✅ Registrar, asignar Grupos de Pago  
 
 MONITOREO
 ✅ Monitoreo de ventas por nivel de usuario y numeros
